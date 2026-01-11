@@ -14,6 +14,19 @@
     color: #d63031;
 }
 
+.strix-demo-notice {
+    background: #e6f7ff;
+    border: 1px solid #91d5ff;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 10px 0;
+    color: #1890ff;
+}
+
+.strix-demo-notice strong {
+    color: #0050b3;
+}
+
 /* Reviews Summary */
 .strix-reviews-summary {
     text-align: center;

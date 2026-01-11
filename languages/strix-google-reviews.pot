@@ -117,3 +117,18 @@ msgstr ""
 
 msgid "Plugin not properly initialized."
 msgstr ""
+
+msgid "Demo Mode"
+msgstr ""
+
+msgid "Enable demo mode to show sample reviews when API is not configured"
+msgstr ""
+
+msgid "Demo mode displays sample reviews for testing purposes. Disable it to show only real reviews."
+msgstr ""
+
+msgid "Demo Mode:"
+msgstr ""
+
+msgid "These are sample reviews. Configure Google Places API to show real reviews."
+msgstr ""

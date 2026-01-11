@@ -82,6 +82,7 @@ class Strix_Google_Reviews {
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_phone');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_filter_5_star');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_cache_timeout');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_demo_mode');
 
         add_settings_section(
             'strix_google_reviews_main',
@@ -149,6 +150,14 @@ class Strix_Google_Reviews {
             'strix_google_reviews_cache_timeout',
             __('Cache Timeout (hours)', 'strix-google-reviews'),
             array($this, 'cache_timeout_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_display'
+        );
+
+        add_settings_field(
+            'strix_google_reviews_demo_mode',
+            __('Demo Mode', 'strix-google-reviews'),
+            array($this, 'demo_mode_callback'),
             'strix-google-reviews',
             'strix_google_reviews_display'
         );
@@ -264,6 +273,16 @@ class Strix_Google_Reviews {
         $value = get_option('strix_google_reviews_cache_timeout', '24');
         echo '<input type="number" name="strix_google_reviews_cache_timeout" value="' . esc_attr($value) . '" min="1" max="168" />';
         echo '<p class="description">' . __('How long to cache reviews (in hours). Default is 24 hours.', 'strix-google-reviews') . '</p>';
+    }
+
+    /**
+     * Demo mode callback
+     */
+    public function demo_mode_callback() {
+        $value = get_option('strix_google_reviews_demo_mode', '1');
+        echo '<input type="checkbox" name="strix_google_reviews_demo_mode" value="1"' . checked(1, $value, false) . ' />';
+        echo '<label>' . __('Enable demo mode to show sample reviews when API is not configured', 'strix-google-reviews') . '</label>';
+        echo '<p class="description">' . __('Demo mode displays sample reviews for testing purposes. Disable it to show only real reviews.', 'strix-google-reviews') . '</p>';
     }
 
     /**
@@ -402,17 +421,20 @@ class Strix_Google_Reviews {
     /**
      * Fetch reviews from Google Places API
      */
-    public function fetch_google_reviews($place_id = null, $force_refresh = false) {
+    public function fetch_google_reviews($place_id = null, $force_refresh = false, $force_demo = false) {
+        $demo_mode = get_option('strix_google_reviews_demo_mode', '1');
         $api_key = get_option('strix_google_reviews_api_key');
         $default_place_id = get_option('strix_google_reviews_place_id');
 
-        if (!$api_key) {
-            return array('error' => __('API key not configured', 'strix-google-reviews'));
+        // Use demo mode if enabled or forced, or if API is not configured
+        if ($force_demo || $demo_mode || !$api_key) {
+            return $this->generate_mock_reviews($place_id);
         }
 
         $place_id = $place_id ?: $default_place_id;
         if (!$place_id) {
-            return array('error' => __('Place ID not configured', 'strix-google-reviews'));
+            // Fallback to demo if no place ID
+            return $this->generate_mock_reviews($place_id);
         }
 
         $cache_key = 'strix_google_reviews_' . md5($place_id);
@@ -478,6 +500,84 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * Generate mock reviews for demo mode
+     */
+    public function generate_mock_reviews($place_id = null) {
+        $mock_reviews = array(
+            array(
+                'author_name' => 'Анна Петрова',
+                'rating' => 5,
+                'text' => 'Отличное место! Очень уютная атмосфера, вежливый персонал и вкусная еда. Обязательно вернусь сюда снова!',
+                'time' => time() - 86400 * 7, // 7 дней назад
+                'relative_time' => 'неделю назад',
+                'profile_photo_url' => '',
+                'language' => 'ru'
+            ),
+            array(
+                'author_name' => 'Михаил Сидоров',
+                'rating' => 5,
+                'text' => 'Прекрасное обслуживание! Шеф-повар настоящий профессионал. Каждый раз когда прихожу сюда, остаюсь доволен.',
+                'time' => time() - 86400 * 14, // 14 дней назад
+                'relative_time' => '2 недели назад',
+                'profile_photo_url' => '',
+                'language' => 'ru'
+            ),
+            array(
+                'author_name' => 'Елена Козлова',
+                'rating' => 4,
+                'text' => 'Хорошее место для семейного ужина. Детям понравилось меню, а взрослым - спокойная атмосфера.',
+                'time' => time() - 86400 * 21, // 21 день назад
+                'relative_time' => '3 недели назад',
+                'profile_photo_url' => '',
+                'language' => 'ru'
+            ),
+            array(
+                'author_name' => 'Дмитрий Иванов',
+                'rating' => 5,
+                'text' => 'Лучшее место в городе! Рекомендую всем знакомым. Качество блюд на высшем уровне.',
+                'time' => time() - 86400 * 30, // 30 дней назад
+                'relative_time' => 'месяц назад',
+                'profile_photo_url' => '',
+                'language' => 'ru'
+            ),
+            array(
+                'author_name' => 'Ольга Смирнова',
+                'rating' => 5,
+                'text' => 'Была здесь на дне рождения. Все было организовано на 5 звезд! Спасибо за чудесный вечер.',
+                'time' => time() - 86400 * 45, // 45 дней назад
+                'relative_time' => '6 недель назад',
+                'profile_photo_url' => '',
+                'language' => 'ru'
+            )
+        );
+
+        // Фильтр 5-звездочных отзывов если включено
+        $filter_5_star = get_option('strix_google_reviews_filter_5_star', '0');
+        if ($filter_5_star) {
+            $mock_reviews = array_filter($mock_reviews, function($review) {
+                return $review['rating'] == 5;
+            });
+        }
+
+        // Перемешиваем отзывы для разнообразия
+        shuffle($mock_reviews);
+
+        $company_name = $place_id ? 'Ваша Компания' : 'Demo Restaurant';
+
+        return array(
+            'place_info' => array(
+                'name' => $company_name,
+                'rating' => 4.8,
+                'address' => 'ул. Примерная, 123, Город',
+                'website' => 'https://example.com',
+                'phone' => '+7 (123) 456-78-90'
+            ),
+            'reviews' => $mock_reviews,
+            'is_demo' => true
+        );
+    }
+
+    /**
      * AJAX refresh reviews
      */
     public function ajax_refresh_reviews() {
@@ -519,6 +619,13 @@ class Strix_Google_Reviews {
         $show_company = get_option('strix_google_reviews_show_company_name', '1');
         $show_website = get_option('strix_google_reviews_show_website', '0');
         $show_phone = get_option('strix_google_reviews_show_phone', '0');
+        $is_demo = isset($reviews_data['is_demo']) && $reviews_data['is_demo'];
+
+        if ($is_demo) {
+            echo '<div class="strix-demo-notice">';
+            echo '<p><strong>' . __('Demo Mode:', 'strix-google-reviews') . '</strong> ' . __('These are sample reviews. Configure Google Places API to show real reviews.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+        }
 
         ?>
         <div class="strix-reviews-summary">
@@ -604,10 +711,12 @@ class Strix_Google_Reviews {
             'limit' => 5,
             'show_company' => null,
             'show_rating' => '1',
-            'layout' => 'list'
+            'layout' => 'list',
+            'demo' => null
         ), $atts);
 
-        $reviews_data = $this->fetch_google_reviews($atts['place_id']);
+        $force_demo = ($atts['demo'] === 'true' || $atts['demo'] === '1');
+        $reviews_data = $this->fetch_google_reviews($atts['place_id'], false, $force_demo);
 
         if (isset($reviews_data['error'])) {
             return '<div class="strix-google-reviews-error">' . esc_html($reviews_data['error']) . '</div>';
