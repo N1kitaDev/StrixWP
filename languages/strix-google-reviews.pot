@@ -132,3 +132,111 @@ msgstr ""
 
 msgid "These are sample reviews. Configure Google Places API to show real reviews."
 msgstr ""
+
+msgid "Custom Reviews Settings"
+msgstr ""
+
+msgid "Configure settings for custom reviews submitted by visitors."
+msgstr ""
+
+msgid "Auto-approve Reviews"
+msgstr ""
+
+msgid "Automatically approve and publish submitted reviews"
+msgstr ""
+
+msgid "If unchecked, reviews will need manual approval in admin panel."
+msgstr ""
+
+msgid "Require Name"
+msgstr ""
+
+msgid "Require visitor name for review submission"
+msgstr ""
+
+msgid "Require Email"
+msgstr ""
+
+msgid "Require visitor email for review submission"
+msgstr ""
+
+msgid "Show Review Form"
+msgstr ""
+
+msgid "Show review submission form with reviews list"
+msgstr ""
+
+msgid "If unchecked, only reviews will be displayed without submission form."
+msgstr ""
+
+msgid "Custom Reviews"
+msgstr ""
+
+msgid "Name is required"
+msgstr ""
+
+msgid "Email is required"
+msgstr ""
+
+msgid "Review text is required"
+msgstr ""
+
+msgid "Invalid rating"
+msgstr ""
+
+msgid "Failed to save review"
+msgstr ""
+
+msgid "Thank you! Your review has been published."
+msgstr ""
+
+msgid "Thank you! Your review is awaiting moderation."
+msgstr ""
+
+msgid "No reviews found"
+msgstr ""
+
+msgid "Write a Review"
+msgstr ""
+
+msgid "Your Name"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Rating"
+msgstr ""
+
+msgid "%d star"
+msgstr ""
+
+msgid "Your Review"
+msgstr ""
+
+msgid "Share your experience..."
+msgstr ""
+
+msgid "Submit Review"
+msgstr ""
+
+msgid "Submitting..."
+msgstr ""
+
+msgid "Load More"
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "No reviews yet. Be the first to leave a review!"
+msgstr ""
+
+msgid "Error submitting review. Please try again."
+msgstr ""
+
+msgid "Error loading reviews"
+msgstr ""
+
+msgid "Error loading reviews. Please try again."
+msgstr ""

@@ -57,8 +57,13 @@ class Strix_Google_Reviews {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
         add_action('widgets_init', array($this, 'register_widgets'));
         add_action('init', array($this, 'register_shortcodes'));
+        add_action('init', array($this, 'register_custom_post_type'));
         add_action('wp_ajax_strix_refresh_reviews', array($this, 'ajax_refresh_reviews'));
         add_action('wp_ajax_nopriv_strix_refresh_reviews', array($this, 'ajax_refresh_reviews'));
+        add_action('wp_ajax_strix_submit_review', array($this, 'ajax_submit_review'));
+        add_action('wp_ajax_nopriv_strix_submit_review', array($this, 'ajax_submit_review'));
+        add_action('wp_ajax_strix_load_reviews', array($this, 'ajax_load_reviews'));
+        add_action('wp_ajax_nopriv_strix_load_reviews', array($this, 'ajax_load_reviews'));
 
         // Include required files
         $this->includes();
@@ -83,6 +88,10 @@ class Strix_Google_Reviews {
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_filter_5_star');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_cache_timeout');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_demo_mode');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_auto_approve');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_require_name');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_require_email');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_form');
 
         add_settings_section(
             'strix_google_reviews_main',
@@ -111,6 +120,13 @@ class Strix_Google_Reviews {
             'strix_google_reviews_display',
             __('Display Settings', 'strix-google-reviews'),
             array($this, 'display_section_callback'),
+            'strix-google-reviews'
+        );
+
+        add_settings_section(
+            'strix_google_reviews_custom',
+            __('Custom Reviews Settings', 'strix-google-reviews'),
+            array($this, 'custom_reviews_section_callback'),
             'strix-google-reviews'
         );
 
@@ -161,6 +177,38 @@ class Strix_Google_Reviews {
             'strix-google-reviews',
             'strix_google_reviews_display'
         );
+
+        add_settings_field(
+            'strix_google_reviews_auto_approve',
+            __('Auto-approve Reviews', 'strix-google-reviews'),
+            array($this, 'auto_approve_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_custom'
+        );
+
+        add_settings_field(
+            'strix_google_reviews_require_name',
+            __('Require Name', 'strix-google-reviews'),
+            array($this, 'require_name_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_custom'
+        );
+
+        add_settings_field(
+            'strix_google_reviews_require_email',
+            __('Require Email', 'strix-google-reviews'),
+            array($this, 'require_email_callback'),
+            'strix-google-reviews',
+            'strix-google-reviews_custom'
+        );
+
+        add_settings_field(
+            'strix_google_reviews_show_form',
+            __('Show Review Form', 'strix-google-reviews'),
+            array($this, 'show_form_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_custom'
+        );
     }
 
     /**
@@ -188,11 +236,19 @@ class Strix_Google_Reviews {
 
         add_submenu_page(
             'strix-google-reviews',
-            __('Reviews', 'strix-google-reviews'),
-            __('Reviews', 'strix-google-reviews'),
+            __('Google Reviews', 'strix-google-reviews'),
+            __('Google Reviews', 'strix-google-reviews'),
             'manage_options',
             'strix-google-reviews-reviews',
             array($this, 'reviews_page')
+        );
+
+        add_submenu_page(
+            'strix-google-reviews',
+            __('Custom Reviews', 'strix-google-reviews'),
+            __('Custom Reviews', 'strix-google-reviews'),
+            'manage_options',
+            'edit.php?post_type=strix_review'
         );
     }
 
@@ -283,6 +339,51 @@ class Strix_Google_Reviews {
         echo '<input type="checkbox" name="strix_google_reviews_demo_mode" value="1"' . checked(1, $value, false) . ' />';
         echo '<label>' . __('Enable demo mode to show sample reviews when API is not configured', 'strix-google-reviews') . '</label>';
         echo '<p class="description">' . __('Demo mode displays sample reviews for testing purposes. Disable it to show only real reviews.', 'strix-google-reviews') . '</p>';
+    }
+
+    /**
+     * Custom reviews section callback
+     */
+    public function custom_reviews_section_callback() {
+        echo '<p>' . __('Configure settings for custom reviews submitted by visitors.', 'strix-google-reviews') . '</p>';
+    }
+
+    /**
+     * Auto-approve callback
+     */
+    public function auto_approve_callback() {
+        $value = get_option('strix_google_reviews_auto_approve', '0');
+        echo '<input type="checkbox" name="strix_google_reviews_auto_approve" value="1"' . checked(1, $value, false) . ' />';
+        echo '<label>' . __('Automatically approve and publish submitted reviews', 'strix-google-reviews') . '</label>';
+        echo '<p class="description">' . __('If unchecked, reviews will need manual approval in admin panel.', 'strix-google-reviews') . '</p>';
+    }
+
+    /**
+     * Require name callback
+     */
+    public function require_name_callback() {
+        $value = get_option('strix_google_reviews_require_name', '1');
+        echo '<input type="checkbox" name="strix_google_reviews_require_name" value="1"' . checked(1, $value, false) . ' />';
+        echo '<label>' . __('Require visitor name for review submission', 'strix-google-reviews') . '</label>';
+    }
+
+    /**
+     * Require email callback
+     */
+    public function require_email_callback() {
+        $value = get_option('strix_google_reviews_require_email', '0');
+        echo '<input type="checkbox" name="strix_google_reviews_require_email" value="1"' . checked(1, $value, false) . ' />';
+        echo '<label>' . __('Require visitor email for review submission', 'strix-google-reviews') . '</label>';
+    }
+
+    /**
+     * Show form callback
+     */
+    public function show_form_callback() {
+        $value = get_option('strix_google_reviews_show_form', '1');
+        echo '<input type="checkbox" name="strix_google_reviews_show_form" value="1"' . checked(1, $value, false) . ' />';
+        echo '<label>' . __('Show review submission form with reviews list', 'strix-google-reviews') . '</label>';
+        echo '<p class="description">' . __('If unchecked, only reviews will be displayed without submission form.', 'strix-google-reviews') . '</p>';
     }
 
     /**
@@ -402,6 +503,12 @@ class Strix_Google_Reviews {
             self::VERSION,
             true
         );
+
+        // Localize script for AJAX
+        wp_localize_script('strix-google-reviews-frontend', 'strix_reviews_ajax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('strix_reviews_nonce'),
+        ));
     }
 
     /**
@@ -412,10 +519,45 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * Register custom post type for reviews
+     */
+    public function register_custom_post_type() {
+        register_post_type('strix_review', array(
+            'label' => __('Custom Reviews', 'strix-google-reviews'),
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => 'strix-google-reviews',
+            'supports' => array('title', 'editor', 'custom-fields'),
+            'capability_type' => 'post',
+            'capabilities' => array(
+                'edit_posts' => 'manage_options',
+                'edit_others_posts' => 'manage_options',
+                'publish_posts' => 'manage_options',
+                'read_private_posts' => 'manage_options',
+                'delete_posts' => 'manage_options',
+            ),
+            'menu_position' => 20,
+            'menu_icon' => 'dashicons-star-filled',
+        ));
+
+        // Add custom status for pending reviews
+        register_post_status('pending_review', array(
+            'label' => __('Pending Review', 'strix-google-reviews'),
+            'public' => false,
+            'internal' => true,
+            'show_in_admin_all_list' => true,
+            'show_in_admin_status_list' => true,
+            'label_count' => _n_noop('Pending Review <span class="count">(%s)</span>', 'Pending Reviews <span class="count">(%s)</span>', 'strix-google-reviews'),
+        ));
+    }
+
+    /**
      * Register shortcodes
      */
     public function register_shortcodes() {
         add_shortcode('strix_google_reviews', array($this, 'render_shortcode'));
+        add_shortcode('strix_custom_reviews', array($this, 'render_custom_reviews_shortcode'));
+        add_shortcode('strix_review_form', array($this, 'render_review_form_shortcode'));
     }
 
     /**
@@ -599,6 +741,108 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * AJAX submit review
+     */
+    public function ajax_submit_review() {
+        check_ajax_referer('strix_submit_review', 'nonce');
+
+        // Get form data
+        $name = sanitize_text_field($_POST['name'] ?? '');
+        $email = sanitize_email($_POST['email'] ?? '');
+        $rating = intval($_POST['rating'] ?? 5);
+        $review_text = sanitize_textarea_field($_POST['review_text'] ?? '');
+
+        // Validation
+        $errors = array();
+
+        if (get_option('strix_google_reviews_require_name', '1') && empty($name)) {
+            $errors[] = __('Name is required', 'strix-google-reviews');
+        }
+
+        if (get_option('strix_google_reviews_require_email', '0') && empty($email)) {
+            $errors[] = __('Email is required', 'strix-google-reviews');
+        }
+
+        if (empty($review_text)) {
+            $errors[] = __('Review text is required', 'strix-google-reviews');
+        }
+
+        if ($rating < 1 || $rating > 5) {
+            $errors[] = __('Invalid rating', 'strix-google-reviews');
+        }
+
+        if (!empty($errors)) {
+            wp_send_json_error(array('errors' => $errors));
+        }
+
+        // Create review post
+        $post_data = array(
+            'post_title' => $name,
+            'post_content' => $review_text,
+            'post_type' => 'strix_review',
+            'post_status' => get_option('strix_google_reviews_auto_approve', '0') ? 'publish' : 'pending_review',
+            'meta_input' => array(
+                '_strix_rating' => $rating,
+                '_strix_email' => $email,
+                '_strix_ip' => $_SERVER['REMOTE_ADDR'],
+                '_strix_user_agent' => $_SERVER['HTTP_USER_AGENT'],
+            ),
+        );
+
+        $post_id = wp_insert_post($post_data);
+
+        if (is_wp_error($post_id)) {
+            wp_send_json_error(array('errors' => array(__('Failed to save review', 'strix-google-reviews'))));
+        }
+
+        $status = get_option('strix_google_reviews_auto_approve', '0') ? 'published' : 'pending';
+        wp_send_json_success(array(
+            'message' => $status === 'published' ?
+                __('Thank you! Your review has been published.', 'strix-google-reviews') :
+                __('Thank you! Your review is awaiting moderation.', 'strix-google-reviews'),
+            'status' => $status
+        ));
+    }
+
+    /**
+     * AJAX load reviews
+     */
+    public function ajax_load_reviews() {
+        $page = intval($_POST['page'] ?? 1);
+        $per_page = intval($_POST['per_page'] ?? 10);
+
+        $args = array(
+            'post_type' => 'strix_review',
+            'post_status' => 'publish',
+            'posts_per_page' => $per_page,
+            'paged' => $page,
+            'orderby' => 'date',
+            'order' => 'DESC',
+        );
+
+        $reviews_query = new WP_Query($args);
+
+        if (!$reviews_query->have_posts()) {
+            wp_send_json_error(array('message' => __('No reviews found', 'strix-google-reviews')));
+        }
+
+        ob_start();
+        while ($reviews_query->have_posts()) {
+            $reviews_query->the_post();
+            $this->display_single_custom_review(get_the_ID());
+        }
+        $html = ob_get_clean();
+
+        wp_reset_postdata();
+
+        wp_send_json_success(array(
+            'html' => $html,
+            'has_more' => $page < $reviews_query->max_num_pages,
+            'total' => $reviews_query->found_posts
+        ));
+    }
+
+    /**
      * Display cached reviews
      */
     public function display_cached_reviews() {
@@ -744,6 +988,172 @@ class Strix_Google_Reviews {
         }
 
         return ob_get_clean();
+    }
+
+    /**
+     * Render custom reviews shortcode
+     */
+    public function render_custom_reviews_shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'limit' => 10,
+            'show_form' => null,
+            'pagination' => '1',
+        ), $atts);
+
+        $show_form = $atts['show_form'] !== null ? $atts['show_form'] : get_option('strix_google_reviews_show_form', '1');
+
+        ob_start();
+        echo '<div class="strix-custom-reviews-container">';
+
+        // Show form if enabled
+        if ($show_form) {
+            echo '<div class="strix-review-form-section">';
+            $this->display_review_form();
+            echo '</div>';
+        }
+
+        // Show reviews
+        echo '<div class="strix-custom-reviews-list" data-page="1" data-limit="' . esc_attr($atts['limit']) . '">';
+        $this->display_custom_reviews($atts['limit'], 1);
+        echo '</div>';
+
+        // Pagination
+        if ($atts['pagination']) {
+            echo '<div class="strix-reviews-pagination">';
+            echo '<button class="strix-load-more-reviews button">' . __('Load More', 'strix-google-reviews') . '</button>';
+            echo '<span class="strix-loading" style="display:none;">' . __('Loading...', 'strix-google-reviews') . '</span>';
+            echo '</div>';
+        }
+
+        echo '</div>';
+        return ob_get_clean();
+    }
+
+    /**
+     * Render review form shortcode
+     */
+    public function render_review_form_shortcode($atts) {
+        ob_start();
+        $this->display_review_form();
+        return ob_get_clean();
+    }
+
+    /**
+     * Display review submission form
+     */
+    public function display_review_form() {
+        $require_name = get_option('strix_google_reviews_require_name', '1');
+        $require_email = get_option('strix_google_reviews_require_email', '0');
+
+        ?>
+        <div class="strix-review-form">
+            <h3><?php _e('Write a Review', 'strix-google-reviews'); ?></h3>
+            <form id="strix-review-form" method="post">
+                <?php wp_nonce_field('strix_submit_review', 'strix_review_nonce'); ?>
+
+                <div class="strix-form-group">
+                    <label for="strix-review-name">
+                        <?php _e('Your Name', 'strix-google-reviews'); ?>
+                        <?php if ($require_name): ?><span class="required">*</span><?php endif; ?>
+                    </label>
+                    <input type="text" id="strix-review-name" name="name" required="<?php echo $require_name ? 'required' : ''; ?>" />
+                </div>
+
+                <?php if ($require_email || get_option('strix_google_reviews_require_email', '0')): ?>
+                <div class="strix-form-group">
+                    <label for="strix-review-email">
+                        <?php _e('Email', 'strix-google-reviews'); ?>
+                        <span class="required">*</span>
+                    </label>
+                    <input type="email" id="strix-review-email" name="email" required />
+                </div>
+                <?php endif; ?>
+
+                <div class="strix-form-group">
+                    <label><?php _e('Rating', 'strix-google-reviews'); ?><span class="required">*</span></label>
+                    <div class="strix-rating-input">
+                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                            <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" <?php echo $i === 5 ? 'checked' : ''; ?> />
+                            <label for="star<?php echo $i; ?>" title="<?php printf(__('%d star', 'strix-google-reviews'), $i); ?>">★</label>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+
+                <div class="strix-form-group">
+                    <label for="strix-review-text">
+                        <?php _e('Your Review', 'strix-google-reviews'); ?><span class="required">*</span>
+                    </label>
+                    <textarea id="strix-review-text" name="review_text" rows="4" required placeholder="<?php _e('Share your experience...', 'strix-google-reviews'); ?>"></textarea>
+                </div>
+
+                <div class="strix-form-group">
+                    <button type="submit" class="strix-submit-review button">
+                        <?php _e('Submit Review', 'strix-google-reviews'); ?>
+                    </button>
+                    <span class="strix-form-loading" style="display:none;"><?php _e('Submitting...', 'strix-google-reviews'); ?></span>
+                </div>
+
+                <div class="strix-form-message" style="display:none;"></div>
+            </form>
+        </div>
+        <?php
+    }
+
+    /**
+     * Display custom reviews
+     */
+    public function display_custom_reviews($limit = 10, $page = 1) {
+        $args = array(
+            'post_type' => 'strix_review',
+            'post_status' => 'publish',
+            'posts_per_page' => $limit,
+            'paged' => $page,
+            'orderby' => 'date',
+            'order' => 'DESC',
+        );
+
+        $reviews_query = new WP_Query($args);
+
+        if (!$reviews_query->have_posts()) {
+            echo '<p class="strix-no-reviews">' . __('No reviews yet. Be the first to leave a review!', 'strix-google-reviews') . '</p>';
+            return;
+        }
+
+        while ($reviews_query->have_posts()) {
+            $reviews_query->the_post();
+            $this->display_single_custom_review(get_the_ID());
+        }
+
+        wp_reset_postdata();
+    }
+
+    /**
+     * Display single custom review
+     */
+    public function display_single_custom_review($post_id) {
+        $rating = get_post_meta($post_id, '_strix_rating', true);
+        $email = get_post_meta($post_id, '_strix_email', true);
+
+        ?>
+        <div class="strix-custom-review-item" data-review-id="<?php echo esc_attr($post_id); ?>">
+            <div class="strix-review-header">
+                <div class="strix-review-avatar">
+                    <?php echo esc_html(substr(get_the_title(), 0, 1)); ?>
+                </div>
+                <div class="strix-review-meta">
+                    <h4 class="strix-review-author"><?php echo esc_html(get_the_title()); ?></h4>
+                    <div class="strix-review-rating">
+                        <?php echo $this->render_stars($rating); ?>
+                    </div>
+                    <time class="strix-review-time"><?php echo esc_html(get_the_date()); ?></time>
+                </div>
+            </div>
+
+            <div class="strix-review-text">
+                <?php echo wp_kses_post(get_the_content()); ?>
+            </div>
+        </div>
+        <?php
     }
 }
 
