@@ -69,6 +69,7 @@ class Strix_Google_Reviews {
         add_action('wp_ajax_strix_submit_review', array($this, 'ajax_submit_review'));
         add_action('wp_ajax_nopriv_strix_submit_review', array($this, 'ajax_submit_review'));
         add_action('wp_ajax_strix_load_reviews', array($this, 'ajax_load_reviews'));
+        add_action('wp_ajax_strix_update_preview', array($this, 'ajax_update_preview'));
         add_action('wp_ajax_nopriv_strix_load_reviews', array($this, 'ajax_load_reviews'));
 
         // Include required files
@@ -616,22 +617,91 @@ class Strix_Google_Reviews {
     public function reviews_page() {
         ?>
         <div class="wrap">
-            <h1><?php _e('Google Reviews Management', 'strix-google-reviews'); ?></h1>
+            <h1><?php _e('Reviews Management', 'strix-google-reviews'); ?></h1>
 
-            <div class="strix-reviews-actions">
-                <button id="strix-refresh-reviews" class="button button-primary">
-                    <?php _e('Refresh Reviews', 'strix-google-reviews'); ?>
-                </button>
-                <span id="strix-loading" style="display:none;"><?php _e('Loading...', 'strix-google-reviews'); ?></span>
+            <!-- Reviews Preview Section -->
+            <div class="strix-reviews-preview-section">
+                <h2><?php _e('Reviews Preview', 'strix-google-reviews'); ?></h2>
+                <p><?php _e('This shows how your reviews will appear on the website. You can test different layouts and filters here.', 'strix-google-reviews'); ?></p>
+
+                <div class="strix-preview-controls">
+                    <select id="preview-layout" class="regular-text">
+                        <option value="list"><?php _e('List Layout', 'strix-google-reviews'); ?></option>
+                        <option value="grid"><?php _e('Grid Layout', 'strix-google-reviews'); ?></option>
+                        <option value="slider"><?php _e('Slider Layout', 'strix-google-reviews'); ?></option>
+                        <option value="badge"><?php _e('Badge Layout', 'strix-google-reviews'); ?></option>
+                        <option value="popup"><?php _e('Popup Layout', 'strix-google-reviews'); ?></option>
+                    </select>
+
+                    <select id="preview-style" class="regular-text">
+                        <option value="1"><?php _e('Style 1', 'strix-google-reviews'); ?></option>
+                        <option value="2"><?php _e('Style 2', 'strix-google-reviews'); ?></option>
+                        <option value="3"><?php _e('Style 3', 'strix-google-reviews'); ?></option>
+                        <option value="4"><?php _e('Style 4', 'strix-google-reviews'); ?></option>
+                        <option value="5"><?php _e('Style 5', 'strix-google-reviews'); ?></option>
+                    </select>
+
+                    <input type="number" id="preview-limit" value="5" min="1" max="20" class="small-text">
+
+                    <button id="update-preview" class="button"><?php _e('Update Preview', 'strix-google-reviews'); ?></button>
+                </div>
+
+                <div id="strix-preview-container" class="strix-admin-preview">
+                    <?php echo $this->render_preview_reviews('', 5, '', '', 'newest', 'list', '1'); ?>
+                </div>
             </div>
 
-            <div id="strix-reviews-container">
-                <?php $this->display_cached_reviews(); ?>
+            <!-- Google Reviews Section -->
+            <div class="strix-google-reviews-section">
+                <h2><?php _e('Google Reviews', 'strix-google-reviews'); ?></h2>
+                <p><?php _e('Manage your Google Business Profile reviews. These will be displayed when using Google data source.', 'strix-google-reviews'); ?></p>
+
+                <div class="strix-reviews-actions">
+                    <button id="strix-refresh-reviews" class="button button-primary">
+                        <?php _e('Refresh Reviews', 'strix-google-reviews'); ?>
+                    </button>
+                    <span id="strix-loading" style="display:none;"><?php _e('Loading...', 'strix-google-reviews'); ?></span>
+                </div>
+
+                <div id="strix-reviews-container">
+                    <?php $this->display_cached_reviews(); ?>
+                </div>
             </div>
         </div>
 
         <script>
         jQuery(document).ready(function($) {
+            // Preview controls
+            $('#update-preview').on('click', function() {
+                var layout = $('#preview-layout').val();
+                var style = $('#preview-style').val();
+                var limit = $('#preview-limit').val();
+
+                $('#strix-preview-container').html('<p><?php _e('Loading preview...', 'strix-google-reviews'); ?></p>');
+
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'strix_update_preview',
+                        layout: layout,
+                        style: style,
+                        limit: limit,
+                        nonce: '<?php echo wp_create_nonce('strix_preview_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#strix-preview-container').html(response.data);
+                        } else {
+                            $('#strix-preview-container').html('<p><?php _e('Error loading preview', 'strix-google-reviews'); ?></p>');
+                        }
+                    },
+                    error: function() {
+                        $('#strix-preview-container').html('<p><?php _e('Error loading preview', 'strix-google-reviews'); ?></p>');
+                    }
+                });
+            });
+
             $('#strix-refresh-reviews').on('click', function() {
                 $('#strix-loading').show();
                 $(this).prop('disabled', true);
@@ -1428,6 +1498,62 @@ class Strix_Google_Reviews {
 
         .strix-preview-notice strong {
             color: #78350f;
+        }
+
+        /* Admin Preview Styles */
+        .strix-reviews-preview-section {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .strix-reviews-preview-section h2 {
+            margin-top: 0;
+            color: #1d2327;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .strix-preview-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .strix-preview-controls select,
+        .strix-preview-controls input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .strix-admin-preview {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            background: #fafafa;
+        }
+
+        .strix-google-reviews-section {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .strix-google-reviews-section h2 {
+            margin-top: 0;
+            color: #1d2327;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         .strix-source-icon {
@@ -2662,6 +2788,40 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * AJAX update preview
+     */
+    public function ajax_update_preview() {
+        try {
+            // Verify nonce
+            if (!wp_verify_nonce($_POST['nonce'], 'strix_preview_nonce')) {
+                wp_send_json_error(__('Security check failed', 'strix-google-reviews'));
+            }
+
+            $layout = sanitize_text_field($_POST['layout'] ?? 'list');
+            $style = sanitize_text_field($_POST['style'] ?? '1');
+            $limit = intval($_POST['limit'] ?? 5);
+
+            // Validate inputs
+            $valid_layouts = array('list', 'grid', 'slider', 'badge', 'popup');
+            if (!in_array($layout, $valid_layouts)) {
+                $layout = 'list';
+            }
+
+            if (!in_array($style, array('1', '2', '3', '4', '5'))) {
+                $style = '1';
+            }
+
+            $limit = max(1, min(20, $limit));
+
+            $preview_html = $this->render_preview_reviews('', $limit, '', '', 'newest', $layout, $style);
+
+            wp_send_json_success($preview_html);
+        } catch (Exception $e) {
+            wp_send_json_error(__('Error updating preview', 'strix-google-reviews'));
+        }
+    }
+
+    /**
      * AJAX load reviews
      */
     public function ajax_load_reviews() {
@@ -3494,10 +3654,12 @@ class Strix_Google_Reviews {
 
             ob_start();
 
-            // Add preview notice
-            echo '<div class="strix-preview-notice">';
-            echo '<p><strong>' . __('Preview Mode:', 'strix-google-reviews') . '</strong> ' . __('This shows a mix of Google demo reviews and your custom reviews for layout testing.', 'strix-google-reviews') . '</p>';
-            echo '</div>';
+            // Only show preview notice on frontend
+            if (!is_admin()) {
+                echo '<div class="strix-preview-notice">';
+                echo '<p><strong>' . __('Preview Mode:', 'strix-google-reviews') . '</strong> ' . __('This shows a mix of Google demo reviews and your custom reviews for layout testing.', 'strix-google-reviews') . '</p>';
+                echo '</div>';
+            }
 
             echo '<div class="strix-google-reviews-shortcode strix-layout-' . esc_attr($layout) . ' strix-layout-' . esc_attr($layout) . '-' . esc_attr($layout_style) . '">';
             $this->display_reviews_layout($reviews_data, $layout, $layout_style);
