@@ -234,22 +234,24 @@ class Strix_Google_Reviews {
             array($this, 'admin_page')
         );
 
+        $google_title = __('Google Reviews', 'strix-google-reviews');
+        $api_key = get_option('strix_google_reviews_api_key');
+        $demo_mode = get_option('strix_google_reviews_demo_mode', '1');
+
+        if (!$api_key || $demo_mode) {
+            $google_title .= ' (' . __('Demo', 'strix-google-reviews') . ')';
+        }
+
         add_submenu_page(
             'strix-google-reviews',
-            __('Google Reviews', 'strix-google-reviews'),
-            __('Google Reviews', 'strix-google-reviews'),
+            $google_title,
+            $google_title,
             'manage_options',
             'strix-google-reviews-reviews',
             array($this, 'reviews_page')
         );
 
-        add_submenu_page(
-            'strix-google-reviews',
-            __('Custom Reviews', 'strix-google-reviews'),
-            __('Custom Reviews', 'strix-google-reviews'),
-            'manage_options',
-            'edit.php?post_type=strix_review'
-        );
+        // Custom Reviews submenu is automatically added by register_post_type with show_in_menu
     }
 
     /**
@@ -335,10 +337,10 @@ class Strix_Google_Reviews {
      * Demo mode callback
      */
     public function demo_mode_callback() {
-        $value = get_option('strix_google_reviews_demo_mode', '1');
+        $value = get_option('strix_google_reviews_demo_mode', '0');
         echo '<input type="checkbox" name="strix_google_reviews_demo_mode" value="1"' . checked(1, $value, false) . ' />';
-        echo '<label>' . __('Enable demo mode to show sample reviews when API is not configured', 'strix-google-reviews') . '</label>';
-        echo '<p class="description">' . __('Demo mode displays sample reviews for testing purposes. Disable it to show only real reviews.', 'strix-google-reviews') . '</p>';
+        echo '<label>' . __('Enable demo mode to show sample reviews', 'strix-google-reviews') . '</label>';
+        echo '<p class="description">' . __('When enabled, shows sample reviews instead of Google reviews. Useful for testing.', 'strix-google-reviews') . '</p>';
     }
 
     /**
@@ -400,14 +402,121 @@ class Strix_Google_Reviews {
             </div>
             <?php endif; ?>
 
-            <form method="post" action="options.php">
-                <?php
-                settings_fields('strix_google_reviews_settings');
-                do_settings_sections('strix-google-reviews');
-                submit_button(__('Save Settings', 'strix-google-reviews'));
-                ?>
-            </form>
+            <div class="strix-admin-tabs">
+                <div class="strix-admin-tab active" data-tab="settings"><?php _e('Settings', 'strix-google-reviews'); ?></div>
+                <div class="strix-admin-tab" data-tab="usage"><?php _e('How to Use', 'strix-google-reviews'); ?></div>
+            </div>
+
+            <div class="strix-admin-content">
+                <div class="strix-admin-tab-content active" id="settings">
+                    <form method="post" action="options.php">
+                        <?php
+                        settings_fields('strix_google_reviews_settings');
+                        do_settings_sections('strix-google-reviews');
+                        submit_button(__('Save Settings', 'strix-google-reviews'));
+                        ?>
+                    </form>
+                </div>
+
+                <div class="strix-admin-tab-content" id="usage">
+                    <div class="strix-usage-guide">
+                        <h2><?php _e('How to Display Reviews on Your Site', 'strix-google-reviews'); ?></h2>
+
+                        <div class="strix-usage-section">
+                            <h3><?php _e('Google Reviews (from Google Places)', 'strix-google-reviews'); ?></h3>
+                            <p><?php _e('Display reviews from your Google Business Profile.', 'strix-google-reviews'); ?></p>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Basic usage:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_google_reviews]</code>
+                            </div>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('With custom Place ID and limit:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_google_reviews place_id="ChIJd8BlQ2gVwAARRapDhqKPvCQ" limit="5"]</code>
+                            </div>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Demo mode (shows sample reviews):', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_google_reviews demo="true"]</code>
+                            </div>
+                        </div>
+
+                        <div class="strix-usage-section">
+                            <h3><?php _e('Custom Reviews (from your visitors)', 'strix-google-reviews'); ?></h3>
+                            <p><?php _e('Display reviews submitted by your website visitors.', 'strix-google-reviews'); ?></p>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Reviews with submission form:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_custom_reviews]</code>
+                            </div>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Only reviews (no form):', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_custom_reviews show_form="0"]</code>
+                            </div>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Limited number of reviews:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_custom_reviews limit="5" show_form="1"]</code>
+                            </div>
+                        </div>
+
+                        <div class="strix-usage-section">
+                            <h3><?php _e('Review Submission Form Only', 'strix-google-reviews'); ?></h3>
+                            <p><?php _e('Display only the form for submitting reviews.', 'strix-google-reviews'); ?></p>
+
+                            <div class="strix-code-example">
+                                <code>[strix_review_form]</code>
+                            </div>
+                        </div>
+
+                        <div class="strix-usage-section">
+                            <h3><?php _e('Combined Example (Recommended)', 'strix-google-reviews'); ?></h3>
+                            <p><?php _e('Show both Google reviews and custom reviews on one page.', 'strix-google-reviews'); ?></p>
+
+                            <div class="strix-code-example">
+<pre><code>&lt;h2&gt;Отзывы из Google&lt;/h2&gt;
+[strix_google_reviews limit="3"]
+
+&lt;h2&gt;Отзывы посетителей&lt;/h2&gt;
+[strix_custom_reviews limit="5"]</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="strix-usage-section">
+                            <h3><?php _e('Widget Usage', 'strix-google-reviews'); ?></h3>
+                            <p><?php _e('Add reviews to your sidebar or other widget areas.', 'strix-google-reviews'); ?></p>
+                            <p><?php _e('Go to Appearance → Widgets and add the "Google Reviews" widget.', 'strix-google-reviews'); ?></p>
+                        </div>
+
+                        <div class="strix-usage-tips">
+                            <h3><?php _e('Tips:', 'strix-google-reviews'); ?></h3>
+                            <ul>
+                                <li><?php _e('Use shortcodes in pages, posts, or custom page builders.', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Configure API settings above to show real Google reviews.', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Custom reviews work without API configuration.', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Moderate custom reviews in the "Custom Reviews" menu.', 'strix-google-reviews'); ?></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            $('.strix-admin-tab').on('click', function() {
+                var tab = $(this).data('tab');
+
+                $('.strix-admin-tab').removeClass('active');
+                $(this).addClass('active');
+
+                $('.strix-admin-tab-content').removeClass('active');
+                $('#' + tab).addClass('active');
+            });
+        });
+        </script>
         <?php
     }
 
@@ -578,8 +687,8 @@ class Strix_Google_Reviews {
         $api_key = get_option('strix_google_reviews_api_key');
         $default_place_id = get_option('strix_google_reviews_place_id');
 
-        // Use demo mode if enabled or forced, or if API is not configured
-        if ($force_demo || $demo_mode || !$api_key) {
+        // Use demo mode if forced, or if demo mode enabled, or if API is not configured
+        if ($force_demo || ($demo_mode && $demo_mode === '1') || (!$api_key && !$force_demo)) {
             return $this->generate_mock_reviews($place_id);
         }
 
