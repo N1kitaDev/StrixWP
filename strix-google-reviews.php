@@ -2642,13 +2642,28 @@ class Strix_Google_Reviews {
      * Display reviews with specific layout
      */
     public function display_reviews_layout($reviews_data, $layout = 'list', $layout_style = '1') {
+        // Validate layout
+        $valid_layouts = array('list', 'grid', 'slider', 'badge', 'popup');
+        if (!in_array($layout, $valid_layouts)) {
+            $layout = 'list';
+        }
+
+        // Validate layout style
+        $layout_style = max(1, min(5, intval($layout_style)));
+
         $layout_method = 'display_reviews_' . $layout . '_' . $layout_style;
 
         if (method_exists($this, $layout_method)) {
             $this->$layout_method($reviews_data);
         } else {
-            // Fallback to default display method
-            $this->display_reviews($reviews_data);
+            // Try without style suffix
+            $fallback_method = 'display_reviews_' . $layout . '_1';
+            if (method_exists($this, $fallback_method)) {
+                $this->$fallback_method($reviews_data);
+            } else {
+                // Ultimate fallback to default display method
+                $this->display_reviews($reviews_data);
+            }
         }
     }
 
@@ -2827,7 +2842,7 @@ class Strix_Google_Reviews {
      * Apply filters to reviews data
      */
     private function apply_review_filters($reviews_data, $atts) {
-        if (!isset($reviews_data['reviews']) || !is_array($reviews_data['reviews'])) {
+        if (!isset($reviews_data['reviews']) || !is_array($reviews_data['reviews']) || empty($reviews_data['reviews'])) {
             return $reviews_data;
         }
 
@@ -3272,15 +3287,31 @@ class Strix_Google_Reviews {
             'demo' => null
         ), $atts);
 
+        // Validate and sanitize attributes
+        $atts['limit'] = max(1, min(50, intval($atts['limit'])));
+        $valid_layouts = array('list', 'grid', 'slider', 'badge', 'popup');
+        $atts['layout'] = in_array($atts['layout'], $valid_layouts) ? $atts['layout'] : 'list';
+        $atts['layout_style'] = max(1, min(5, intval($atts['layout_style'])));
+        $atts['filter_rating'] = is_numeric($atts['filter_rating']) ? max(1, min(5, intval($atts['filter_rating']))) : '';
+        $atts['filter_keywords'] = is_string($atts['filter_keywords']) ? sanitize_text_field($atts['filter_keywords']) : '';
+        $valid_sorts = array('newest', 'oldest', 'highest', 'lowest');
+        $atts['sort_by'] = in_array($atts['sort_by'], $valid_sorts) ? $atts['sort_by'] : 'newest';
+
         $force_demo = ($atts['demo'] === 'true' || $atts['demo'] === '1');
         $account_location = '';
-        if ($atts['account_id'] && $atts['location_id']) {
-            $account_location = $atts['account_id'] . '/' . $atts['location_id'];
+        if (!empty($atts['account_id']) && !empty($atts['location_id'])) {
+            $account_location = sanitize_text_field($atts['account_id']) . '/' . sanitize_text_field($atts['location_id']);
         }
+
         $reviews_data = $this->fetch_google_reviews($account_location, false, $force_demo);
 
         if (isset($reviews_data['error'])) {
             return '<div class="strix-google-reviews-error">' . esc_html($reviews_data['error']) . '</div>';
+        }
+
+        // Validate reviews data
+        if (!isset($reviews_data['reviews']) || !is_array($reviews_data['reviews'])) {
+            return '<div class="strix-google-reviews-error">' . __('No reviews available', 'strix-google-reviews') . '</div>';
         }
 
         // Limit reviews
@@ -3330,13 +3361,27 @@ class Strix_Google_Reviews {
             return '<div class="strix-widget-error">' . __('Widget not found', 'strix-google-reviews') . '</div>';
         }
 
-        // Get widget settings from post meta
-        $data_source = get_post_meta($atts['id'], '_strix_data_source', true) ?: 'google';
+        // Get widget settings from post meta with validation
+        $data_source = get_post_meta($atts['id'], '_strix_data_source', true);
+        if (!in_array($data_source, array('google', 'custom'))) {
+            $data_source = 'google';
+        }
+
         $account_id = get_post_meta($atts['id'], '_strix_account_id', true);
         $location_id = get_post_meta($atts['id'], '_strix_location_id', true);
-        $layout = get_post_meta($atts['id'], '_strix_layout', true) ?: 'list';
-        $layout_style = get_post_meta($atts['id'], '_strix_layout_style', true) ?: '1';
-        $limit = get_post_meta($atts['id'], '_strix_limit', true) ?: 5;
+
+        $layout = get_post_meta($atts['id'], '_strix_layout', true);
+        $valid_layouts = array('list', 'grid', 'slider', 'badge', 'popup');
+        if (!in_array($layout, $valid_layouts)) {
+            $layout = 'list';
+        }
+
+        $layout_style = get_post_meta($atts['id'], '_strix_layout_style', true);
+        $layout_style = max(1, min(5, intval($layout_style)));
+
+        $limit = get_post_meta($atts['id'], '_strix_limit', true);
+        $limit = max(1, min(50, intval($limit)));
+
         $show_company = get_post_meta($atts['id'], '_strix_show_company', true) ?: '1';
         $filter_5_star = get_post_meta($atts['id'], '_strix_filter_5_star', true) ?: '0';
         $filter_rating = get_post_meta($atts['id'], '_strix_filter_rating', true) ?: '';
