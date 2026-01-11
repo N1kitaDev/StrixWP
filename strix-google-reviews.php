@@ -530,14 +530,18 @@ class Strix_Google_Reviews {
             'supports' => array('title', 'editor', 'custom-fields'),
             'capability_type' => 'post',
             'capabilities' => array(
-                'edit_posts' => 'manage_options',
-                'edit_others_posts' => 'manage_options',
-                'publish_posts' => 'manage_options',
-                'read_private_posts' => 'manage_options',
-                'delete_posts' => 'manage_options',
+                'edit_posts' => 'edit_posts',
+                'edit_others_posts' => 'edit_others_posts',
+                'publish_posts' => 'publish_posts',
+                'read_private_posts' => 'read_private_posts',
+                'delete_posts' => 'delete_posts',
+                'delete_others_posts' => 'delete_others_posts',
+                'edit_published_posts' => 'edit_published_posts',
+                'delete_published_posts' => 'delete_published_posts',
             ),
             'menu_position' => 20,
             'menu_icon' => 'dashicons-star-filled',
+            'map_meta_cap' => true,
         ));
 
         // Add custom status for pending reviews
@@ -549,6 +553,12 @@ class Strix_Google_Reviews {
             'show_in_admin_status_list' => true,
             'label_count' => _n_noop('Pending Review <span class="count">(%s)</span>', 'Pending Reviews <span class="count">(%s)</span>', 'strix-google-reviews'),
         ));
+
+        // Flush rewrite rules on activation if needed
+        if (get_option('strix_reviews_flush_rewrite_rules', false)) {
+            flush_rewrite_rules();
+            delete_option('strix_reviews_flush_rewrite_rules');
+        }
     }
 
     /**
@@ -746,6 +756,9 @@ class Strix_Google_Reviews {
     public function ajax_submit_review() {
         check_ajax_referer('strix_submit_review', 'nonce');
 
+        // Allow anyone to submit reviews (guests included)
+        // No need for user capability check here since it's a public form
+
         // Get form data
         $name = sanitize_text_field($_POST['name'] ?? '');
         $email = sanitize_email($_POST['email'] ?? '');
@@ -781,6 +794,7 @@ class Strix_Google_Reviews {
             'post_content' => $review_text,
             'post_type' => 'strix_review',
             'post_status' => get_option('strix_google_reviews_auto_approve', '0') ? 'publish' : 'pending_review',
+            'post_author' => get_current_user_id() ?: 1, // Use current user or admin (ID 1) for guests
             'meta_input' => array(
                 '_strix_rating' => $rating,
                 '_strix_email' => $email,
@@ -1162,6 +1176,20 @@ class Strix_Google_Reviews {
  */
 function strix_google_reviews_init() {
     return Strix_Google_Reviews::get_instance();
+}
+
+// Plugin activation hook
+register_activation_hook(__FILE__, 'strix_google_reviews_activate');
+
+function strix_google_reviews_activate() {
+    // Set flag to flush rewrite rules on next init
+    update_option('strix_reviews_flush_rewrite_rules', true);
+
+    // Create the custom post type immediately
+    $plugin = Strix_Google_Reviews::get_instance();
+    if (method_exists($plugin, 'register_custom_post_type')) {
+        $plugin->register_custom_post_type();
+    }
 }
 
 // Start the plugin
