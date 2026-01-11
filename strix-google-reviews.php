@@ -841,7 +841,7 @@ class Strix_Google_Reviews {
         $filter_rating = get_post_meta($post->ID, '_strix_filter_rating', true) ?: '';
         $filter_keywords = get_post_meta($post->ID, '_strix_filter_keywords', true) ?: '';
         $sort_by = get_post_meta($post->ID, '_strix_sort_by', true) ?: 'newest';
-        $data_source = get_post_meta($post->ID, '_strix_data_source', true) ?: 'google';
+        $data_source = get_post_meta($post->ID, '_strix_data_source', true) ?: 'custom';
 
         ?>
         <div class="strix-widget-editor-pro">
@@ -874,6 +874,23 @@ class Strix_Google_Reviews {
 
                 <div class="strix-data-source-selector">
                     <div class="strix-source-option">
+                        <input type="radio" id="source_custom" name="strix_data_source" value="custom"
+                               <?php checked($data_source, 'custom'); ?> />
+                        <label for="source_custom" class="strix-source-card strix-custom-source">
+                            <div class="strix-source-icon">💬</div>
+                            <div class="strix-source-content">
+                                <h4><?php _e('Custom Reviews', 'strix-google-reviews'); ?></h4>
+                                <p><?php _e('Display reviews submitted by your website visitors', 'strix-google-reviews'); ?></p>
+                                <div class="strix-source-features">
+                                    <span class="strix-feature-tag">✍️ User-generated</span>
+                                    <span class="strix-feature-tag">🎯 Targeted</span>
+                                    <span class="strix-feature-tag">📝 Editable</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="strix-source-option">
                         <input type="radio" id="source_google" name="strix_data_source" value="google"
                                <?php checked($data_source, 'google'); ?> />
                         <label for="source_google" class="strix-source-card strix-google-source">
@@ -891,17 +908,17 @@ class Strix_Google_Reviews {
                     </div>
 
                     <div class="strix-source-option">
-                        <input type="radio" id="source_custom" name="strix_data_source" value="custom"
-                               <?php checked($data_source, 'custom'); ?> />
-                        <label for="source_custom" class="strix-source-card strix-custom-source">
-                            <div class="strix-source-icon">💬</div>
+                        <input type="radio" id="source_preview" name="strix_data_source" value="preview"
+                               <?php checked($data_source, 'preview'); ?> />
+                        <label for="source_preview" class="strix-source-card strix-preview-source">
+                            <div class="strix-source-icon">👁️</div>
                             <div class="strix-source-content">
-                                <h4><?php _e('Custom Reviews', 'strix-google-reviews'); ?></h4>
-                                <p><?php _e('Display reviews submitted by your website visitors', 'strix-google-reviews'); ?></p>
+                                <h4><?php _e('Preview Type', 'strix-google-reviews'); ?></h4>
+                                <p><?php _e('Show all review types for testing layouts and filters', 'strix-google-reviews'); ?></p>
                                 <div class="strix-source-features">
-                                    <span class="strix-feature-tag">✍️ User-generated</span>
-                                    <span class="strix-feature-tag">🎯 Targeted</span>
-                                    <span class="strix-feature-tag">📝 Editable</span>
+                                    <span class="strix-feature-tag">🧪 Testing</span>
+                                    <span class="strix-feature-tag">🔍 All Types</span>
+                                    <span class="strix-feature-tag">🎨 Layout Preview</span>
                                 </div>
                             </div>
                         </label>
@@ -1388,6 +1405,29 @@ class Strix_Google_Reviews {
 
         .strix-custom-source .strix-source-icon {
             background: linear-gradient(135deg, #FF6B35, #F7931E);
+        }
+
+        .strix-preview-source {
+            border-color: #8b5cf6;
+        }
+
+        .strix-preview-source .strix-source-icon {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+        }
+
+        .strix-preview-notice {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            color: #92400e;
+        }
+
+        .strix-preview-notice strong {
+            color: #78350f;
         }
 
         .strix-source-icon {
@@ -2208,7 +2248,7 @@ class Strix_Google_Reviews {
                 echo '</div>';
                 break;
             case 'source':
-                $data_source = get_post_meta($post_id, '_strix_data_source', true) ?: 'google';
+                $data_source = get_post_meta($post_id, '_strix_data_source', true) ?: 'custom';
                 $source_labels = array(
                     'google' => '<span style="background:#e3f2fd;color:#1565c0;padding:2px 6px;border-radius:3px;font-size:11px;">🌐 Google</span>',
                     'custom' => '<span style="background:#fff3e0;color:#ef6c00;padding:2px 6px;border-radius:3px;font-size:11px;">💬 Custom</span>',
@@ -3380,6 +3420,96 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * Render preview reviews (combines all review types for testing)
+     */
+    public function render_preview_reviews($account_location, $limit, $filter_rating, $filter_keywords, $sort_by, $layout, $layout_style) {
+        try {
+            // Get Google demo reviews
+            $google_reviews = $this->fetch_google_reviews($account_location, false, true);
+
+            // Get custom reviews
+            $custom_reviews = array();
+            $args = array(
+                'post_type' => 'strix_review',
+                'post_status' => 'publish',
+                'posts_per_page' => 50, // Get more for preview
+                'orderby' => 'date',
+                'order' => 'DESC',
+            );
+
+            $reviews_query = new WP_Query($args);
+            if ($reviews_query->have_posts()) {
+                while ($reviews_query->have_posts()) {
+                    $reviews_query->the_post();
+                    $rating = get_post_meta(get_the_ID(), '_strix_rating', true);
+                    $custom_reviews[] = array(
+                        'author_name' => get_the_title(),
+                        'rating' => $rating ? floatval($rating) : 5,
+                        'text' => get_the_content(),
+                        'time' => strtotime(get_the_date('Y-m-d H:i:s')),
+                        'relative_time' => sprintf(__('%s ago', 'strix-google-reviews'), human_time_diff(get_the_time('U'), current_time('timestamp'))),
+                        'profile_photo_url' => '',
+                        'type' => 'custom',
+                        'language' => 'en'
+                    );
+                }
+                wp_reset_postdata();
+            }
+
+            // Combine and mark review types
+            $all_reviews = array();
+
+            if (isset($google_reviews['reviews']) && is_array($google_reviews['reviews'])) {
+                foreach ($google_reviews['reviews'] as $review) {
+                    $review['type'] = 'google_demo';
+                    $all_reviews[] = $review;
+                }
+            }
+
+            $all_reviews = array_merge($all_reviews, $custom_reviews);
+
+            // Shuffle to mix different types
+            shuffle($all_reviews);
+
+            // Apply filters
+            $reviews_data = array(
+                'place_info' => array(
+                    'name' => __('Review Preview', 'strix-google-reviews'),
+                    'rating' => 4.5,
+                ),
+                'reviews' => $all_reviews
+            );
+
+            // Apply review filters
+            $reviews_data = $this->apply_review_filters($reviews_data, array(
+                'filter_rating' => $filter_rating,
+                'filter_keywords' => $filter_keywords,
+                'sort_by' => $sort_by,
+            ));
+
+            // Limit reviews
+            if (count($reviews_data['reviews']) > $limit) {
+                $reviews_data['reviews'] = array_slice($reviews_data['reviews'], 0, $limit);
+            }
+
+            ob_start();
+
+            // Add preview notice
+            echo '<div class="strix-preview-notice">';
+            echo '<p><strong>' . __('Preview Mode:', 'strix-google-reviews') . '</strong> ' . __('This shows a mix of Google demo reviews and your custom reviews for layout testing.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+
+            echo '<div class="strix-google-reviews-shortcode strix-layout-' . esc_attr($layout) . ' strix-layout-' . esc_attr($layout) . '-' . esc_attr($layout_style) . '">';
+            $this->display_reviews_layout($reviews_data, $layout, $layout_style);
+            echo '</div>';
+
+            return ob_get_clean();
+        } catch (Exception $e) {
+            return '<div class="strix-widget-error">' . __('Error in preview mode', 'strix-google-reviews') . '</div>';
+        }
+    }
+
+    /**
      * Render widget shortcode
      */
     public function render_widget_shortcode($atts) {
@@ -3398,9 +3528,9 @@ class Strix_Google_Reviews {
 
         // Get widget settings from post meta with validation
         $data_source = get_post_meta($atts['id'], '_strix_data_source', true);
-        if (!in_array($data_source, array('google', 'custom'))) {
-            $data_source = 'google';
-        }
+                if (!in_array($data_source, array('google', 'custom', 'preview'))) {
+                    $data_source = 'custom';
+                }
 
         $account_id = get_post_meta($atts['id'], '_strix_account_id', true);
         $location_id = get_post_meta($atts['id'], '_strix_location_id', true);
@@ -3444,6 +3574,9 @@ class Strix_Google_Reviews {
             }
 
             return $this->render_custom_reviews_shortcode($shortcode_atts);
+        } elseif ($data_source === 'preview') {
+            // Preview mode - show all review types for testing
+            return $this->render_preview_reviews($account_location, $limit, $filter_rating, $filter_keywords, $sort_by, $layout, $layout_style);
         } else {
             // Use Google reviews shortcode
             $shortcode_atts = array(
