@@ -93,6 +93,446 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
+/* Grid Layouts */
+.strix-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.strix-grid-layout-1 .strix-grid-item-1 {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.strix-grid-layout-1 .strix-grid-item-1:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* List Layout 2 */
+.strix-list-layout-2 .strix-list-item-2 {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.strix-list-layout-2 .strix-list-item-2:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.strix-list-layout-2 .strix-review-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.strix-list-layout-2 .strix-review-rating-stars {
+    order: -1;
+}
+
+.strix-list-layout-2 .strix-review-author-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Slider Layouts */
+.strix-reviews-slider {
+    position: relative;
+    padding: 0 50px;
+}
+
+.strix-slider-layout-1 .strix-slider-1 {
+    overflow: hidden;
+}
+
+.strix-slider-layout-1 .swiper-wrapper {
+    display: flex;
+    transition: transform 0.3s ease;
+}
+
+.strix-slider-layout-1 .swiper-slide {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 350px;
+}
+
+.strix-slider-layout-1 .strix-slide-item {
+    height: 100%;
+}
+
+.strix-slider-layout-1 .strix-list-inner {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    height: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.strix-slider-layout-1 .strix-list-inner:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.strix-slider-layout-1 .strix-rating-wrap {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.strix-slider-layout-1 .strix-content {
+    color: #4a5568;
+    line-height: 1.6;
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.strix-slider-layout-1 .strix-review-info {
+    margin-top: auto;
+}
+
+.strix-slider-layout-1 .strix-review-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.strix-slider-layout-1 .strix-review-details {
+    flex: 1;
+}
+
+.strix-slider-layout-1 .strix-title {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.strix-slider-layout-1 .strix-days-ago {
+    margin: 0;
+    font-size: 12px;
+    color: #718096;
+}
+
+/* Swiper Navigation */
+.swiper-button-next,
+.swiper-button-prev {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #3182ce;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background: #2c5282;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.swiper-button-next {
+    right: -20px;
+}
+
+.swiper-button-prev {
+    left: -20px;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Badge Layouts */
+.strix-badge-layout-1 {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.strix-badge-layout-1 .strix-badge-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.strix-badge-layout-1 .strix-badge-stars {
+    font-size: 24px;
+}
+
+.strix-badge-layout-1 .strix-badge-rating {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.strix-badge-layout-1 .strix-badge-text {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Popup Layouts */
+.strix-popup-trigger {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.strix-popup-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+.strix-popup-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
+.strix-popup-rating .strix-stars {
+    font-size: 16px;
+    margin: 0;
+}
+
+.strix-popup-score {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.strix-popup-count {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Popup Modal */
+.strix-popup-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.strix-popup-modal.active {
+    display: block;
+}
+
+.strix-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.strix-popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.strix-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8f9fa;
+}
+
+.strix-popup-header h3 {
+    margin: 0;
+    font-size: 24px;
+    color: #2d3748;
+}
+
+.strix-popup-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #718096;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.strix-popup-close:hover {
+    background: #e2e8f0;
+    color: #2d3748;
+}
+
+.strix-popup-body {
+    padding: 30px;
+    max-height: calc(80vh - 100px);
+    overflow-y: auto;
+}
+
+.strix-popup-summary {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.strix-popup-rating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 18px;
+}
+
+.strix-popup-stars {
+    font-size: 20px;
+}
+
+.strix-popup-rating-number {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.strix-popup-total {
+    color: #718096;
+}
+
+.strix-popup-reviews {
+    display: grid;
+    gap: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.strix-popup-review-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.strix-popup-review-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    gap: 15px;
+}
+
+.strix-popup-review-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.strix-popup-review-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #3182ce;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 20px;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.strix-popup-review-meta {
+    flex: 1;
+}
+
+.strix-popup-review-author {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.strix-popup-review-rating {
+    margin-bottom: 4px;
+}
+
+.strix-popup-review-rating .strix-stars {
+    font-size: 14px;
+    margin: 0;
+}
+
+.strix-popup-review-time {
+    font-size: 12px;
+    color: #718096;
+}
+
+.strix-popup-review-text {
+    color: #4a5568;
+    line-height: 1.6;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Body scroll lock when popup is open */
+body.strix-popup-open {
+    overflow: hidden;
+}
+
 .strix-review-item {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -474,6 +914,43 @@
     padding: 40px 20px;
 }
 
+/* Review Button */
+.strix-review-button-container {
+    text-align: center;
+    margin: 30px 0 20px 0;
+}
+
+.strix-review-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #4285F4 0%, #34A853 100%);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.strix-review-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+    background: linear-gradient(135deg, #3367D6 0%, #2E7D32 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.strix-review-button .strix-google-icon {
+    flex-shrink: 0;
+}
+
+.strix-review-button .strix-review-button-text {
+    white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .strix-review-form-section {
@@ -505,4 +982,33 @@
         margin: 0 0 10px 0;
         align-self: center;
     }
+
+    .strix-review-button {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .strix-review-button .strix-review-button-text {
+        font-size: 14px;
+    }
+
+    .strix-review-button .strix-google-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* Read More Styles */
+.strix-read-more {
+    color: #3182ce;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 5px;
+    transition: color 0.2s ease;
+}
+
+.strix-read-more:hover {
+    color: #2c5282;
+    text-decoration: underline;
 }

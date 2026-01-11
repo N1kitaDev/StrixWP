@@ -1,6 +1,6 @@
 # Strix Google Reviews
 
-Плагин Google Reviews Pro для WordPress — лучший на рынке для отображения отзывов Google Places на вашем сайте.
+Плагин Google Reviews Pro для WordPress — лучший на рынке для отображения отзывов Google Business Profile на вашем сайте.
 
 ## Особенности
 
@@ -13,6 +13,12 @@
 - **Кастомные отзывы**: Форма для самостоятельного написания отзывов посетителями
 - **Модерация отзывов**: Система одобрения отзывов в админке
 - **Демо-режим**: Показывает примеры отзывов без настройки API
+- **Множественные лэйауты**: List, Grid, Slider, Badge, Popup с разными стилями
+- **Система виджетов**: Кастомные виджеты с индивидуальными настройками
+- **Фильтры и сортировка**: По рейтингу, ключевым словам, дате
+- **Кнопка "Review us on Google"**: Для привлечения новых отзывов
+- **Read More для длинных отзывов**: Сокращение текста с возможностью развернуть
+- **SEO Rich Snippets**: Структурированные данные для поисковых систем
 
 ## Установка
 
@@ -23,28 +29,30 @@
 
 ## Настройка
 
-### Получение Google Places API ключа
+### Получение Google Business Profile API ключа
 
 1. Перейдите в [Google Cloud Console](https://console.developers.google.com/)
 2. Создайте новый проект или выберите существующий
-3. Включите **Places API**
+3. Включите **Business Profile API**
 4. Создайте API ключ в разделе "Credentials"
 5. Ограничьте API ключ для безопасности
 
-### Получение Place ID
+### Получение Account ID и Location ID
 
-1. Используйте [Google Place ID Finder](https://developers.google.com/places/place-id)
-2. Найдите вашу компанию
-3. Скопируйте Place ID (начинается с "ChIJ")
+1. Перейдите в [Google Business Profile](https://business.google.com/)
+2. Выберите вашу компанию
+3. В URL найдите Account ID и Location ID
+4. Account ID находится после `/accounts/`
+5. Location ID находится после `/locations/`
 
 ### Настройки плагина
 
-1. Введите ваш **Google Places API Key**
-2. Введите ваш **Google Place ID**
-3. Настройте параметры отображения:
+1. Введите ваш **Google Business Profile API Key**
+2. Введите ваш **Google Account ID**
+3. Введите ваш **Google Location ID**
+4. Настройте параметры отображения:
    - Показывать название компании
    - Показывать веб-сайт
-   - Показывать телефон
    - Показывать только 5-звездочные отзывы
    - Время кеширования
 
@@ -54,22 +62,89 @@
 
 ```
 [strix_google_reviews]
-[strix_google_reviews place_id="ChIJd8BlQ2gVwAARRapDhqKPvCQ" limit="5"]
-[strix_google_reviews show_company="0" layout="grid"]
+[strix_google_reviews account_id="123456789012345678901" location_id="98765432109876543210" limit="5"]
+[strix_google_reviews layout="slider" layout_style="1"]
+[strix_google_reviews layout="grid" layout_style="1"]
+[strix_google_reviews layout="badge" layout_style="1"]
+[strix_google_reviews layout="popup" layout_style="1"]
+[strix_google_reviews show_company="0" layout="list" layout_style="2"]
+[strix_google_reviews filter_rating="4" sort_by="highest"]
+[strix_google_reviews filter_keywords="service,quality" sort_by="newest"]
+[strix_google_reviews filter_rating="5" limit="3" layout="slider"]
 ```
 
 **Параметры шорткода:**
-- `place_id` - ID места Google (опционально, использует настройки по умолчанию)
+- `account_id` - ID аккаунта Google Business Profile (опционально, использует настройки по умолчанию)
+- `location_id` - ID локации Google Business Profile (опционально, использует настройки по умолчанию)
 - `limit` - Количество отзывов для отображения (по умолчанию: 5)
 - `show_company` - Показывать название компании (0/1)
-- `layout` - Тип макета (list/grid, по умолчанию: list)
+- `layout` - Тип макета (list, grid, slider, badge, popup, по умолчанию: list)
+- `layout_style` - Стиль макета (число от 1 до 5, по умолчанию: 1)
+- `filter_rating` - Минимальный рейтинг для фильтрации (1-5)
+- `filter_keywords` - Ключевые слова для фильтрации через запятую
+- `sort_by` - Сортировка отзывов (newest, oldest, highest, lowest, по умолчанию: newest)
 
-### Виджет
+### Виджеты
 
+#### Стандартный виджет
 1. Перейдите в **Внешний вид** > **Виджеты**
 2. Найдите виджет **Google Reviews**
 3. Перетащите его в нужную область
-4. Настройте заголовок, Place ID и количество отзывов
+4. Настройте заголовок, Account ID, Location ID и количество отзывов
+
+#### Кастомные виджеты
+1. Перейдите в **Google Reviews** > **Review Widgets**
+2. Нажмите **Add New** для создания нового виджета
+3. Настройте:
+   - Account ID и Location ID
+   - Тип лэйаута (list, grid, slider, badge, popup)
+   - Стиль лэйаута (1-5)
+   - Количество отзывов
+   - Дополнительные настройки
+4. Скопируйте сгенерированный шорткод
+5. Используйте шорткод `[strix_widget id="123"]` где угодно на сайте
+
+### Лэйауты отображения
+
+Плагин поддерживает несколько типов лэйаутов для отображения отзывов:
+
+#### List Layout (Список)
+- `layout="list"` - Вертикальный список отзывов
+- `layout_style="1"` - Классический стиль (по умолчанию)
+- `layout_style="2"` - Альтернативный стиль с другой компоновкой
+
+#### Grid Layout (Сетка)
+- `layout="grid"` - Сетка отзывов
+- `layout_style="1"` - Современный дизайн с тенями
+
+#### Slider Layout (Слайдер)
+- `layout="slider"` - Карусель отзывов с навигацией
+- `layout_style="1"` - Слайдер с 3 отзывами на больших экранах
+- Поддерживает автопрокрутку и сенсорное управление
+
+#### Badge Layout (Бейдж)
+- `layout="badge"` - Компактный бейдж с рейтингом
+- `layout_style="1"` - Градиентный дизайн
+
+#### Popup Layout (Попап)
+- `layout="popup"` - Отзывы в модальном окне
+- `layout_style="1"` - Полноэкранный попап со всеми отзывами
+
+### Фильтры и сортировка
+
+#### Фильтрация по рейтингу
+- `filter_rating="4"` - Показывать только отзывы с рейтингом 4+ звезд
+- `filter_rating="5"` - Показывать только 5-звездочные отзывы
+
+#### Фильтрация по ключевым словам
+- `filter_keywords="service,quality"` - Показывать отзывы, содержащие слова "service" или "quality"
+- `filter_keywords="excellent,amazing"` - Фильтр по положительным отзывам
+
+#### Сортировка отзывов
+- `sort_by="newest"` - Сначала новые отзывы (по умолчанию)
+- `sort_by="oldest"` - Сначала старые отзывы
+- `sort_by="highest"` - Сначала отзывы с высшим рейтингом
+- `sort_by="lowest"` - Сначала отзывы с низшим рейтингом
 
 ### Управление отзывами
 
@@ -111,11 +186,11 @@
 **В: Поддерживает ли плагин шорткоды?**
 О: Да, используйте `[strix_google_reviews]` для вставки отзывов.
 
-**В: Как найти Place ID?**
-О: Используйте [Google Place ID Finder](https://developers.google.com/places/place-id).
+**В: Как найти Account ID и Location ID?**
+О: Перейдите в [Google Business Profile](https://business.google.com/) и найдите эти ID в URL вашего профиля.
 
-**В: Можно ли показывать отзывы разных мест на одной странице?**
-О: Да, используйте разные `place_id` в шорткодах.
+**В: Можно ли показывать отзывы разных локаций на одной странице?**
+О: Да, используйте разные `account_id` и `location_id` в шорткодах.
 
 **В: Сколько отзывов можно отобразить?**
 О: Google API возвращает до 5 наиболее релевантных отзывов.
@@ -138,8 +213,10 @@
 
 ### 1.0.0
 - Первый релиз
-- Интеграция с Google Places API
+- Интеграция с Google Business Profile API
 - Виджет для боковой панели
 - Система шорткодов
 - Кеширование отзывов
 - Адаптивный дизайн
+- Кастомные отзывы от посетителей
+- Демо-режим для тестирования

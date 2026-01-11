@@ -4,6 +4,9 @@ jQuery(document).ready(function($) {
 
     console.log('Strix Google Reviews Frontend JS loaded');
 
+    // Initialize Swiper sliders
+    initializeSwipers();
+
     // Add any frontend-specific JavaScript here
     // For example, animations, lazy loading, etc.
 
@@ -135,4 +138,170 @@ jQuery(document).ready(function($) {
             $rating.find('label[for="star' + i + '"]').addClass('active');
         }
     });
+
+    // Swiper slider configurations and functions
+    var sliderConfigs = {
+        ".strix-slider-1": {
+            slidesPerView: 1,
+            slidesPerGroup: 1,
+            breakpoints: {
+                1200: { slidesPerView: 3, slidesPerGroup: 3 },
+                768: { slidesPerView: 2, slidesPerGroup: 2 },
+                480: { slidesPerView: 1, slidesPerGroup: 1 }
+            }
+        },
+        ".strix-slider-2": {
+            slidesPerView: 1,
+            slidesPerGroup: 1,
+            breakpoints: {
+                1200: { slidesPerView: 3, slidesPerGroup: 3 },
+                768: { slidesPerView: 2, slidesPerGroup: 2 },
+                480: { slidesPerView: 1, slidesPerGroup: 1 }
+            }
+        },
+        ".strix-slider-3": {
+            slidesPerView: 1,
+            slidesPerGroup: 1,
+            breakpoints: {
+                1200: { slidesPerView: 2, slidesPerGroup: 2 },
+                480: { slidesPerView: 1, slidesPerGroup: 1 }
+            }
+        },
+        ".strix-slider-4": { slidesPerView: 1, slidesPerGroup: 1 },
+        ".strix-slider-5": {
+            slidesPerView: 1,
+            slidesPerGroup: 1,
+            breakpoints: {
+                1200: { slidesPerView: 2, slidesPerGroup: 2 },
+                480: { slidesPerView: 1, slidesPerGroup: 1 }
+            }
+        },
+        ".strix-slider-6": {
+            slidesPerView: 1,
+            slidesPerGroup: 1,
+            breakpoints: {
+                1200: { slidesPerView: 3, slidesPerGroup: 3 },
+                768: { slidesPerView: 2, slidesPerGroup: 2 },
+                480: { slidesPerView: 1, slidesPerGroup: 1 }
+            }
+        }
+    };
+
+    // Store Swiper instances
+    var swiperInstances = {};
+
+    function initializeSwipers() {
+        Object.keys(sliderConfigs).forEach(function(selector) {
+            var sliderElements = document.querySelectorAll(selector);
+
+            if (sliderElements.length > 0) {
+                sliderElements.forEach(function(sliderElement) {
+                    var parentElement = sliderElement.parentElement;
+                    var slideCount = sliderElement.querySelectorAll('.swiper-slide').length;
+                    var config = sliderConfigs[selector];
+                    var minSlidesRequired = (config.slidesPerView || 1) + 1;
+                    var enableLoop = slideCount >= minSlidesRequired;
+
+                    swiperInstances[selector] = new Swiper(sliderElement, {
+                        slidesPerView: config.slidesPerView,
+                        slidesPerGroup: config.slidesPerGroup,
+                        spaceBetween: 20,
+                        loop: enableLoop,
+                        navigation: {
+                            nextEl: parentElement.querySelector(".swiper-button-next"),
+                            prevEl: parentElement.querySelector(".swiper-button-prev"),
+                        },
+                        breakpoints: config.breakpoints || {},
+                        autoplay: {
+                            delay: 5000,
+                            disableOnInteraction: false,
+                        },
+                    });
+                });
+            }
+        });
+    }
+
+    function reinitializeAllSwipers(container) {
+        if (!(container instanceof HTMLElement)) {
+            console.error('Invalid container element!', container);
+            return;
+        }
+
+        Object.keys(sliderConfigs).forEach(function(selector) {
+            var sliderElements = container.querySelectorAll(selector);
+
+            sliderElements.forEach(function(sliderElement) {
+                var slideCount = sliderElement.querySelectorAll('.swiper-slide').length;
+                var config = sliderConfigs[selector];
+                var minSlidesRequired = (config.slidesPerView || 1) + 1;
+                var enableLoop = slideCount >= minSlidesRequired;
+
+                if (swiperInstances[selector]) {
+                    swiperInstances[selector].destroy(true, true);
+                }
+
+                swiperInstances[selector] = new Swiper(sliderElement, {
+                    slidesPerView: config.slidesPerView,
+                    slidesPerGroup: config.slidesPerGroup,
+                    spaceBetween: 20,
+                    loop: enableLoop,
+                    navigation: {
+                        nextEl: sliderElement.closest(".strix-reviews-slider").querySelector(".swiper-button-next"),
+                        prevEl: sliderElement.closest(".strix-reviews-slider").querySelector(".swiper-button-prev"),
+                    },
+                    breakpoints: config.breakpoints || {},
+                    autoplay: {
+                        delay: 5000,
+                        disableOnInteraction: false,
+                    },
+                });
+            });
+        });
+    }
+
+    // Popup functionality
+    $('.strix-popup-btn').on('click', function() {
+        var popupId = $(this).data('popup');
+        $('#' + popupId).addClass('active');
+        $('body').addClass('strix-popup-open');
+    });
+
+    $('.strix-popup-close, .strix-popup-overlay').on('click', function() {
+        $('.strix-popup-modal').removeClass('active');
+        $('body').removeClass('strix-popup-open');
+    });
+
+    // Close popup on ESC key
+    $(document).on('keydown', function(e) {
+        if (e.keyCode === 27 && $('.strix-popup-modal.active').length) {
+            $('.strix-popup-modal').removeClass('active');
+            $('body').removeClass('strix-popup-open');
+        }
+    });
+
+    // Read more functionality
+    $('.strix-read-more').on('click', function(e) {
+        e.preventDefault();
+
+        var $link = $(this);
+        var reviewId = $link.data('review-id');
+        var $content = $('#' + reviewId);
+        var $preview = $content.find('.strix-review-text-preview');
+        var $full = $content.find('.strix-review-text-full');
+
+        if ($full.is(':visible')) {
+            $full.hide();
+            $preview.show();
+            $link.text('<?php _e("Read more", "strix-google-reviews"); ?>');
+        } else {
+            $preview.hide();
+            $full.show();
+            $link.text('<?php _e("Read less", "strix-google-reviews"); ?>');
+        }
+    });
+
+    // Expose functions globally for AJAX calls
+    window.initializeSwipers = initializeSwipers;
+    window.reinitializeAllSwipers = reinitializeAllSwipers;
 });

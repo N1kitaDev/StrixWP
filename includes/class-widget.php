@@ -22,7 +22,8 @@ class Strix_Google_Reviews_Widget extends WP_Widget {
      */
     public function form($instance) {
         $title = !empty($instance['title']) ? $instance['title'] : __('Google Reviews', 'strix-google-reviews');
-        $place_id = !empty($instance['place_id']) ? $instance['place_id'] : '';
+        $account_id = !empty($instance['account_id']) ? $instance['account_id'] : '';
+        $location_id = !empty($instance['location_id']) ? $instance['location_id'] : '';
         $limit = !empty($instance['limit']) ? $instance['limit'] : 5;
         ?>
         <p>
@@ -30,9 +31,14 @@ class Strix_Google_Reviews_Widget extends WP_Widget {
             <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>">
         </p>
         <p>
-            <label for="<?php echo $this->get_field_id('place_id'); ?>"><?php _e('Google Place ID:', 'strix-google-reviews'); ?></label>
-            <input class="widefat" id="<?php echo $this->get_field_id('place_id'); ?>" name="<?php echo $this->get_field_name('place_id'); ?>" type="text" value="<?php echo esc_attr($place_id); ?>">
-            <small><?php _e('Find your Place ID in Google Places API', 'strix-google-reviews'); ?></small>
+            <label for="<?php echo $this->get_field_id('account_id'); ?>"><?php _e('Google Account ID:', 'strix-google-reviews'); ?></label>
+            <input class="widefat" id="<?php echo $this->get_field_id('account_id'); ?>" name="<?php echo $this->get_field_name('account_id'); ?>" type="text" value="<?php echo esc_attr($account_id); ?>">
+            <small><?php _e('Find your Account ID in Google Business Profile', 'strix-google-reviews'); ?></small>
+        </p>
+        <p>
+            <label for="<?php echo $this->get_field_id('location_id'); ?>"><?php _e('Google Location ID:', 'strix-google-reviews'); ?></label>
+            <input class="widefat" id="<?php echo $this->get_field_id('location_id'); ?>" name="<?php echo $this->get_field_name('location_id'); ?>" type="text" value="<?php echo esc_attr($location_id); ?>">
+            <small><?php _e('Find your Location ID in Google Business Profile', 'strix-google-reviews'); ?></small>
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('limit'); ?>"><?php _e('Number of reviews:', 'strix-google-reviews'); ?></label>
@@ -47,7 +53,8 @@ class Strix_Google_Reviews_Widget extends WP_Widget {
     public function update($new_instance, $old_instance) {
         $instance = array();
         $instance['title'] = (!empty($new_instance['title'])) ? sanitize_text_field($new_instance['title']) : '';
-        $instance['place_id'] = (!empty($new_instance['place_id'])) ? sanitize_text_field($new_instance['place_id']) : '';
+        $instance['account_id'] = (!empty($new_instance['account_id'])) ? sanitize_text_field($new_instance['account_id']) : '';
+        $instance['location_id'] = (!empty($new_instance['location_id'])) ? sanitize_text_field($new_instance['location_id']) : '';
         $instance['limit'] = (!empty($new_instance['limit'])) ? absint($new_instance['limit']) : 5;
 
         return $instance;
@@ -66,12 +73,18 @@ class Strix_Google_Reviews_Widget extends WP_Widget {
         echo '<div class="strix-google-reviews-widget">';
 
         // Get reviews data
-        $place_id = !empty($instance['place_id']) ? $instance['place_id'] : get_option('strix_google_reviews_place_id');
+        $account_id = !empty($instance['account_id']) ? $instance['account_id'] : get_option('strix_google_reviews_account_id');
+        $location_id = !empty($instance['location_id']) ? $instance['location_id'] : get_option('strix_google_reviews_location_id');
         $limit = !empty($instance['limit']) ? absint($instance['limit']) : 5;
+
+        $account_location = '';
+        if ($account_id && $location_id) {
+            $account_location = $account_id . '/' . $location_id;
+        }
 
         if (class_exists('Strix_Google_Reviews')) {
             $plugin = Strix_Google_Reviews::get_instance();
-            $reviews_data = $plugin->fetch_google_reviews($place_id);
+            $reviews_data = $plugin->fetch_google_reviews($account_location);
 
             if (isset($reviews_data['error'])) {
                 echo '<div class="strix-google-reviews-error">';

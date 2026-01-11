@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Strix Google Reviews
  * Plugin URI: https://strixmedia.ru
- * Description: Clean Google Places Reviews plugin for WordPress
+ * Description: Clean Google Business Profile Reviews plugin for WordPress
  * Version: 1.0.0
  * Author: Strix Media
  * Text Domain: strix-google-reviews
@@ -58,6 +58,12 @@ class Strix_Google_Reviews {
         add_action('widgets_init', array($this, 'register_widgets'));
         add_action('init', array($this, 'register_shortcodes'));
         add_action('init', array($this, 'register_custom_post_type'));
+        add_action('init', array($this, 'register_widget_post_type'));
+        add_action('add_meta_boxes', array($this, 'strix_add_widget_meta_box'));
+        add_action('save_post', array($this, 'strix_save_widget_meta'));
+
+        add_filter('manage_strix_widget_posts_columns', array($this, 'strix_widget_columns'));
+        add_action('manage_strix_widget_posts_custom_column', array($this, 'strix_widget_custom_column'), 10, 2);
         add_action('wp_ajax_strix_refresh_reviews', array($this, 'ajax_refresh_reviews'));
         add_action('wp_ajax_nopriv_strix_refresh_reviews', array($this, 'ajax_refresh_reviews'));
         add_action('wp_ajax_strix_submit_review', array($this, 'ajax_submit_review'));
@@ -81,7 +87,8 @@ class Strix_Google_Reviews {
      */
     public function register_settings() {
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_api_key');
-        register_setting('strix_google_reviews_settings', 'strix_google_reviews_place_id');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_account_id');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_location_id');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_company_name');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_website');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_phone');
@@ -92,10 +99,12 @@ class Strix_Google_Reviews {
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_require_name');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_require_email');
         register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_form');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_show_review_button');
+        register_setting('strix_google_reviews_settings', 'strix_google_reviews_review_button_text');
 
         add_settings_section(
             'strix_google_reviews_main',
-            __('Google Places API Settings', 'strix-google-reviews'),
+            __('Google Business Profile API Settings', 'strix-google-reviews'),
             array($this, 'settings_section_callback'),
             'strix-google-reviews'
         );
@@ -109,9 +118,17 @@ class Strix_Google_Reviews {
         );
 
         add_settings_field(
-            'strix_google_reviews_place_id',
-            __('Google Place ID', 'strix-google-reviews'),
-            array($this, 'place_id_field_callback'),
+            'strix_google_reviews_account_id',
+            __('Google Account ID', 'strix-google-reviews'),
+            array($this, 'account_id_field_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_main'
+        );
+
+        add_settings_field(
+            'strix_google_reviews_location_id',
+            __('Google Location ID', 'strix-google-reviews'),
+            array($this, 'location_id_field_callback'),
             'strix-google-reviews',
             'strix_google_reviews_main'
         );
@@ -209,6 +226,22 @@ class Strix_Google_Reviews {
             'strix-google-reviews',
             'strix_google_reviews_custom'
         );
+
+        add_settings_field(
+            'strix_google_reviews_show_review_button',
+            __('Show "Review us on Google" Button', 'strix-google-reviews'),
+            array($this, 'show_review_button_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_display'
+        );
+
+        add_settings_field(
+            'strix_google_reviews_review_button_text',
+            __('Review Button Text', 'strix-google-reviews'),
+            array($this, 'review_button_text_callback'),
+            'strix-google-reviews',
+            'strix_google_reviews_display'
+        );
     }
 
     /**
@@ -251,6 +284,14 @@ class Strix_Google_Reviews {
             array($this, 'reviews_page')
         );
 
+        add_submenu_page(
+            'strix-google-reviews',
+            __('Review Widgets', 'strix-google-reviews'),
+            __('Review Widgets', 'strix-google-reviews'),
+            'manage_options',
+            'edit.php?post_type=strix_widget'
+        );
+
         // Custom Reviews submenu is automatically added by register_post_type with show_in_menu
     }
 
@@ -258,9 +299,10 @@ class Strix_Google_Reviews {
      * Settings section callback
      */
     public function settings_section_callback() {
-        echo '<p>' . __('Configure your Google Places API settings to display reviews from Google.', 'strix-google-reviews') . '</p>';
-        echo '<p>' . __('Get your API key from <a href="https://console.developers.google.com/" target="_blank">Google Cloud Console</a> and enable Places API.', 'strix-google-reviews') . '</p>';
-        echo '<p>' . __('Find your Place ID using <a href="https://developers.google.com/places/place-id" target="_blank">Google Place ID Finder</a>.', 'strix-google-reviews') . '</p>';
+        echo '<p>' . __('Configure your Google Business Profile API settings to display reviews from your Google Business Profile.', 'strix-google-reviews') . '</p>';
+        echo '<p>' . __('Get your API key from <a href="https://console.developers.google.com/" target="_blank">Google Cloud Console</a> and enable Business Profile API.', 'strix-google-reviews') . '</p>';
+        echo '<p>' . __('Find your Account ID and Location ID from your <a href="https://business.google.com/" target="_blank">Google Business Profile</a>.', 'strix-google-reviews') . '</p>';
+        echo '<p><strong>' . __('Note:', 'strix-google-reviews') . '</strong> ' . __('This plugin retrieves publicly available details using the Google Business Profile API. All displayed reviews are subject to Google\'s Privacy Policy.', 'strix-google-reviews') . '</p>';
     }
 
     /**
@@ -280,12 +322,21 @@ class Strix_Google_Reviews {
     }
 
     /**
-     * Place ID field callback
+     * Account ID field callback
      */
-    public function place_id_field_callback() {
-        $place_id = get_option('strix_google_reviews_place_id');
-        echo '<input type="text" name="strix_google_reviews_place_id" value="' . esc_attr($place_id) . '" class="regular-text" />';
-        echo '<p class="description">' . __('Your Google Place ID. Example: ChIJd8BlQ2gVwAARRapDhqKPvCQ', 'strix-google-reviews') . '</p>';
+    public function account_id_field_callback() {
+        $account_id = get_option('strix_google_reviews_account_id');
+        echo '<input type="text" name="strix_google_reviews_account_id" value="' . esc_attr($account_id) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Your Google Business Profile Account ID. Find it in your Google Business Profile settings.', 'strix-google-reviews') . '</p>';
+    }
+
+    /**
+     * Location ID field callback
+     */
+    public function location_id_field_callback() {
+        $location_id = get_option('strix_google_reviews_location_id');
+        echo '<input type="text" name="strix_google_reviews_location_id" value="' . esc_attr($location_id) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Your Google Business Profile Location ID. Find it in your Google Business Profile settings.', 'strix-google-reviews') . '</p>';
     }
 
     /**
@@ -389,6 +440,24 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * Show review button callback
+     */
+    public function show_review_button_callback() {
+        $value = get_option('strix_google_reviews_show_review_button', '1');
+        echo '<input type="checkbox" name="strix_google_reviews_show_review_button" value="1"' . checked(1, $value, false) . ' />';
+        echo '<label>' . __('Show "Review us on Google" button with reviews', 'strix-google-reviews') . '</label>';
+    }
+
+    /**
+     * Review button text callback
+     */
+    public function review_button_text_callback() {
+        $value = get_option('strix_google_reviews_review_button_text', __('Review us on Google', 'strix-google-reviews'));
+        echo '<input type="text" name="strix_google_reviews_review_button_text" value="' . esc_attr($value) . '" class="regular-text" />';
+        echo '<p class="description">' . __('Text for the review button. Leave empty to use default.', 'strix-google-reviews') . '</p>';
+    }
+
+    /**
      * Admin page
      */
     public function admin_page() {
@@ -396,9 +465,9 @@ class Strix_Google_Reviews {
         <div class="wrap strix-google-reviews-admin">
             <h1><?php _e('Google Reviews Settings', 'strix-google-reviews'); ?></h1>
 
-            <?php if (!get_option('strix_google_reviews_api_key') || !get_option('strix_google_reviews_place_id')): ?>
+            <?php if (!get_option('strix_google_reviews_api_key') || !get_option('strix_google_reviews_account_id') || !get_option('strix_google_reviews_location_id')): ?>
             <div class="notice notice-info">
-                <p><?php _e('Configure your Google Places API key and Place ID to start displaying reviews.', 'strix-google-reviews'); ?></p>
+                <p><?php _e('Configure your Google Business Profile API key, Account ID, and Location ID to start displaying reviews.', 'strix-google-reviews'); ?></p>
             </div>
             <?php endif; ?>
 
@@ -432,14 +501,42 @@ class Strix_Google_Reviews {
                             </div>
 
                             <div class="strix-code-example">
-                                <h4><?php _e('With custom Place ID and limit:', 'strix-google-reviews'); ?></h4>
-                                <code>[strix_google_reviews place_id="ChIJd8BlQ2gVwAARRapDhqKPvCQ" limit="5"]</code>
+                                <h4><?php _e('With custom Account ID and Location ID:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_google_reviews account_id="123456789012345678901" location_id="98765432109876543210" limit="5"]</code>
+                            </div>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Different layouts:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_google_reviews layout="slider" layout_style="1"]</code><br>
+                                <code>[strix_google_reviews layout="grid" layout_style="1"]</code><br>
+                                <code>[strix_google_reviews layout="badge" layout_style="1"]</code><br>
+                                <code>[strix_google_reviews layout="popup" layout_style="1"]</code>
                             </div>
 
                             <div class="strix-code-example">
                                 <h4><?php _e('Demo mode (shows sample reviews):', 'strix-google-reviews'); ?></h4>
                                 <code>[strix_google_reviews demo="true"]</code>
                             </div>
+                        </div>
+
+                        <div class="strix-usage-section">
+                            <h3><?php _e('Custom Widgets', 'strix-google-reviews'); ?></h3>
+                            <p><?php _e('Create and manage custom review widgets with individual settings.', 'strix-google-reviews'); ?></p>
+
+                            <div class="strix-code-example">
+                                <h4><?php _e('Using custom widget:', 'strix-google-reviews'); ?></h4>
+                                <code>[strix_widget id="123"]</code>
+                                <p><?php _e('Replace "123" with your widget ID from the Review Widgets page.', 'strix-google-reviews'); ?></p>
+                            </div>
+
+                            <p><?php _e('To create a custom widget:', 'strix-google-reviews'); ?></p>
+                            <ol>
+                                <li><?php _e('Go to Google Reviews → Review Widgets', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Click "Add New"', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Configure layout, style, and other settings', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Copy the generated shortcode', 'strix-google-reviews'); ?></li>
+                                <li><?php _e('Use the shortcode anywhere on your site', 'strix-google-reviews'); ?></li>
+                            </ol>
                         </div>
 
                         <div class="strix-usage-section">
@@ -671,10 +768,199 @@ class Strix_Google_Reviews {
     }
 
     /**
+     * Register widget post type for custom review widgets
+     */
+    public function register_widget_post_type() {
+        register_post_type('strix_widget', array(
+            'label' => __('Review Widgets', 'strix-google-reviews'),
+            'public' => false,
+            'show_ui' => true,
+            'show_in_menu' => 'strix-google-reviews',
+            'supports' => array('title'),
+            'capability_type' => 'post',
+            'capabilities' => array(
+                'edit_posts' => 'edit_posts',
+                'edit_others_posts' => 'edit_others_posts',
+                'publish_posts' => 'publish_posts',
+                'read_private_posts' => 'read_private_posts',
+                'delete_posts' => 'delete_posts',
+                'delete_others_posts' => 'delete_others_posts',
+                'edit_published_posts' => 'edit_published_posts',
+                'delete_published_posts' => 'delete_published_posts',
+            ),
+            'menu_position' => 25,
+            'menu_icon' => 'dashicons-screenoptions',
+            'map_meta_cap' => true,
+        ));
+    }
+
+    /**
+     * Add meta box for widget configuration
+     */
+    public function strix_add_widget_meta_box() {
+        add_meta_box(
+            'strix_widget_settings',
+            __('Widget Settings', 'strix-google-reviews'),
+            array($this, 'strix_widget_meta_box_callback'),
+            'strix_widget',
+            'normal',
+            'high'
+        );
+
+        add_meta_box(
+            'strix_widget_shortcode',
+            __('Shortcode', 'strix-google-reviews'),
+            array($this, 'strix_widget_shortcode_callback'),
+            'strix_widget',
+            'side',
+            'default'
+        );
+    }
+
+    /**
+     * Widget meta box callback
+     */
+    public function strix_widget_meta_box_callback($post) {
+        wp_nonce_field('strix_widget_meta_box', 'strix_widget_meta_box_nonce');
+
+        $account_id = get_post_meta($post->ID, '_strix_account_id', true);
+        $location_id = get_post_meta($post->ID, '_strix_location_id', true);
+        $layout = get_post_meta($post->ID, '_strix_layout', true) ?: 'list';
+        $layout_style = get_post_meta($post->ID, '_strix_layout_style', true) ?: '1';
+        $limit = get_post_meta($post->ID, '_strix_limit', true) ?: 5;
+        $show_company = get_post_meta($post->ID, '_strix_show_company', true) ?: '1';
+        $filter_5_star = get_post_meta($post->ID, '_strix_filter_5_star', true) ?: '0';
+
+        ?>
+        <table class="form-table">
+            <tr>
+                <th><label for="strix_account_id"><?php _e('Account ID', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <input type="text" id="strix_account_id" name="strix_account_id" value="<?php echo esc_attr($account_id); ?>" class="regular-text" />
+                    <p class="description"><?php _e('Google Business Profile Account ID (leave empty to use global settings)', 'strix-google-reviews'); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="strix_location_id"><?php _e('Location ID', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <input type="text" id="strix_location_id" name="strix_location_id" value="<?php echo esc_attr($location_id); ?>" class="regular-text" />
+                    <p class="description"><?php _e('Google Business Profile Location ID (leave empty to use global settings)', 'strix-google-reviews'); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="strix_layout"><?php _e('Layout Type', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <select id="strix_layout" name="strix_layout">
+                        <option value="list" <?php selected($layout, 'list'); ?>><?php _e('List', 'strix-google-reviews'); ?></option>
+                        <option value="grid" <?php selected($layout, 'grid'); ?>><?php _e('Grid', 'strix-google-reviews'); ?></option>
+                        <option value="slider" <?php selected($layout, 'slider'); ?>><?php _e('Slider', 'strix-google-reviews'); ?></option>
+                        <option value="badge" <?php selected($layout, 'badge'); ?>><?php _e('Badge', 'strix-google-reviews'); ?></option>
+                        <option value="popup" <?php selected($layout, 'popup'); ?>><?php _e('Popup', 'strix-google-reviews'); ?></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="strix_layout_style"><?php _e('Layout Style', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <select id="strix_layout_style" name="strix_layout_style">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <option value="<?php echo $i; ?>" <?php selected($layout_style, $i); ?>><?php printf(__('Style %d', 'strix-google-reviews'), $i); ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="strix_limit"><?php _e('Number of Reviews', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <input type="number" id="strix_limit" name="strix_limit" value="<?php echo esc_attr($limit); ?>" min="1" max="50" />
+                </td>
+            </tr>
+            <tr>
+                <th><label for="strix_show_company"><?php _e('Show Company Name', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <input type="checkbox" id="strix_show_company" name="strix_show_company" value="1" <?php checked($show_company, '1'); ?> />
+                </td>
+            </tr>
+            <tr>
+                <th><label for="strix_filter_5_star"><?php _e('Show Only 5-Star Reviews', 'strix-google-reviews'); ?></label></th>
+                <td>
+                    <input type="checkbox" id="strix_filter_5_star" name="strix_filter_5_star" value="1" <?php checked($filter_5_star, '1'); ?> />
+                </td>
+            </tr>
+        </table>
+        <?php
+    }
+
+    /**
+     * Widget shortcode meta box callback
+     */
+    public function strix_widget_shortcode_callback($post) {
+        $shortcode = '[strix_widget id="' . $post->ID . '"]';
+        ?>
+        <p><?php _e('Copy this shortcode to display the widget anywhere on your site:', 'strix-google-reviews'); ?></p>
+        <input type="text" readonly value="<?php echo esc_attr($shortcode); ?>" class="widefat" onclick="this.select();" />
+        <p class="description"><?php _e('Click to select the shortcode', 'strix-google-reviews'); ?></p>
+        <?php
+    }
+
+    /**
+     * Save widget meta data
+     */
+    public function strix_save_widget_meta($post_id) {
+        if (!isset($_POST['strix_widget_meta_box_nonce']) ||
+            !wp_verify_nonce($_POST['strix_widget_meta_box_nonce'], 'strix_widget_meta_box') ||
+            !current_user_can('edit_post', $post_id) ||
+            get_post_type($post_id) !== 'strix_widget') {
+            return;
+        }
+
+        $fields = array(
+            'strix_account_id',
+            'strix_location_id',
+            'strix_layout',
+            'strix_layout_style',
+            'strix_limit',
+            'strix_show_company',
+            'strix_filter_5_star'
+        );
+
+        foreach ($fields as $field) {
+            $value = isset($_POST[$field]) ? sanitize_text_field($_POST[$field]) : '';
+            update_post_meta($post_id, '_' . $field, $value);
+        }
+    }
+
+    /**
+     * Add shortcode column to widget posts
+     */
+    public function strix_widget_columns($columns) {
+        $columns['shortcode'] = __('Shortcode', 'strix-google-reviews');
+        $columns['layout'] = __('Layout', 'strix-google-reviews');
+        return $columns;
+    }
+
+    /**
+     * Render custom columns for widget posts
+     */
+    public function strix_widget_custom_column($column, $post_id) {
+        switch ($column) {
+            case 'shortcode':
+                echo '<code>[strix_widget id="' . $post_id . '"]</code>';
+                break;
+            case 'layout':
+                $layout = get_post_meta($post_id, '_strix_layout', true) ?: 'list';
+                $layout_style = get_post_meta($post_id, '_strix_layout_style', true) ?: '1';
+                echo ucfirst($layout) . ' (Style ' . $layout_style . ')';
+                break;
+        }
+    }
+
+    /**
      * Register shortcodes
      */
     public function register_shortcodes() {
         add_shortcode('strix_google_reviews', array($this, 'render_shortcode'));
+        add_shortcode('strix_widget', array($this, 'render_widget_shortcode'));
         add_shortcode('strix_custom_reviews', array($this, 'render_custom_reviews_shortcode'));
         add_shortcode('strix_review_form', array($this, 'render_review_form_shortcode'));
     }
@@ -682,82 +968,172 @@ class Strix_Google_Reviews {
     /**
      * Fetch reviews from Google Places API
      */
-    public function fetch_google_reviews($place_id = null, $force_refresh = false, $force_demo = false) {
+    public function fetch_google_reviews($account_location = null, $force_refresh = false, $force_demo = false) {
         $demo_mode = get_option('strix_google_reviews_demo_mode', '1');
         $api_key = get_option('strix_google_reviews_api_key');
-        $default_place_id = get_option('strix_google_reviews_place_id');
+        $default_account_id = get_option('strix_google_reviews_account_id');
+        $default_location_id = get_option('strix_google_reviews_location_id');
 
         // Use demo mode if forced, or if demo mode enabled, or if API is not configured
         if ($force_demo || ($demo_mode && $demo_mode === '1') || (!$api_key && !$force_demo)) {
-            return $this->generate_mock_reviews($place_id);
+            return $this->generate_mock_reviews($account_location);
         }
 
-        $place_id = $place_id ?: $default_place_id;
-        if (!$place_id) {
-            // Fallback to demo if no place ID
-            return $this->generate_mock_reviews($place_id);
+        // Parse account/location from parameter or use defaults
+        if ($account_location) {
+            $parts = explode('/', $account_location);
+            $account_id = $parts[0] ?? $default_account_id;
+            $location_id = $parts[1] ?? $default_location_id;
+        } else {
+            $account_id = $default_account_id;
+            $location_id = $default_location_id;
         }
 
-        $cache_key = 'strix_google_reviews_' . md5($place_id);
+        if (!$account_id || !$location_id) {
+            // Fallback to demo if no account/location ID
+            return $this->generate_mock_reviews($account_location);
+        }
+
+        $cache_key = 'strix_google_reviews_' . md5($account_id . '/' . $location_id);
         $cache_timeout = get_option('strix_google_reviews_cache_timeout', 24) * HOUR_IN_SECONDS;
 
         if (!$force_refresh && ($cached = get_transient($cache_key))) {
             return $cached;
         }
 
-        $url = 'https://maps.googleapis.com/maps/api/place/details/json?' . http_build_query(array(
-            'place_id' => $place_id,
-            'fields' => 'name,rating,reviews,formatted_address,website,formatted_phone_number',
+        // First get location details
+        $location_url = 'https://mybusiness.googleapis.com/v4/accounts/' . $account_id . '/locations/' . $location_id . '?' . http_build_query(array(
             'key' => $api_key,
-            'reviews_sort' => 'most_relevant'
+            'readMask' => 'name,title,locationName,primaryCategory,websiteUri,regularHours,locationState,metadata,priceLists'
         ));
 
-        $response = wp_remote_get($url);
+        $location_response = wp_remote_get($location_url);
 
-        if (is_wp_error($response)) {
-            return array('error' => $response->get_error_message());
+        if (is_wp_error($location_response)) {
+            return array('error' => $location_response->get_error_message());
         }
 
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+        $location_body = wp_remote_retrieve_body($location_response);
+        $location_data = json_decode($location_body, true);
 
-        if ($data['status'] !== 'OK') {
-            return array('error' => sprintf(__('Google API Error: %s', 'strix-google-reviews'), $data['status']));
+        if (isset($location_data['error'])) {
+            return array('error' => sprintf(__('Google Business API Error: %s', 'strix-google-reviews'), $location_data['error']['message']));
+        }
+
+        // Then get reviews
+        $reviews_url = 'https://mybusiness.googleapis.com/v4/accounts/' . $account_id . '/locations/' . $location_id . '/reviews?' . http_build_query(array(
+            'key' => $api_key,
+            'pageSize' => 50,
+            'orderBy' => 'updateTime desc'
+        ));
+
+        $reviews_response = wp_remote_get($reviews_url);
+
+        if (is_wp_error($reviews_response)) {
+            return array('error' => $reviews_response->get_error_message());
+        }
+
+        $reviews_body = wp_remote_retrieve_body($reviews_response);
+        $reviews_data = json_decode($reviews_body, true);
+
+        if (isset($reviews_data['error'])) {
+            return array('error' => sprintf(__('Google Business API Error: %s', 'strix-google-reviews'), $reviews_data['error']['message']));
         }
 
         $result = array(
             'place_info' => array(
-                'name' => $data['result']['name'] ?? '',
-                'rating' => $data['result']['rating'] ?? 0,
-                'address' => $data['result']['formatted_address'] ?? '',
-                'website' => $data['result']['website'] ?? '',
-                'phone' => $data['result']['formatted_phone_number'] ?? ''
+                'name' => $location_data['locationName'] ?? $location_data['title'] ?? '',
+                'rating' => 0, // Rating comes from reviews aggregation
+                'address' => '', // Address info may be limited
+                'website' => $location_data['websiteUri'] ?? '',
+                'phone' => '' // Phone may not be available in basic API
             ),
             'reviews' => array()
         );
 
-        if (isset($data['result']['reviews'])) {
+        $total_rating = 0;
+        $rating_count = 0;
+
+        if (isset($reviews_data['reviews'])) {
             $filter_5_star = get_option('strix_google_reviews_filter_5_star', '0');
 
-            foreach ($data['result']['reviews'] as $review) {
-                if ($filter_5_star && $review['rating'] != 5) {
+            foreach ($reviews_data['reviews'] as $review) {
+                $rating = $review['starRating'] ?? 0;
+
+                // Convert star rating enum to number
+                switch ($rating) {
+                    case 'FIVE': $rating_num = 5; break;
+                    case 'FOUR': $rating_num = 4; break;
+                    case 'THREE': $rating_num = 3; break;
+                    case 'TWO': $rating_num = 2; break;
+                    case 'ONE': $rating_num = 1; break;
+                    default: $rating_num = 0;
+                }
+
+                // Check for 5-star filter (from global settings or widget settings)
+                $filter_5_star_enabled = get_option('strix_google_reviews_filter_5_star', '0') === '1' ||
+                                        apply_filters('strix_google_reviews_filter_5_star', false);
+
+                if ($filter_5_star_enabled && $rating_num != 5) {
                     continue;
                 }
 
+                $total_rating += $rating_num;
+                $rating_count++;
+
                 $result['reviews'][] = array(
-                    'author_name' => $review['author_name'] ?? '',
-                    'rating' => $review['rating'] ?? 0,
-                    'text' => $review['text'] ?? '',
-                    'time' => $review['time'] ?? 0,
-                    'relative_time' => $review['relative_time_description'] ?? '',
-                    'profile_photo_url' => $review['profile_photo_url'] ?? '',
-                    'language' => $review['language'] ?? 'en'
+                    'author_name' => $review['reviewer']['displayName'] ?? __('Anonymous', 'strix-google-reviews'),
+                    'rating' => $rating_num,
+                    'text' => $review['comment'] ?? '',
+                    'time' => strtotime($review['createTime'] ?? ''),
+                    'relative_time' => $this->get_relative_time(strtotime($review['createTime'] ?? '')),
+                    'profile_photo_url' => $review['reviewer']['profilePhotoUrl'] ?? '',
+                    'language' => 'en' // Default to English
                 );
             }
         }
 
+        // Calculate average rating
+        if ($rating_count > 0) {
+            $result['place_info']['rating'] = round($total_rating / $rating_count, 1);
+        }
+
         set_transient($cache_key, $result, $cache_timeout);
         return $result;
+    }
+
+    /**
+     * Get relative time string
+     */
+    private function get_relative_time($timestamp) {
+        if (!$timestamp) {
+            return '';
+        }
+
+        $now = time();
+        $diff = $now - $timestamp;
+
+        if ($diff < 60) {
+            return __('just now', 'strix-google-reviews');
+        } elseif ($diff < 3600) {
+            $minutes = floor($diff / 60);
+            return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'strix-google-reviews'), $minutes);
+        } elseif ($diff < 86400) {
+            $hours = floor($diff / 3600);
+            return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'strix-google-reviews'), $hours);
+        } elseif ($diff < 604800) {
+            $days = floor($diff / 86400);
+            return sprintf(_n('%d day ago', '%d days ago', $days, 'strix-google-reviews'), $days);
+        } elseif ($diff < 2592000) {
+            $weeks = floor($diff / 604800);
+            return sprintf(_n('%d week ago', '%d weeks ago', $weeks, 'strix-google-reviews'), $weeks);
+        } elseif ($diff < 31536000) {
+            $months = floor($diff / 2592000);
+            return sprintf(_n('%d month ago', '%d months ago', $months, 'strix-google-reviews'), $months);
+        } else {
+            $years = floor($diff / 31536000);
+            return sprintf(_n('%d year ago', '%d years ago', $years, 'strix-google-reviews'), $years);
+        }
     }
 
     /**
@@ -980,7 +1356,21 @@ class Strix_Google_Reviews {
     }
 
     /**
-     * Display reviews HTML
+     * Display reviews with specific layout
+     */
+    public function display_reviews_layout($reviews_data, $layout = 'list', $layout_style = '1') {
+        $layout_method = 'display_reviews_' . $layout . '_' . $layout_style;
+
+        if (method_exists($this, $layout_method)) {
+            $this->$layout_method($reviews_data);
+        } else {
+            // Fallback to default display method
+            $this->display_reviews($reviews_data);
+        }
+    }
+
+    /**
+     * Display reviews HTML (default method)
      */
     public function display_reviews($reviews_data) {
         $show_company = get_option('strix_google_reviews_show_company_name', '1');
@@ -1036,11 +1426,523 @@ class Strix_Google_Reviews {
 
                     <?php if (!empty($review['text'])): ?>
                         <div class="strix-review-text">
-                            <?php echo wp_kses_post(nl2br($review['text'])); ?>
+                            <?php echo $this->format_review_text($review['text']); ?>
                         </div>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
+        </div>
+
+        <?php $this->display_review_button(); ?>
+        <?php
+    }
+
+    /**
+     * Add structured data for reviews (SEO rich snippets)
+     */
+    private function add_review_structured_data($reviews_data) {
+        if (empty($reviews_data['reviews']) || !is_array($reviews_data['reviews'])) {
+            return;
+        }
+
+        $structured_data = array(
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => $reviews_data['place_info']['name'] ?? '',
+            'aggregateRating' => array(
+                '@type' => 'AggregateRating',
+                'ratingValue' => $reviews_data['place_info']['rating'] ?? 0,
+                'reviewCount' => count($reviews_data['reviews']),
+            ),
+            'review' => array()
+        );
+
+        // Add individual reviews
+        foreach (array_slice($reviews_data['reviews'], 0, 5) as $review) { // Limit to 5 reviews for structured data
+            $structured_data['review'][] = array(
+                '@type' => 'Review',
+                'author' => array(
+                    '@type' => 'Person',
+                    'name' => $review['author_name'] ?? ''
+                ),
+                'reviewRating' => array(
+                    '@type' => 'Rating',
+                    'ratingValue' => $review['rating'] ?? 0,
+                    'bestRating' => 5
+                ),
+                'reviewBody' => $review['text'] ?? '',
+                'datePublished' => date('Y-m-d', $review['time'] ?? time())
+            );
+        }
+
+        echo '<script type="application/ld+json">' . wp_json_encode($structured_data) . '</script>';
+    }
+
+    /**
+     * Format review text with read more functionality
+     */
+    private function format_review_text($text, $max_length = 200) {
+        $text = wp_kses_post(nl2br($text));
+
+        if (strlen(strip_tags($text)) <= $max_length) {
+            return $text;
+        }
+
+        $truncated = substr(strip_tags($text), 0, $max_length);
+        $last_space = strrpos($truncated, ' ');
+
+        if ($last_space !== false) {
+            $truncated = substr($truncated, 0, $last_space);
+        }
+
+        $review_id = 'review_' . uniqid();
+
+        return '<div class="strix-review-text-content" id="' . $review_id . '">' .
+               '<span class="strix-review-text-preview">' . $truncated . '...</span>' .
+               '<span class="strix-review-text-full" style="display:none;">' . $text . '</span>' .
+               '<a href="#" class="strix-read-more" data-review-id="' . $review_id . '">' .
+               __('Read more', 'strix-google-reviews') . '</a>' .
+               '</div>';
+    }
+
+    /**
+     * Display "Review us on Google" button
+     */
+    public function display_review_button() {
+        $show_button = get_option('strix_google_reviews_show_review_button', '1');
+        if (!$show_button) {
+            return;
+        }
+
+        $button_text = get_option('strix_google_reviews_review_button_text', __('Review us on Google', 'strix-google-reviews'));
+        $account_id = get_option('strix_google_reviews_account_id');
+        $location_id = get_option('strix_google_reviews_location_id');
+
+        if (!$account_id || !$location_id) {
+            return; // Don't show button if no location configured
+        }
+
+        // Generate Google review URL
+        $google_review_url = 'https://search.google.com/local/writereview?placeid=' . urlencode($account_id . '/' . $location_id);
+
+        ?>
+        <div class="strix-review-button-container">
+            <a href="<?php echo esc_url($google_review_url); ?>" target="_blank" class="strix-review-button">
+                <span class="strix-review-button-text"><?php echo esc_html($button_text); ?></span>
+                <svg class="strix-google-icon" viewBox="0 0 24 24" width="20" height="20">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+            </a>
+        </div>
+        <?php
+    }
+
+    /**
+     * Apply filters to reviews data
+     */
+    private function apply_review_filters($reviews_data, $atts) {
+        if (!isset($reviews_data['reviews']) || !is_array($reviews_data['reviews'])) {
+            return $reviews_data;
+        }
+
+        $reviews = $reviews_data['reviews'];
+
+        // Filter by minimum rating
+        if (!empty($atts['filter_rating']) && is_numeric($atts['filter_rating'])) {
+            $min_rating = intval($atts['filter_rating']);
+            $reviews = array_filter($reviews, function($review) use ($min_rating) {
+                return ($review['rating'] ?? 0) >= $min_rating;
+            });
+        }
+
+        // Filter by keywords
+        if (!empty($atts['filter_keywords'])) {
+            $keywords = array_map('trim', explode(',', $atts['filter_keywords']));
+            $reviews = array_filter($reviews, function($review) use ($keywords) {
+                $text = strtolower($review['text'] ?? '');
+                foreach ($keywords as $keyword) {
+                    if (strpos($text, strtolower($keyword)) !== false) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+
+        // Sort reviews
+        if (!empty($atts['sort_by'])) {
+            switch ($atts['sort_by']) {
+                case 'oldest':
+                    usort($reviews, function($a, $b) {
+                        return ($a['time'] ?? 0) <=> ($b['time'] ?? 0);
+                    });
+                    break;
+                case 'highest':
+                    usort($reviews, function($a, $b) {
+                        return ($b['rating'] ?? 0) <=> ($a['rating'] ?? 0);
+                    });
+                    break;
+                case 'lowest':
+                    usort($reviews, function($a, $b) {
+                        return ($a['rating'] ?? 0) <=> ($b['rating'] ?? 0);
+                    });
+                    break;
+                case 'newest':
+                default:
+                    usort($reviews, function($a, $b) {
+                        return ($b['time'] ?? 0) <=> ($a['time'] ?? 0);
+                    });
+                    break;
+            }
+        }
+
+        $reviews_data['reviews'] = array_values($reviews); // Re-index array
+        return $reviews_data;
+    }
+
+    /**
+     * Display reviews in List Layout 1
+     */
+    public function display_reviews_list_1($reviews_data) {
+        $this->display_reviews($reviews_data);
+    }
+
+    /**
+     * Display reviews in List Layout 2
+     */
+    public function display_reviews_list_2($reviews_data) {
+        $show_company = get_option('strix_google_reviews_show_company_name', '1');
+        $show_website = get_option('strix_google_reviews_show_website', '0');
+        $show_phone = get_option('strix_google_reviews_show_phone', '0');
+        $is_demo = isset($reviews_data['is_demo']) && $reviews_data['is_demo'];
+
+        if ($is_demo) {
+            echo '<div class="strix-demo-notice">';
+            echo '<p><strong>' . __('Demo Mode:', 'strix-google-reviews') . '</strong> ' . __('These are sample reviews. Configure Google Business Profile API to show real reviews.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+        }
+
+        ?>
+        <div class="strix-reviews-summary">
+            <?php if ($show_company && !empty($reviews_data['place_info']['name'])): ?>
+                <h3><?php echo esc_html($reviews_data['place_info']['name']); ?></h3>
+            <?php endif; ?>
+
+            <?php if (!empty($reviews_data['place_info']['rating'])): ?>
+                <div class="strix-rating">
+                    <span class="strix-stars"><?php echo $this->render_stars($reviews_data['place_info']['rating']); ?></span>
+                    <span class="strix-rating-number"><?php echo number_format($reviews_data['place_info']['rating'], 1); ?></span>
+                    <span class="strix-total-reviews">(<?php printf(_n('%d review', '%d reviews', count($reviews_data['reviews']), 'strix-google-reviews'), count($reviews_data['reviews'])); ?>)</span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($show_website && !empty($reviews_data['place_info']['website'])): ?>
+                <p class="strix-website"><a href="<?php echo esc_url($reviews_data['place_info']['website']); ?>" target="_blank"><?php _e('Visit Website', 'strix-google-reviews'); ?></a></p>
+            <?php endif; ?>
+
+            <?php if ($show_phone && !empty($reviews_data['place_info']['phone'])): ?>
+                <p class="strix-phone"><?php echo esc_html($reviews_data['place_info']['phone']); ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="strix-reviews-list strix-list-layout-2">
+            <?php foreach ($reviews_data['reviews'] as $review): ?>
+                <div class="strix-review-item strix-list-item-2">
+                    <div class="strix-review-content-wrapper">
+                        <div class="strix-review-rating-stars">
+                            <?php echo $this->render_stars($review['rating']); ?>
+                        </div>
+
+                        <div class="strix-review-text">
+                            <?php echo $this->format_review_text($review['text']); ?>
+                        </div>
+
+                        <div class="strix-review-meta">
+                            <div class="strix-review-author-info">
+                                <?php if (!empty($review['profile_photo_url'])): ?>
+                                    <img src="<?php echo esc_url($review['profile_photo_url']); ?>" alt="<?php echo esc_attr($review['author_name']); ?>" class="strix-review-avatar" />
+                                <?php else: ?>
+                                    <div class="strix-review-avatar-placeholder"><?php echo esc_html(substr($review['author_name'], 0, 1)); ?></div>
+                                <?php endif; ?>
+                                <span class="strix-review-author"><?php echo esc_html($review['author_name']); ?></span>
+                            </div>
+                            <time class="strix-review-time"><?php echo esc_html($review['relative_time']); ?></time>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <?php $this->display_review_button(); ?>
+        <?php
+    }
+
+    /**
+     * Display reviews in Grid Layout 1
+     */
+    public function display_reviews_grid_1($reviews_data) {
+        $show_company = get_option('strix_google_reviews_show_company_name', '1');
+        $show_website = get_option('strix_google_reviews_show_website', '0');
+        $show_phone = get_option('strix_google_reviews_show_phone', '0');
+        $is_demo = isset($reviews_data['is_demo']) && $reviews_data['is_demo'];
+
+        if ($is_demo) {
+            echo '<div class="strix-demo-notice">';
+            echo '<p><strong>' . __('Demo Mode:', 'strix-google-reviews') . '</strong> ' . __('These are sample reviews. Configure Google Business Profile API to show real reviews.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+        }
+
+        ?>
+        <div class="strix-reviews-summary">
+            <?php if ($show_company && !empty($reviews_data['place_info']['name'])): ?>
+                <h3><?php echo esc_html($reviews_data['place_info']['name']); ?></h3>
+            <?php endif; ?>
+
+            <?php if (!empty($reviews_data['place_info']['rating'])): ?>
+                <div class="strix-rating">
+                    <span class="strix-stars"><?php echo $this->render_stars($reviews_data['place_info']['rating']); ?></span>
+                    <span class="strix-rating-number"><?php echo number_format($reviews_data['place_info']['rating'], 1); ?></span>
+                    <span class="strix-total-reviews">(<?php printf(_n('%d review', '%d reviews', count($reviews_data['reviews']), 'strix-google-reviews'), count($reviews_data['reviews'])); ?>)</span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($show_website && !empty($reviews_data['place_info']['website'])): ?>
+                <p class="strix-website"><a href="<?php echo esc_url($reviews_data['place_info']['website']); ?>" target="_blank"><?php _e('Visit Website', 'strix-google-reviews'); ?></a></p>
+            <?php endif; ?>
+
+            <?php if ($show_phone && !empty($reviews_data['place_info']['phone'])): ?>
+                <p class="strix-phone"><?php echo esc_html($reviews_data['place_info']['phone']); ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="strix-reviews-grid strix-grid-layout-1">
+            <?php foreach ($reviews_data['reviews'] as $review): ?>
+                <div class="strix-review-item strix-grid-item-1">
+                    <div class="strix-review-header">
+                        <?php if (!empty($review['profile_photo_url'])): ?>
+                            <img src="<?php echo esc_url($review['profile_photo_url']); ?>" alt="<?php echo esc_attr($review['author_name']); ?>" class="strix-review-avatar" />
+                        <?php else: ?>
+                            <div class="strix-review-avatar-placeholder"><?php echo esc_html(substr($review['author_name'], 0, 1)); ?></div>
+                        <?php endif; ?>
+
+                        <div class="strix-review-meta">
+                            <h4 class="strix-review-author"><?php echo esc_html($review['author_name']); ?></h4>
+                            <div class="strix-review-rating"><?php echo $this->render_stars($review['rating']); ?></div>
+                            <time class="strix-review-time"><?php echo esc_html($review['relative_time']); ?></time>
+                        </div>
+                    </div>
+
+                    <?php if (!empty($review['text'])): ?>
+                        <div class="strix-review-text">
+                            <?php echo $this->format_review_text($review['text']); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <?php $this->display_review_button(); ?>
+        <?php
+    }
+
+    /**
+     * Display reviews in Slider Layout 1
+     */
+    public function display_reviews_slider_1($reviews_data) {
+        $show_company = get_option('strix_google_reviews_show_company_name', '1');
+        $show_website = get_option('strix_google_reviews_show_website', '0');
+        $show_phone = get_option('strix_google_reviews_show_phone', '0');
+        $is_demo = isset($reviews_data['is_demo']) && $reviews_data['is_demo'];
+
+        if ($is_demo) {
+            echo '<div class="strix-demo-notice">';
+            echo '<p><strong>' . __('Demo Mode:', 'strix-google-reviews') . '</strong> ' . __('These are sample reviews. Configure Google Business Profile API to show real reviews.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+        }
+
+        ?>
+        <div class="strix-reviews-summary">
+            <?php if ($show_company && !empty($reviews_data['place_info']['name'])): ?>
+                <h3><?php echo esc_html($reviews_data['place_info']['name']); ?></h3>
+            <?php endif; ?>
+
+            <?php if (!empty($reviews_data['place_info']['rating'])): ?>
+                <div class="strix-rating">
+                    <span class="strix-stars"><?php echo $this->render_stars($reviews_data['place_info']['rating']); ?></span>
+                    <span class="strix-rating-number"><?php echo number_format($reviews_data['place_info']['rating'], 1); ?></span>
+                    <span class="strix-total-reviews">(<?php printf(_n('%d review', '%d reviews', count($reviews_data['reviews']), 'strix-google-reviews'), count($reviews_data['reviews'])); ?>)</span>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($show_website && !empty($reviews_data['place_info']['website'])): ?>
+                <p class="strix-website"><a href="<?php echo esc_url($reviews_data['place_info']['website']); ?>" target="_blank"><?php _e('Visit Website', 'strix-google-reviews'); ?></a></p>
+            <?php endif; ?>
+
+            <?php if ($show_phone && !empty($reviews_data['place_info']['phone'])): ?>
+                <p class="strix-phone"><?php echo esc_html($reviews_data['place_info']['phone']); ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="strix-reviews-slider strix-slider-layout-1">
+            <div class="swiper strix-slider-1">
+                <div class="swiper-wrapper">
+                    <?php foreach ($reviews_data['reviews'] as $review): ?>
+                        <div class="swiper-slide">
+                            <div class="strix-review-item strix-slide-item">
+                                <div class="strix-list-inner">
+                                    <div class="strix-rating-wrap">
+                                        <div class="strix-rating">
+                                            <?php echo $this->render_stars($review['rating']); ?>
+                                        </div>
+                                    </div>
+
+                                    <?php if (!empty($review['text'])): ?>
+                                        <div class="strix-content">
+                                            <?php echo $this->format_review_text($review['text']); ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div class="strix-review-info">
+                                        <div class="strix-review-meta">
+                                            <?php if (!empty($review['profile_photo_url'])): ?>
+                                                <img src="<?php echo esc_url($review['profile_photo_url']); ?>" alt="<?php echo esc_attr($review['author_name']); ?>" class="strix-review-avatar" />
+                                            <?php else: ?>
+                                                <div class="strix-review-avatar-placeholder"><?php echo esc_html(substr($review['author_name'], 0, 1)); ?></div>
+                                            <?php endif; ?>
+
+                                            <div class="strix-review-details">
+                                                <h4 class="strix-title"><?php echo esc_html($review['author_name']); ?></h4>
+                                                <p class="strix-days-ago"><?php echo esc_html($review['relative_time']); ?></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+
+        <?php $this->display_review_button(); ?>
+        <?php
+    }
+
+    /**
+     * Display reviews in Badge Layout 1
+     */
+    public function display_reviews_badge_1($reviews_data) {
+        $show_company = get_option('strix_google_reviews_show_company_name', '1');
+        $is_demo = isset($reviews_data['is_demo']) && $reviews_data['is_demo'];
+
+        if ($is_demo) {
+            echo '<div class="strix-demo-notice">';
+            echo '<p><strong>' . __('Demo Mode:', 'strix-google-reviews') . '</strong> ' . __('These are sample reviews. Configure Google Business Profile API to show real reviews.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+        }
+
+        ?>
+        <div class="strix-badge-layout-1">
+            <div class="strix-badge-content">
+                <?php if ($show_company && !empty($reviews_data['place_info']['name'])): ?>
+                    <h3><?php echo esc_html($reviews_data['place_info']['name']); ?></h3>
+                <?php endif; ?>
+
+                <?php if (!empty($reviews_data['place_info']['rating'])): ?>
+                    <div class="strix-badge-stars">
+                        <?php echo $this->render_stars($reviews_data['place_info']['rating']); ?>
+                    </div>
+                    <div class="strix-badge-rating">
+                        <?php echo number_format($reviews_data['place_info']['rating'], 1); ?>
+                    </div>
+                    <p class="strix-badge-text">
+                        <?php printf(_n('%d Review', '%d Reviews', count($reviews_data['reviews']), 'strix-google-reviews'), count($reviews_data['reviews'])); ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php $this->display_review_button(); ?>
+        <?php
+    }
+
+    /**
+     * Display reviews in Popup Layout 1
+     */
+    public function display_reviews_popup_1($reviews_data) {
+        $show_company = get_option('strix_google_reviews_show_company_name', '1');
+        $is_demo = isset($reviews_data['is_demo']) && $reviews_data['is_demo'];
+
+        if ($is_demo) {
+            echo '<div class="strix-demo-notice">';
+            echo '<p><strong>' . __('Demo Mode:', 'strix-google-reviews') . '</strong> ' . __('These are sample reviews. Configure Google Business Profile API to show real reviews.', 'strix-google-reviews') . '</p>';
+            echo '</div>';
+        }
+
+        // Display trigger button
+        ?>
+        <div class="strix-popup-trigger">
+            <button class="strix-popup-btn" data-popup="reviews-popup-1">
+                <?php if (!empty($reviews_data['place_info']['rating'])): ?>
+                    <span class="strix-popup-rating"><?php echo $this->render_stars($reviews_data['place_info']['rating']); ?></span>
+                    <span class="strix-popup-score"><?php echo number_format($reviews_data['place_info']['rating'], 1); ?></span>
+                    <span class="strix-popup-count">(<?php printf(_n('%d review', '%d reviews', count($reviews_data['reviews']), 'strix-google-reviews'), count($reviews_data['reviews'])); ?>)</span>
+                <?php endif; ?>
+            </button>
+        </div>
+
+        <!-- Popup Modal -->
+        <div id="reviews-popup-1" class="strix-popup-modal">
+            <div class="strix-popup-overlay"></div>
+            <div class="strix-popup-content">
+                <div class="strix-popup-header">
+                    <h3><?php echo esc_html($reviews_data['place_info']['name'] ?? __('Reviews', 'strix-google-reviews')); ?></h3>
+                    <button class="strix-popup-close">&times;</button>
+                </div>
+
+                <div class="strix-popup-body">
+                    <?php if (!empty($reviews_data['place_info']['rating'])): ?>
+                        <div class="strix-popup-summary">
+                            <div class="strix-popup-rating">
+                                <span class="strix-popup-stars"><?php echo $this->render_stars($reviews_data['place_info']['rating']); ?></span>
+                                <span class="strix-popup-rating-number"><?php echo number_format($reviews_data['place_info']['rating'], 1); ?></span>
+                                <span class="strix-popup-total">(<?php printf(_n('%d review', '%d reviews', count($reviews_data['reviews']), 'strix-google-reviews'), count($reviews_data['reviews'])); ?>)</span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="strix-popup-reviews">
+                        <?php foreach ($reviews_data['reviews'] as $review): ?>
+                            <div class="strix-popup-review-item">
+                                <div class="strix-popup-review-header">
+                                    <?php if (!empty($review['profile_photo_url'])): ?>
+                                        <img src="<?php echo esc_url($review['profile_photo_url']); ?>" alt="<?php echo esc_attr($review['author_name']); ?>" class="strix-popup-review-avatar" />
+                                    <?php else: ?>
+                                        <div class="strix-popup-review-avatar-placeholder"><?php echo esc_html(substr($review['author_name'], 0, 1)); ?></div>
+                                    <?php endif; ?>
+
+                                    <div class="strix-popup-review-meta">
+                                        <h4 class="strix-popup-review-author"><?php echo esc_html($review['author_name']); ?></h4>
+                                        <div class="strix-popup-review-rating"><?php echo $this->render_stars($review['rating']); ?></div>
+                                        <time class="strix-popup-review-time"><?php echo esc_html($review['relative_time']); ?></time>
+                                    </div>
+                                </div>
+
+                                <?php if (!empty($review['text'])): ?>
+                                    <div class="strix-popup-review-text">
+                                        <?php echo $this->format_review_text($review['text']); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -1074,16 +1976,25 @@ class Strix_Google_Reviews {
      */
     public function render_shortcode($atts) {
         $atts = shortcode_atts(array(
-            'place_id' => '',
+            'account_id' => '',
+            'location_id' => '',
             'limit' => 5,
             'show_company' => null,
             'show_rating' => '1',
-            'layout' => 'list',
+            'layout' => 'list', // list, grid, slider, badge, popup
+            'layout_style' => '1', // style number for each layout type
+            'filter_rating' => '', // Filter by minimum rating (1-5)
+            'filter_keywords' => '', // Filter by keywords (comma separated)
+            'sort_by' => 'newest', // newest, oldest, highest, lowest
             'demo' => null
         ), $atts);
 
         $force_demo = ($atts['demo'] === 'true' || $atts['demo'] === '1');
-        $reviews_data = $this->fetch_google_reviews($atts['place_id'], false, $force_demo);
+        $account_location = '';
+        if ($atts['account_id'] && $atts['location_id']) {
+            $account_location = $atts['account_id'] . '/' . $atts['location_id'];
+        }
+        $reviews_data = $this->fetch_google_reviews($account_location, false, $force_demo);
 
         if (isset($reviews_data['error'])) {
             return '<div class="strix-google-reviews-error">' . esc_html($reviews_data['error']) . '</div>';
@@ -1100,9 +2011,15 @@ class Strix_Google_Reviews {
             update_option('strix_google_reviews_show_company_name', $atts['show_company']);
         }
 
+        // Apply filters to reviews data
+        $reviews_data = $this->apply_review_filters($reviews_data, $atts);
+
         ob_start();
-        echo '<div class="strix-google-reviews-shortcode strix-layout-' . esc_attr($atts['layout']) . '">';
-        $this->display_reviews($reviews_data);
+        echo '<div class="strix-google-reviews-shortcode strix-layout-' . esc_attr($atts['layout']) . ' strix-layout-' . esc_attr($atts['layout']) . '-' . esc_attr($atts['layout_style']) . '">';
+        $this->display_reviews_layout($reviews_data, $atts['layout'], $atts['layout_style']);
+
+        // Add structured data for SEO
+        $this->add_review_structured_data($reviews_data);
         echo '</div>';
 
         // Restore original setting
@@ -1111,6 +2028,58 @@ class Strix_Google_Reviews {
         }
 
         return ob_get_clean();
+    }
+
+    /**
+     * Render widget shortcode
+     */
+    public function render_widget_shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'id' => '',
+        ), $atts);
+
+        if (empty($atts['id']) || !is_numeric($atts['id'])) {
+            return '<div class="strix-widget-error">' . __('Invalid widget ID', 'strix-google-reviews') . '</div>';
+        }
+
+        $widget_post = get_post($atts['id']);
+        if (!$widget_post || $widget_post->post_type !== 'strix_widget') {
+            return '<div class="strix-widget-error">' . __('Widget not found', 'strix-google-reviews') . '</div>';
+        }
+
+        // Get widget settings from post meta
+        $account_id = get_post_meta($atts['id'], '_strix_account_id', true);
+        $location_id = get_post_meta($atts['id'], '_strix_location_id', true);
+        $layout = get_post_meta($atts['id'], '_strix_layout', true) ?: 'list';
+        $layout_style = get_post_meta($atts['id'], '_strix_layout_style', true) ?: '1';
+        $limit = get_post_meta($atts['id'], '_strix_limit', true) ?: 5;
+        $show_company = get_post_meta($atts['id'], '_strix_show_company', true) ?: '1';
+        $filter_5_star = get_post_meta($atts['id'], '_strix_filter_5_star', true) ?: '0';
+
+        // Build shortcode attributes
+        $shortcode_atts = array(
+            'account_id' => $account_id,
+            'location_id' => $location_id,
+            'layout' => $layout,
+            'layout_style' => $layout_style,
+            'limit' => $limit,
+            'show_company' => $show_company,
+        );
+
+        // Override global filter settings if specified in widget
+        if ($filter_5_star === '1') {
+            add_filter('strix_google_reviews_filter_5_star', '__return_true');
+        }
+
+        // Call the main shortcode renderer
+        $output = $this->render_shortcode($shortcode_atts);
+
+        // Remove filter override
+        if ($filter_5_star === '1') {
+            remove_filter('strix_google_reviews_filter_5_star', '__return_true');
+        }
+
+        return $output;
     }
 
     /**
@@ -1294,10 +2263,13 @@ function strix_google_reviews_activate() {
     // Set flag to flush rewrite rules on next init
     update_option('strix_reviews_flush_rewrite_rules', true);
 
-    // Create the custom post type immediately
+    // Create the custom post types immediately
     $plugin = Strix_Google_Reviews::get_instance();
     if (method_exists($plugin, 'register_custom_post_type')) {
         $plugin->register_custom_post_type();
+    }
+    if (method_exists($plugin, 'register_widget_post_type')) {
+        $plugin->register_widget_post_type();
     }
 }
 
