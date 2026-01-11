@@ -284,13 +284,6 @@ class Strix_Google_Reviews {
             array($this, 'reviews_page')
         );
 
-        add_submenu_page(
-            'strix-google-reviews',
-            __('Review Widgets', 'strix-google-reviews'),
-            __('Review Widgets', 'strix-google-reviews'),
-            'manage_options',
-            'edit.php?post_type=strix_widget'
-        );
 
         // Custom Reviews submenu is automatically added by register_post_type with show_in_menu
     }
@@ -773,6 +766,18 @@ class Strix_Google_Reviews {
     public function register_widget_post_type() {
         register_post_type('strix_widget', array(
             'label' => __('Review Widgets', 'strix-google-reviews'),
+            'labels' => array(
+                'name' => __('Review Widgets', 'strix-google-reviews'),
+                'singular_name' => __('Review Widget', 'strix-google-reviews'),
+                'add_new' => __('Add New Widget', 'strix-google-reviews'),
+                'add_new_item' => __('Add New Review Widget', 'strix-google-reviews'),
+                'edit_item' => __('Edit Widget', 'strix-google-reviews'),
+                'new_item' => __('New Widget', 'strix-google-reviews'),
+                'view_item' => __('View Widget', 'strix-google-reviews'),
+                'search_items' => __('Search Widgets', 'strix-google-reviews'),
+                'not_found' => __('No widgets found', 'strix-google-reviews'),
+                'not_found_in_trash' => __('No widgets found in trash', 'strix-google-reviews'),
+            ),
             'public' => false,
             'show_ui' => true,
             'show_in_menu' => 'strix-google-reviews',
@@ -830,64 +835,238 @@ class Strix_Google_Reviews {
         $limit = get_post_meta($post->ID, '_strix_limit', true) ?: 5;
         $show_company = get_post_meta($post->ID, '_strix_show_company', true) ?: '1';
         $filter_5_star = get_post_meta($post->ID, '_strix_filter_5_star', true) ?: '0';
+        $filter_rating = get_post_meta($post->ID, '_strix_filter_rating', true) ?: '';
+        $filter_keywords = get_post_meta($post->ID, '_strix_filter_keywords', true) ?: '';
+        $sort_by = get_post_meta($post->ID, '_strix_sort_by', true) ?: 'newest';
 
         ?>
-        <table class="form-table">
-            <tr>
-                <th><label for="strix_account_id"><?php _e('Account ID', 'strix-google-reviews'); ?></label></th>
-                <td>
-                    <input type="text" id="strix_account_id" name="strix_account_id" value="<?php echo esc_attr($account_id); ?>" class="regular-text" />
-                    <p class="description"><?php _e('Google Business Profile Account ID (leave empty to use global settings)', 'strix-google-reviews'); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="strix_location_id"><?php _e('Location ID', 'strix-google-reviews'); ?></label></th>
-                <td>
-                    <input type="text" id="strix_location_id" name="strix_location_id" value="<?php echo esc_attr($location_id); ?>" class="regular-text" />
-                    <p class="description"><?php _e('Google Business Profile Location ID (leave empty to use global settings)', 'strix-google-reviews'); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="strix_layout"><?php _e('Layout Type', 'strix-google-reviews'); ?></label></th>
-                <td>
-                    <select id="strix_layout" name="strix_layout">
-                        <option value="list" <?php selected($layout, 'list'); ?>><?php _e('List', 'strix-google-reviews'); ?></option>
-                        <option value="grid" <?php selected($layout, 'grid'); ?>><?php _e('Grid', 'strix-google-reviews'); ?></option>
-                        <option value="slider" <?php selected($layout, 'slider'); ?>><?php _e('Slider', 'strix-google-reviews'); ?></option>
-                        <option value="badge" <?php selected($layout, 'badge'); ?>><?php _e('Badge', 'strix-google-reviews'); ?></option>
-                        <option value="popup" <?php selected($layout, 'popup'); ?>><?php _e('Popup', 'strix-google-reviews'); ?></option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="strix_layout_style"><?php _e('Layout Style', 'strix-google-reviews'); ?></label></th>
-                <td>
+        <div class="strix-widget-editor">
+            <!-- Шаг 1: Источник данных -->
+            <div class="strix-editor-section">
+                <h3><?php _e('📍 Data Source', 'strix-google-reviews'); ?></h3>
+                <div class="strix-editor-grid">
+                    <div class="strix-editor-field">
+                        <label for="strix_account_id">
+                            <span class="strix-field-icon">🏢</span>
+                            <?php _e('Account ID', 'strix-google-reviews'); ?>
+                        </label>
+                        <input type="text" id="strix_account_id" name="strix_account_id"
+                               value="<?php echo esc_attr($account_id); ?>"
+                               placeholder="<?php _e('Leave empty to use global settings', 'strix-google-reviews'); ?>" />
+                    </div>
+                    <div class="strix-editor-field">
+                        <label for="strix_location_id">
+                            <span class="strix-field-icon">📍</span>
+                            <?php _e('Location ID', 'strix-google-reviews'); ?>
+                        </label>
+                        <input type="text" id="strix_location_id" name="strix_location_id"
+                               value="<?php echo esc_attr($location_id); ?>"
+                               placeholder="<?php _e('Leave empty to use global settings', 'strix-google-reviews'); ?>" />
+                    </div>
+                </div>
+                <p class="strix-help-text">
+                    <?php _e('Specify Google Business Profile IDs. Leave empty to use settings from Google Reviews → Settings.', 'strix-google-reviews'); ?>
+                </p>
+            </div>
+
+            <!-- Шаг 2: Внешний вид -->
+            <div class="strix-editor-section">
+                <h3><?php _e('🎨 Layout & Design', 'strix-google-reviews'); ?></h3>
+
+                <div class="strix-layout-selector">
+                    <div class="strix-layout-option">
+                        <input type="radio" id="layout_list" name="strix_layout" value="list"
+                               <?php checked($layout, 'list'); ?> />
+                        <label for="layout_list" class="strix-layout-card">
+                            <div class="strix-layout-preview">
+                                <div class="strix-preview-item"></div>
+                                <div class="strix-preview-item"></div>
+                                <div class="strix-preview-item"></div>
+                            </div>
+                            <span><?php _e('List', 'strix-google-reviews'); ?></span>
+                        </label>
+                    </div>
+
+                    <div class="strix-layout-option">
+                        <input type="radio" id="layout_grid" name="strix_layout" value="grid"
+                               <?php checked($layout, 'grid'); ?> />
+                        <label for="layout_grid" class="strix-layout-card">
+                            <div class="strix-layout-preview strix-grid-preview">
+                                <div class="strix-preview-item"></div>
+                                <div class="strix-preview-item"></div>
+                                <div class="strix-preview-item"></div>
+                                <div class="strix-preview-item"></div>
+                            </div>
+                            <span><?php _e('Grid', 'strix-google-reviews'); ?></span>
+                        </label>
+                    </div>
+
+                    <div class="strix-layout-option">
+                        <input type="radio" id="layout_slider" name="strix_layout" value="slider"
+                               <?php checked($layout, 'slider'); ?> />
+                        <label for="layout_slider" class="strix-layout-card">
+                            <div class="strix-layout-preview strix-slider-preview">
+                                <div class="strix-preview-item"></div>
+                                <div class="strix-preview-item strix-active"></div>
+                                <div class="strix-preview-item"></div>
+                            </div>
+                            <span><?php _e('Slider', 'strix-google-reviews'); ?></span>
+                        </label>
+                    </div>
+
+                    <div class="strix-layout-option">
+                        <input type="radio" id="layout_badge" name="strix_layout" value="badge"
+                               <?php checked($layout, 'badge'); ?> />
+                        <label for="layout_badge" class="strix-layout-card">
+                            <div class="strix-layout-preview strix-badge-preview">
+                                <div class="strix-preview-badge">★★★★★ 4.8</div>
+                            </div>
+                            <span><?php _e('Badge', 'strix-google-reviews'); ?></span>
+                        </label>
+                    </div>
+
+                    <div class="strix-layout-option">
+                        <input type="radio" id="layout_popup" name="strix_layout" value="popup"
+                               <?php checked($layout, 'popup'); ?> />
+                        <label for="layout_popup" class="strix-layout-card">
+                            <div class="strix-layout-preview strix-popup-preview">
+                                <div class="strix-preview-popup">📋</div>
+                            </div>
+                            <span><?php _e('Popup', 'strix-google-reviews'); ?></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="strix-editor-field strix-style-field">
+                    <label for="strix_layout_style">
+                        <span class="strix-field-icon">🎭</span>
+                        <?php _e('Style Variant', 'strix-google-reviews'); ?>
+                    </label>
                     <select id="strix_layout_style" name="strix_layout_style">
-                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                            <option value="<?php echo $i; ?>" <?php selected($layout_style, $i); ?>><?php printf(__('Style %d', 'strix-google-reviews'), $i); ?></option>
-                        <?php endfor; ?>
+                        <option value="1" <?php selected($layout_style, '1'); ?>><?php _e('Classic Style', 'strix-google-reviews'); ?></option>
+                        <option value="2" <?php selected($layout_style, '2'); ?>><?php _e('Modern Style', 'strix-google-reviews'); ?></option>
+                        <option value="3" <?php selected($layout_style, '3'); ?>><?php _e('Minimal Style', 'strix-google-reviews'); ?></option>
+                        <option value="4" <?php selected($layout_style, '4'); ?>><?php _e('Elegant Style', 'strix-google-reviews'); ?></option>
+                        <option value="5" <?php selected($layout_style, '5'); ?>><?php _e('Bold Style', 'strix-google-reviews'); ?></option>
                     </select>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="strix_limit"><?php _e('Number of Reviews', 'strix-google-reviews'); ?></label></th>
-                <td>
-                    <input type="number" id="strix_limit" name="strix_limit" value="<?php echo esc_attr($limit); ?>" min="1" max="50" />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="strix_show_company"><?php _e('Show Company Name', 'strix-google-reviews'); ?></label></th>
-                <td>
-                    <input type="checkbox" id="strix_show_company" name="strix_show_company" value="1" <?php checked($show_company, '1'); ?> />
-                </td>
-            </tr>
-            <tr>
-                <th><label for="strix_filter_5_star"><?php _e('Show Only 5-Star Reviews', 'strix-google-reviews'); ?></label></th>
-                <td>
-                    <input type="checkbox" id="strix_filter_5_star" name="strix_filter_5_star" value="1" <?php checked($filter_5_star, '1'); ?> />
-                </td>
-            </tr>
-        </table>
+                </div>
+            </div>
+
+            <!-- Шаг 3: Настройки отображения -->
+            <div class="strix-editor-section">
+                <h3><?php _e('⚙️ Display Settings', 'strix-google-reviews'); ?></h3>
+
+                <div class="strix-editor-grid">
+                    <div class="strix-editor-field">
+                        <label for="strix_limit">
+                            <span class="strix-field-icon">📊</span>
+                            <?php _e('Number of Reviews', 'strix-google-reviews'); ?>
+                        </label>
+                        <input type="number" id="strix_limit" name="strix_limit"
+                               value="<?php echo esc_attr($limit); ?>" min="1" max="50" />
+                    </div>
+
+                    <div class="strix-editor-field">
+                        <label for="strix_sort_by">
+                            <span class="strix-field-icon">🔄</span>
+                            <?php _e('Sort Reviews', 'strix-google-reviews'); ?>
+                        </label>
+                        <select id="strix_sort_by" name="strix_sort_by">
+                            <option value="newest" <?php selected($sort_by, 'newest'); ?>><?php _e('Newest First', 'strix-google-reviews'); ?></option>
+                            <option value="oldest" <?php selected($sort_by, 'oldest'); ?>><?php _e('Oldest First', 'strix-google-reviews'); ?></option>
+                            <option value="highest" <?php selected($sort_by, 'highest'); ?>><?php _e('Highest Rating', 'strix-google-reviews'); ?></option>
+                            <option value="lowest" <?php selected($sort_by, 'lowest'); ?>><?php _e('Lowest Rating', 'strix-google-reviews'); ?></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="strix-checkbox-group">
+                    <div class="strix-checkbox-item">
+                        <input type="checkbox" id="strix_show_company" name="strix_show_company" value="1"
+                               <?php checked($show_company, '1'); ?> />
+                        <label for="strix_show_company">
+                            <span class="strix-checkbox-icon">🏢</span>
+                            <?php _e('Show company name and rating', 'strix-google-reviews'); ?>
+                        </label>
+                    </div>
+
+                    <div class="strix-checkbox-item">
+                        <input type="checkbox" id="strix_filter_5_star" name="strix_filter_5_star" value="1"
+                               <?php checked($filter_5_star, '1'); ?> />
+                        <label for="strix_filter_5_star">
+                            <span class="strix-checkbox-icon">⭐</span>
+                            <?php _e('Show only 5-star reviews', 'strix-google-reviews'); ?>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 4: Фильтры -->
+            <div class="strix-editor-section">
+                <h3><?php _e('🔍 Advanced Filters', 'strix-google-reviews'); ?></h3>
+
+                <div class="strix-editor-grid">
+                    <div class="strix-editor-field">
+                        <label for="strix_filter_rating">
+                            <span class="strix-field-icon">⭐</span>
+                            <?php _e('Minimum Rating', 'strix-google-reviews'); ?>
+                        </label>
+                        <select id="strix_filter_rating" name="strix_filter_rating">
+                            <option value="" <?php selected($filter_rating, ''); ?>><?php _e('All ratings', 'strix-google-reviews'); ?></option>
+                            <option value="2" <?php selected($filter_rating, '2'); ?>><?php _e('2+ stars', 'strix-google-reviews'); ?></option>
+                            <option value="3" <?php selected($filter_rating, '3'); ?>><?php _e('3+ stars', 'strix-google-reviews'); ?></option>
+                            <option value="4" <?php selected($filter_rating, '4'); ?>><?php _e('4+ stars', 'strix-google-reviews'); ?></option>
+                            <option value="5" <?php selected($filter_rating, '5'); ?>><?php _e('5-star only', 'strix-google-reviews'); ?></option>
+                        </select>
+                    </div>
+
+                    <div class="strix-editor-field">
+                        <label for="strix_filter_keywords">
+                            <span class="strix-field-icon">🔍</span>
+                            <?php _e('Keywords Filter', 'strix-google-reviews'); ?>
+                        </label>
+                        <input type="text" id="strix_filter_keywords" name="strix_filter_keywords"
+                               value="<?php echo esc_attr($filter_keywords); ?>"
+                               placeholder="<?php _e('e.g. service, quality, fast', 'strix-google-reviews'); ?>" />
+                        <p class="strix-help-text">
+                            <?php _e('Comma-separated keywords. Only reviews containing these words will be shown.', 'strix-google-reviews'); ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+        .strix-widget-editor { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .strix-editor-section { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007cba; }
+        .strix-editor-section h3 { margin-top: 0; color: #1d2327; font-size: 16px; font-weight: 600; }
+        .strix-editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .strix-editor-field { margin-bottom: 15px; }
+        .strix-editor-field label { display: block; margin-bottom: 5px; font-weight: 500; color: #1d2327; }
+        .strix-field-icon { margin-right: 5px; }
+        .strix-editor-field input, .strix-editor-field select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+        .strix-layout-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .strix-layout-option { display: flex; }
+        .strix-layout-option input { position: absolute; opacity: 0; }
+        .strix-layout-card { display: block; padding: 15px; border: 2px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .strix-layout-card:hover { border-color: #007cba; }
+        .strix-layout-option input:checked + .strix-layout-card { border-color: #007cba; background: #f0f8ff; }
+        .strix-layout-preview { height: 60px; margin-bottom: 8px; background: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .strix-preview-item { width: 8px; height: 8px; background: #ccc; margin: 2px; border-radius: 2px; }
+        .strix-grid-preview { flex-wrap: wrap; }
+        .strix-slider-preview .strix-active { background: #007cba; }
+        .strix-badge-preview { justify-content: center; }
+        .strix-preview-badge { background: #007cba; color: white; padding: 4px 8px; border-radius: 12px; font-size: 10px; }
+        .strix-popup-preview { justify-content: center; }
+        .strix-preview-popup { background: #007cba; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .strix-checkbox-group { display: grid; gap: 10px; }
+        .strix-checkbox-item { display: flex; align-items: center; }
+        .strix-checkbox-item input { margin-right: 10px; }
+        .strix-checkbox-item label { display: flex; align-items: center; cursor: pointer; }
+        .strix-checkbox-icon { margin-right: 8px; }
+        .strix-help-text { color: #666; font-size: 13px; margin-top: 5px; }
+        @media (max-width: 768px) { .strix-editor-grid { grid-template-columns: 1fr; } .strix-layout-selector { grid-template-columns: repeat(2, 1fr); } }
+        </style>
         <?php
     }
 
@@ -921,7 +1100,10 @@ class Strix_Google_Reviews {
             'strix_layout_style',
             'strix_limit',
             'strix_show_company',
-            'strix_filter_5_star'
+            'strix_filter_5_star',
+            'strix_filter_rating',
+            'strix_filter_keywords',
+            'strix_sort_by'
         );
 
         foreach ($fields as $field) {
@@ -936,6 +1118,7 @@ class Strix_Google_Reviews {
     public function strix_widget_columns($columns) {
         $columns['shortcode'] = __('Shortcode', 'strix-google-reviews');
         $columns['layout'] = __('Layout', 'strix-google-reviews');
+        $columns['preview'] = __('Preview', 'strix-google-reviews');
         return $columns;
     }
 
@@ -945,12 +1128,66 @@ class Strix_Google_Reviews {
     public function strix_widget_custom_column($column, $post_id) {
         switch ($column) {
             case 'shortcode':
-                echo '<code>[strix_widget id="' . $post_id . '"]</code>';
+                $shortcode = '[strix_widget id="' . $post_id . '"]';
+                echo '<div style="display:flex;align-items:center;gap:5px;">';
+                echo '<code style="background:#f1f1f1;padding:2px 6px;border-radius:3px;font-size:11px;">' . $shortcode . '</code>';
+                echo '<button type="button" class="button button-small" onclick="navigator.clipboard.writeText(\'' . $shortcode . '\'); this.innerHTML=\'✅\'; setTimeout(() => this.innerHTML=\'📋\', 1000);" title="' . __('Copy to clipboard', 'strix-google-reviews') . '" style="padding:0 8px;font-size:11px;">📋</button>';
+                echo '</div>';
                 break;
             case 'layout':
                 $layout = get_post_meta($post_id, '_strix_layout', true) ?: 'list';
                 $layout_style = get_post_meta($post_id, '_strix_layout_style', true) ?: '1';
-                echo ucfirst($layout) . ' (Style ' . $layout_style . ')';
+                $limit = get_post_meta($post_id, '_strix_limit', true) ?: 5;
+
+                $layout_names = array(
+                    'list' => __('📝 List', 'strix-google-reviews'),
+                    'grid' => __('🔳 Grid', 'strix-google-reviews'),
+                    'slider' => __('🎠 Slider', 'strix-google-reviews'),
+                    'badge' => __('🏷️ Badge', 'strix-google-reviews'),
+                    'popup' => __('📋 Popup', 'strix-google-reviews'),
+                );
+
+                echo $layout_names[$layout] . ' (Style ' . $layout_style . ', ' . $limit . ' reviews)';
+                break;
+            case 'preview':
+                $layout = get_post_meta($post_id, '_strix_layout', true) ?: 'list';
+                $layout_style = get_post_meta($post_id, '_strix_layout_style', true) ?: '1';
+
+                echo '<div style="display:flex;align-items:center;gap:8px;">';
+
+                switch ($layout) {
+                    case 'list':
+                        echo '<div style="width:40px;height:30px;background:#f0f0f0;border-radius:4px;display:flex;flex-direction:column;gap:2px;padding:3px;">';
+                        echo '<div style="height:3px;background:#ccc;border-radius:1px;"></div>';
+                        echo '<div style="height:3px;background:#ccc;border-radius:1px;"></div>';
+                        echo '<div style="height:3px;background:#ccc;border-radius:1px;"></div>';
+                        echo '</div>';
+                        break;
+                    case 'grid':
+                        echo '<div style="width:40px;height:30px;background:#f0f0f0;border-radius:4px;display:flex;flex-wrap:wrap;gap:2px;padding:3px;">';
+                        echo '<div style="width:8px;height:8px;background:#ccc;border-radius:1px;"></div>';
+                        echo '<div style="width:8px;height:8px;background:#ccc;border-radius:1px;"></div>';
+                        echo '<div style="width:8px;height:8px;background:#ccc;border-radius:1px;"></div>';
+                        echo '<div style="width:8px;height:8px;background:#ccc;border-radius:1px;"></div>';
+                        echo '</div>';
+                        break;
+                    case 'slider':
+                        echo '<div style="width:40px;height:30px;background:#f0f0f0;border-radius:4px;display:flex;align-items:center;padding:0 5px;">';
+                        echo '<div style="width:8px;height:8px;background:#ccc;border-radius:50%;margin:0 2px;"></div>';
+                        echo '<div style="width:8px;height:8px;background:#007cba;border-radius:50%;margin:0 2px;"></div>';
+                        echo '<div style="width:8px;height:8px;background:#ccc;border-radius:50%;margin:0 2px;"></div>';
+                        echo '</div>';
+                        break;
+                    case 'badge':
+                        echo '<div style="width:40px;height:30px;background:#007cba;border-radius:15px;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;">★4.8</div>';
+                        break;
+                    case 'popup':
+                        echo '<div style="width:40px;height:30px;background:#f0f0f0;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;">📋</div>';
+                        break;
+                }
+
+                echo '<span style="font-size:11px;color:#666;">Style ' . $layout_style . '</span>';
+                echo '</div>';
                 break;
         }
     }
@@ -2055,6 +2292,9 @@ class Strix_Google_Reviews {
         $limit = get_post_meta($atts['id'], '_strix_limit', true) ?: 5;
         $show_company = get_post_meta($atts['id'], '_strix_show_company', true) ?: '1';
         $filter_5_star = get_post_meta($atts['id'], '_strix_filter_5_star', true) ?: '0';
+        $filter_rating = get_post_meta($atts['id'], '_strix_filter_rating', true) ?: '';
+        $filter_keywords = get_post_meta($atts['id'], '_strix_filter_keywords', true) ?: '';
+        $sort_by = get_post_meta($atts['id'], '_strix_sort_by', true) ?: 'newest';
 
         // Build shortcode attributes
         $shortcode_atts = array(
@@ -2064,6 +2304,9 @@ class Strix_Google_Reviews {
             'layout_style' => $layout_style,
             'limit' => $limit,
             'show_company' => $show_company,
+            'filter_rating' => $filter_rating,
+            'filter_keywords' => $filter_keywords,
+            'sort_by' => $sort_by,
         );
 
         // Override global filter settings if specified in widget
