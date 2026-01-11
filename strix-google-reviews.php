@@ -831,7 +831,10 @@ class Strix_Google_Reviews {
         $account_id = get_post_meta($post->ID, '_strix_account_id', true);
         $location_id = get_post_meta($post->ID, '_strix_location_id', true);
         $layout = get_post_meta($post->ID, '_strix_layout', true) ?: 'list';
-        $layout_style = get_post_meta($post->ID, '_strix_layout_style', true) ?: '1';
+        $layout_style = get_post_meta($post->ID, '_strix_layout_style', true);
+        if (empty($layout_style) || !in_array($layout_style, array('1', '2', '3', '4', '5'))) {
+            $layout_style = '1';
+        }
         $limit = get_post_meta($post->ID, '_strix_limit', true) ?: 5;
         $show_company = get_post_meta($post->ID, '_strix_show_company', true) ?: '1';
         $filter_5_star = get_post_meta($post->ID, '_strix_filter_5_star', true) ?: '0';
@@ -1247,6 +1250,13 @@ class Strix_Google_Reviews {
                 </div>
             </div>
         </div>
+        </div>
+
+        <!-- Debug info (remove in production) -->
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e1e5e9;">
+            <strong>Debug Info:</strong><br>
+            Current layout_style value: <code><?php echo esc_html($layout_style); ?></code><br>
+            Saved in database: <code><?php echo esc_html(get_post_meta($post->ID, '_strix_layout_style', true)); ?></code>
         </div>
 
         <style>
@@ -1740,6 +1750,16 @@ class Strix_Google_Reviews {
             font-weight: 600;
         }
 
+        .strix-style-option.selected {
+            border-color: #007cba;
+            background: #f0f8ff;
+        }
+
+        .strix-style-option.selected .strix-style-name {
+            color: #007cba;
+            font-weight: 600;
+        }
+
         .strix-style-option input {
             position: absolute;
             opacity: 0;
@@ -2099,8 +2119,15 @@ class Strix_Google_Reviews {
                 }
             });
 
-            // Trigger initial data source check
+            // Style variant selection - visual feedback
+            $('input[name="strix_layout_style"]').on('change', function() {
+                $('.strix-style-option').removeClass('selected');
+                $(this).closest('.strix-style-option').addClass('selected');
+            });
+
+            // Trigger initial checks
             $('input[name="strix_data_source"]:checked').trigger('change');
+            $('input[name="strix_layout_style"]:checked').trigger('change');
         });
         </script>
         <?php
@@ -2145,6 +2172,14 @@ class Strix_Google_Reviews {
 
         foreach ($fields as $field) {
             $value = isset($_POST[$field]) ? sanitize_text_field($_POST[$field]) : '';
+
+            // Special handling for layout_style - ensure it's valid
+            if ($field === 'strix_layout_style') {
+                if (empty($value) || !in_array($value, array('1', '2', '3', '4', '5'))) {
+                    $value = '1';
+                }
+            }
+
             update_post_meta($post_id, '_' . $field, $value);
         }
     }
