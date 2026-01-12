@@ -1012,3 +1012,212 @@ body.strix-popup-open {
     color: #2c5282;
     text-decoration: underline;
 }
+
+/* Masonry Grid Layout */
+.strix-reviews-masonry {
+    column-count: 3;
+    column-gap: 20px;
+    margin: 20px 0;
+}
+
+.strix-masonry-item {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    display: inline-block;
+    width: 100%;
+}
+
+.strix-masonry-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.strix-masonry-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 1200px) {
+    .strix-reviews-masonry {
+        column-count: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .strix-reviews-masonry {
+        column-count: 1;
+    }
+}
+
+/* Google Place Information Badges */
+.strix-place-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.strix-badge-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #2d3748;
+}
+
+.strix-badge-item .strix-badge-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+.strix-badge-item.strix-badge-rating {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.strix-badge-item.strix-badge-reviews {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.strix-badge-item.strix-badge-verified {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border-color: transparent;
+}
+
+/* Bootstrap Integration */
+.strix-bootstrap-enabled .strix-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.strix-bootstrap-enabled .strix-review-item {
+    margin-bottom: 0;
+}
+
+.strix-bootstrap-enabled .strix-reviews-masonry {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: masonry;
+    gap: 1.5rem;
+}
+
+/* Additional Review Styles */
+.strix-layout-list-3 .strix-review-item {
+    border-left: 4px solid #667eea;
+    padding-left: 20px;
+}
+
+.strix-layout-list-4 .strix-review-item {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.strix-layout-list-5 .strix-review-item {
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.strix-layout-grid-2 .strix-grid-item-1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.strix-layout-grid-2 .strix-grid-item-1 .strix-review-author,
+.strix-layout-grid-2 .strix-grid-item-1 .strix-review-text {
+    color: white;
+}
+
+.strix-layout-grid-3 .strix-grid-item-1 {
+    border-top: 4px solid #f5576c;
+}
+
+.strix-layout-grid-4 .strix-grid-item-1 {
+    background: #f8f9fa;
+    border: 2px dashed #cbd5e0;
+}
+
+.strix-layout-grid-5 .strix-grid-item-1 {
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transform: rotate(-1deg);
+    transition: transform 0.3s ease;
+}
+
+.strix-layout-grid-5 .strix-grid-item-1:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.strix-layout-slider-2 .swiper-slide {
+    padding: 20px;
+}
+
+.strix-layout-slider-3 .swiper-slide .strix-review-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.strix-layout-slider-4 .swiper-slide .strix-review-item {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.strix-layout-slider-5 .swiper-slide .strix-review-item {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.strix-layout-badge-2 .strix-badge-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 30px;
+}
+
+.strix-layout-badge-3 .strix-badge-content {
+    border: 3px solid #667eea;
+    border-radius: 20px;
+}
+
+.strix-layout-badge-4 .strix-badge-content {
+    background: #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.strix-layout-badge-5 .strix-badge-content {
+    background: white;
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+}
+
+.strix-layout-popup-2 .strix-popup-content {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.strix-layout-popup-3 .strix-popup-content {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.strix-layout-popup-4 .strix-popup-content {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.strix-layout-popup-5 .strix-popup-content {
+    border: 3px solid #667eea;
+}

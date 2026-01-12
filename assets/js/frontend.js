@@ -301,7 +301,43 @@ jQuery(document).ready(function($) {
         }
     });
 
+    // Initialize Masonry Grid
+    function initializeMasonry() {
+        var masonryContainers = document.querySelectorAll('.strix-reviews-masonry');
+        
+        masonryContainers.forEach(function(container) {
+            // Use CSS columns for masonry effect
+            // JavaScript can be used for more advanced masonry if needed
+            var items = container.querySelectorAll('.strix-masonry-item');
+            
+            // Add animation on load
+            items.forEach(function(item, index) {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                
+                setTimeout(function() {
+                    item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    }
+    
+    // Initialize masonry on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeMasonry);
+    } else {
+        initializeMasonry();
+    }
+    
+    // Reinitialize masonry after AJAX loads
+    $(document).on('strix_reviews_loaded', function() {
+        initializeMasonry();
+    });
+
     // Expose functions globally for AJAX calls
     window.initializeSwipers = initializeSwipers;
     window.reinitializeAllSwipers = reinitializeAllSwipers;
+    window.initializeMasonry = initializeMasonry;
 });
