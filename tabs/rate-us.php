@@ -1,6 +1,6 @@
 <?php
 defined('ABSPATH') or die('No script kiddies please!');
-wp_enqueue_script('strix-js', 'https://cdn.strixmedia.ru/loader.js', [], true, true);
+wp_enqueue_script('strix-js', 'https://cdn.trustindex.io/loader.js', [], true, true);
 ?>
 <h1 class="strix-header-title"><?php echo esc_html(__('Rate Us', 'wp-reviews-plugin-for-google')); ?></h1>
 <div class="strix-box">
@@ -11,6 +11,6 @@ wp_enqueue_script('strix-js', 'https://cdn.strixmedia.ru/loader.js', [], true, t
 </p>
 <a class="strix-btn" href="https://wordpress.org/support/plugin/<?php echo esc_attr($pluginManagerInstance->get_plugin_slug()); ?>/reviews/?rate=5#new-post" target="_blank"><?php echo esc_html(__('Click here to rate us!', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="strix-box-footer">
-<div data-src='https://cdn.strixmedia.ru/loader.js?<?php echo '3ef6962888fb40403c525129f9'; ?>'></div>
+<div data-src='https://cdn.trustindex.io/loader.js?<?php echo '3ef6962888fb40403c525129f9'; ?>'></div>
 </div>
 </div>

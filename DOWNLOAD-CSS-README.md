@@ -30,7 +30,7 @@
 1. Создайте папку: `static/css/widget-presetted-css/v2/`
 2. Скачайте CSS файлы по шаблону:
    ```
-   https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/{styleId}-{setId}.css
+   https://cdn.trustindex.io/assets/widget-presetted-css/v2/{styleId}-{setId}.css
    ```
    
    Например:
@@ -43,7 +43,7 @@
 
 4. Скачайте `ti-preview-box.css`:
    ```
-   https://cdn.strixmedia.ru/assets/ti-preview-box.css
+   https://cdn.trustindex.io/assets/ti-preview-box.css
    ```
    Сохраните в `static/css/ti-preview-box.css`
 
@@ -54,12 +54,12 @@
 mkdir -p static/css/widget-presetted-css/v2
 
 # Скачать файлы (пример для нескольких стилей)
-wget https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/4-light-background.css -O static/css/widget-presetted-css/v2/4-light-background.css
-wget https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/4-drop-shadow.css -O static/css/widget-presetted-css/v2/4-drop-shadow.css
-wget https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/5-light-background.css -O static/css/widget-presetted-css/v2/5-light-background.css
+wget https://cdn.trustindex.io/assets/widget-presetted-css/v2/4-light-background.css -O static/css/widget-presetted-css/v2/4-light-background.css
+wget https://cdn.trustindex.io/assets/widget-presetted-css/v2/4-drop-shadow.css -O static/css/widget-presetted-css/v2/4-drop-shadow.css
+wget https://cdn.trustindex.io/assets/widget-presetted-css/v2/5-light-background.css -O static/css/widget-presetted-css/v2/5-light-background.css
 
 # Скачать preview CSS
-wget https://cdn.strixmedia.ru/assets/ti-preview-box.css -O static/css/ti-preview-box.css
+wget https://cdn.trustindex.io/assets/ti-preview-box.css -O static/css/ti-preview-box.css
 ```
 
 ## Как это работает

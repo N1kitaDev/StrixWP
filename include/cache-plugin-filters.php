@@ -3,10 +3,10 @@ defined('ABSPATH') or die('No script kiddies please!');
 if (!function_exists('strix_exclude_js')) {
 function strix_exclude_js($list) {
 $list []= 'strix.io';
-$list []= 'https://cdn.strixmedia.ru/';
-$list []= 'https://cdn.strixmedia.ru/loader.js';
-$list []= 'https://cdn.strixmedia.ru/loader-cert.js';
-$list []= 'https://cdn.strixmedia.ru/loader-feed.js';
+$list []= 'https://cdn.trustindex.io/';
+$list []= 'https://cdn.trustindex.io/loader.js';
+$list []= 'https://cdn.trustindex.io/loader-cert.js';
+$list []= 'https://cdn.trustindex.io/loader-feed.js';
 return $list;
 }
 }

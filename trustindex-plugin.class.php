@@ -905,7 +905,7 @@ if (isset($atts['data-widget-id']) && $atts['data-widget-id']) {
 $content = $this->renderWidgetFrontend(esc_attr($atts['data-widget-id']));
 if ($this->isElementorEditing()) {
 // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
-$content .= '<script type="text/javascript" src="https://cdn.strixmedia.ru/loader.js"></script>';
+$content .= '<script type="text/javascript" src="https://cdn.trustindex.io/loader.js"></script>';
 }
 return wp_kses($content, self::$allowedAttributesForWidget);
 }
@@ -988,9 +988,9 @@ if (file_exists($localCssPath)) {
 $cssContent = file_get_contents($localCssPath);
 $cssContent = str_replace('../img', $this->get_plugin_file_url('static/img'), $cssContent);
 } else {
-$response = wp_remote_get('https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/'.$cssFileName, [ 'timeout' => 30 ]);
+$response = wp_remote_get('https://cdn.trustindex.io/assets/widget-presetted-css/v2/'.$cssFileName, [ 'timeout' => 30 ]);
 $cssContent = wp_remote_retrieve_body($response);
-$cssContent = str_replace('../../../assets', 'https://cdn.strixmedia.ru/assets', $cssContent);
+$cssContent = str_replace('../../../assets', 'https://cdn.trustindex.io/assets', $cssContent);
 if (is_wp_error($response) || !$cssContent) {
 echo wp_kses_post($this->get_alertbox('error', "Trustindex's system is not available at the moment, please try again later."));
 die;
@@ -5966,7 +5966,7 @@ return $url;
 }
 private function getDefaultCompanyAvatarUrl()
 {
-return 'https://cdn.strixmedia.ru/companies/default_avatar.jpg';
+return 'https://cdn.trustindex.io/companies/default_avatar.jpg';
 }
 
 private function getGoogleType($pageId)
@@ -6053,7 +6053,7 @@ if ($tiPublicId) {
 $tiPublicId = preg_replace('/[^a-zA-Z0-9]/', '', $tiPublicId);
 }
 $preContent = "";
-$attributes = ['data-src' => 'https://cdn.strixmedia.ru/loader.js?'.$tiPublicId];
+$attributes = ['data-src' => 'https://cdn.trustindex.io/loader.js?'.$tiPublicId];
 if (!$tiPublicId) {
 $pageDetails = $this->getPageDetails();
 $styleId = (int)$this->getWidgetOption('style-id');
@@ -6103,7 +6103,7 @@ $localCssPath = $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'css'
 if (file_exists($localCssPath)) {
 wp_enqueue_style('trustindex-widget-preview-'.$fileName, $this->get_plugin_file_url('static/css/widget-presetted-css/v2/'.$fileName), [], filemtime($localCssPath));
 } else {
-wp_enqueue_style('trustindex-widget-preview-'.$fileName, "https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/$fileName", [], true);
+wp_enqueue_style('trustindex-widget-preview-'.$fileName, "https://cdn.trustindex.io/assets/widget-presetted-css/v2/$fileName", [], true);
 }
 if (isset($previewData['verified-by-trustindex']) && $previewData['verified-by-trustindex']) {
 $this->widgetOptionDefaultOverride['verified-by-trustindex'] = 1;
@@ -6123,7 +6123,7 @@ $html .= '<style type="text/css">'.get_option($this->get_option_name('css-conten
 }
 if ($this->isElementorEditing()) {
 // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
-$html .= '<script type="text/javascript" src="https://cdn.strixmedia.ru/loader.js"></script>';
+$html .= '<script type="text/javascript" src="https://cdn.trustindex.io/loader.js"></script>';
 } else {
 $this->enqueueLoaderScript();
 }
@@ -6155,7 +6155,7 @@ public function enqueueLoaderScript()
 if (wp_script_is('trustindex-loader-js', 'registered')) {
 wp_enqueue_script('trustindex-loader-js');
 } else {
-wp_enqueue_script('trustindex-loader-js', 'https://cdn.strixmedia.ru/loader.js', [], true, [
+wp_enqueue_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js', [], true, [
 'strategy' => 'async',
 'in_footer' => true,
 ]);
@@ -6186,7 +6186,7 @@ curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
 if (strlen($language) > 3) {
 $language = 'en';
 }
-$response = wp_remote_get("https://cdn.strixmedia.ru/widget-assets/template/v2/$language.json", [ 'timeout' => 300 ]);
+$response = wp_remote_get("https://cdn.trustindex.io/widget-assets/template/v2/$language.json", [ 'timeout' => 300 ]);
 if (is_wp_error($response)) {
 // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 return $this->frontEndErrorForAdmins(__('Could not download the template for the widget.<br />Please reload the page.<br />If the problem persists, please write an email to support@strixmedia.ru.', 'wp-reviews-plugin-for-google') .'<br /><br />'. print_r($response, true));
@@ -6320,7 +6320,7 @@ if (!$pageDetails) {
 $pageDetails = [];
 }
 if (!isset($pageDetails['avatar_url'])) {
-$pageDetails['avatar_url'] = 'https://cdn.strixmedia.ru/companies/default_avatar.jpg';
+$pageDetails['avatar_url'] = 'https://cdn.trustindex.io/companies/default_avatar.jpg';
 }
 $ratingNum = 127;
 $pageDetails['rating_number'] = $ratingNum;
@@ -6535,7 +6535,7 @@ $imageUrl,
 $this->get_platform_name($this->getShortName(), $pageDetails['id']),
 $this->get_rating_stars($this->is_ten_scale_rating_platform() ? $ratingScore / 2 : $ratingScore, $showStars),
 '<div class="ti-small-logo"><img src="'.$this->get_plugin_file_url('static/img/platform/logo.svg').'" alt="'.ucfirst($this->getShortName()).'" width="150" height="25" loading="lazy"></div>',
-'<img class="ti-platform-icon" src="https://cdn.strixmedia.ru/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy" />',
+'<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy" />',
 '<div class="ti-profile-images">'.$profileImageListForButton.'</div>',
 ], $content);
 if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge', 'fomo' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
@@ -6575,7 +6575,7 @@ $content = str_replace('class="ti-widget-container"', 'class="ti-widget-containe
 }
 $iconType = $this->getWidgetOption('fomo-icon', false, $isPreview);
 $iconHtml = '<div class="ti-fomo-icon" data-type="'.$iconType.'"></div>';
-$platformIconHtml = '<img class="ti-platform-icon" src="https://cdn.strixmedia.ru/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy">';
+$platformIconHtml = '<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy">';
 if ('hide' === $iconType) {
 $iconHtml = '';
 } else if ('profile-images' === $iconType) {
@@ -6877,7 +6877,7 @@ $altPlatform = $platform;
 if (!$platformStars) {
 $platform = 'Trustindex';
 }
-$fullStarUrl = '<img class="ti-star" src="https://cdn.strixmedia.ru/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
+$fullStarUrl = '<img class="ti-star" src="https://cdn.trustindex.io/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
 if ('custom' === $platformStars) {
 $fullStarUrl = '<span class="ti-star f"></span>';
 }
@@ -7292,7 +7292,7 @@ private function getCdnVersionControl()
 {
 $data = get_option($this->get_option_name('cdn-version-control'), []);
 if (!$data || $data['last-saved-at'] < time() + 60) {
-$response = wp_remote_get('https://cdn.strixmedia.ru/version-control.json', [ 'timeout' => 60 ]);
+$response = wp_remote_get('https://cdn.trustindex.io/version-control.json', [ 'timeout' => 60 ]);
 if (!is_wp_error($response)) {
 $data = array_merge($data, json_decode($response['body'], true));
 }

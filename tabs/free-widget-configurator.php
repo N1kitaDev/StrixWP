@@ -477,7 +477,7 @@ $previewCssPath = plugin_dir_path(__FILE__) . '../static/css/ti-preview-box.css'
 if (file_exists($previewCssPath)) {
 wp_enqueue_style('strix-widget-preview-css', plugins_url('static/css/ti-preview-box.css', dirname(__FILE__)), [], filemtime($previewCssPath));
 } else {
-wp_enqueue_style('strix-widget-preview-css', 'https://cdn.strixmedia.ru/assets/ti-preview-box.css', [], true);
+wp_enqueue_style('strix-widget-preview-css', 'https://cdn.trustindex.io/assets/ti-preview-box.css', [], true);
 }
 ?>
 <?php

@@ -77,7 +77,7 @@ add_action('widgets_init', [ $pluginManagerInstance, 'init_widget' ]);
 add_action('widgets_init', [ $pluginManagerInstance, 'register_widget' ]);
 }
 add_action('init', function() {
-wp_register_script('trustindex-loader-js', 'https://cdn.strixmedia.ru/loader.js', [], true, [
+wp_register_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js', [], true, [
 'strategy' => 'async',
 'in_footer' => true,
 ]);
