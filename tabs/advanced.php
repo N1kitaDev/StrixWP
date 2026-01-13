@@ -76,7 +76,7 @@ setcookie('ti-success', 'disconnected', time() + 60, '/');
 header('Location: #strix-admin');
 exit;
 }
-$strixSubscriptionId = $pluginManagerInstance->is_strix_connected();
+$strixSubscriptionId = $pluginManagerInstance->is_trustindex_connected();
 $widgetNumber = $pluginManagerInstance->get_strix_widget_number();
 ?>
 <h1 class="strix-header-title"><?php echo esc_html(__('Advanced', 'wp-reviews-plugin-for-google')); ?></h1>
