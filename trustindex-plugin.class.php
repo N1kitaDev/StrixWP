@@ -982,14 +982,21 @@ public function noreg_save_css($setChange = false)
 $defaultSet = 'light-background';
 $styleId = (int)get_option($this->get_option_name('style-id'), 4);
 $setId = get_option($this->get_option_name('scss-set'), $defaultSet);
-$response = wp_remote_get('https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/'.$styleId.'-'.$setId.'.css', [ 'timeout' => 30 ]);
+$cssFileName = $styleId.'-'.$setId.'.css';
+$localCssPath = $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'widget-presetted-css' . DIRECTORY_SEPARATOR . 'v2' . DIRECTORY_SEPARATOR . $cssFileName;
+if (file_exists($localCssPath)) {
+$cssContent = file_get_contents($localCssPath);
+$cssContent = str_replace('../img', $this->get_plugin_file_url('static/img'), $cssContent);
+} else {
+$response = wp_remote_get('https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/'.$cssFileName, [ 'timeout' => 30 ]);
 $cssContent = wp_remote_retrieve_body($response);
 $cssContent = str_replace('../../../assets', 'https://cdn.strixmedia.ru/assets', $cssContent);
-$cssContent = str_replace(".ti-widget[data-layout-id='$styleId'][data-set-id='$setId']", '.ti-widget.ti-'. substr($this->getShortName(), 0, 4), $cssContent);
 if (is_wp_error($response) || !$cssContent) {
 echo wp_kses_post($this->get_alertbox('error', "Trustindex's system is not available at the moment, please try again later."));
 die;
 }
+}
+$cssContent = str_replace(".ti-widget[data-layout-id='$styleId'][data-set-id='$setId']", '.ti-widget.ti-'. substr($this->getShortName(), 0, 4), $cssContent);
 if (!$setChange) {
 update_option($this->get_option_name('scss-set'), $defaultSet, false);
 }
@@ -6092,7 +6099,12 @@ $this->widgetOptions['style-id'] = $previewData['style-id'];
 $this->widgetOptions['scss-set'] = $previewData['set-id'];
 $this->widgetOptions['review-content'] = "";
 $fileName = $previewData['style-id'].'-'.$previewData['set-id'].'.css';
+$localCssPath = $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'widget-presetted-css' . DIRECTORY_SEPARATOR . 'v2' . DIRECTORY_SEPARATOR . $fileName;
+if (file_exists($localCssPath)) {
+wp_enqueue_style('trustindex-widget-preview-'.$fileName, $this->get_plugin_file_url('static/css/widget-presetted-css/v2/'.$fileName), [], filemtime($localCssPath));
+} else {
 wp_enqueue_style('trustindex-widget-preview-'.$fileName, "https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/$fileName", [], true);
+}
 if (isset($previewData['verified-by-trustindex']) && $previewData['verified-by-trustindex']) {
 $this->widgetOptionDefaultOverride['verified-by-trustindex'] = 1;
 }

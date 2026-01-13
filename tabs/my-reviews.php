@@ -139,7 +139,12 @@ $text .= '<img src="'. $link .'e.svg" class="strix-star" />';
 }
 return $text;
 }
+$widgetCssPath = plugin_dir_path(__FILE__) . '../static/css/widget-presetted-css/v2/4-light-background.css';
+if (file_exists($widgetCssPath)) {
+wp_enqueue_style('strix-widget-css', plugins_url('static/css/widget-presetted-css/v2/4-light-background.css', dirname(__FILE__)), [], filemtime($widgetCssPath));
+} else {
 wp_enqueue_style('strix-widget-css', 'https://cdn.strixmedia.ru/assets/widget-presetted-css/4-light-background.css', [], true);
+}
 wp_enqueue_script('strix-review-js', 'https://cdn.strixmedia.ru/assets/js/strix-review.js', [], true, true);
 wp_add_inline_script('strix-review-js', '
 jQuery(".strix-review-content").TI_shorten({

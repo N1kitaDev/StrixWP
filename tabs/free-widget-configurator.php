@@ -473,7 +473,12 @@ if ($isTopRatedBadge) {
 $isTopRatedBadgeValid = isset($pageDetails['rating_score']) ? (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore : false;
 }
 }
+$previewCssPath = plugin_dir_path(__FILE__) . '../static/css/ti-preview-box.css';
+if (file_exists($previewCssPath)) {
+wp_enqueue_style('strix-widget-preview-css', plugins_url('static/css/ti-preview-box.css', dirname(__FILE__)), [], filemtime($previewCssPath));
+} else {
 wp_enqueue_style('strix-widget-preview-css', 'https://cdn.strixmedia.ru/assets/ti-preview-box.css', [], true);
+}
 ?>
 <?php
 $stepUrl = '?page='.esc_attr($_page).'&tab=free-widget-configurator&step=%step%';
