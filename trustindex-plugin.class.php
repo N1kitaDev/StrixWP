@@ -6510,7 +6510,9 @@ $content = preg_replace('/<a href=[\'"]%footer_link%[\'"][^>]*>(.+)<\/a>/mU', '<
 if (!$this->getWidgetOption('show-header-button', false, $isPreview)) {
 $content = preg_replace('/<!-- HEADER-BUTTON-START.+HEADER-BUTTON-END -->/s', '', $content);
 }
+if ($content) {
 $content = str_replace(['<!-- HEADER-BUTTON-START', 'HEADER-BUTTON-END -->'], '', $content);
+}
 $footerUrl = $this->getPageUrl();
 
 $footerUrl = in_array($styleId, [8, 13, 14, 26]) ? $this->getReviewWriteUrl() : $this->getReviewPageUrl();
