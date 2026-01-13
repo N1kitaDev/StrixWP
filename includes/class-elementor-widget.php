@@ -204,7 +204,11 @@ class Strix_Google_Reviews_Elementor_Widget extends Widget_Base {
     }
 }
 
-// Register Elementor Widget
-add_action('elementor/widgets/register', function($widgets_manager) {
-    $widgets_manager->register(new Strix_Google_Reviews_Elementor_Widget());
-});
+// Register Elementor Widget - only if class exists
+if (class_exists('Strix_Google_Reviews_Elementor_Widget')) {
+    add_action('elementor/widgets/register', function($widgets_manager) {
+        if (class_exists('Strix_Google_Reviews_Elementor_Widget')) {
+            $widgets_manager->register(new Strix_Google_Reviews_Elementor_Widget());
+        }
+    });
+}
