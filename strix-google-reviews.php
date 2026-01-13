@@ -76,12 +76,19 @@ if (!function_exists('register_block_type')) {
 add_action('widgets_init', [ $pluginManagerInstance, 'init_widget' ]);
 add_action('widgets_init', [ $pluginManagerInstance, 'register_widget' ]);
 }
-add_action('init', function() {
-wp_register_script('trustindex-loader-js', 'https://cdn.trustindex.io/loader.js', [], true, [
-'strategy' => 'async',
-'in_footer' => true,
-]);
-});
+add_action('wp_enqueue_scripts', function () {
+    wp_register_script(
+      'trustindex-loader-js',
+      plugins_url('static/js/loader.js', __FILE__),
+      [],
+      '1.0.0',
+      [
+        'in_footer' => true,
+        'strategy'  => 'async',
+      ]
+    );
+  });
+  
 add_action('init', [ $pluginManagerInstance, 'init_shortcode' ]);
 add_action('elementor/controls/controls_registered', function($controlsManager) {
 require_once(__DIR__ . '/include/elementor-widgets.php');
@@ -107,12 +114,12 @@ if (class_exists('Woocommerce') && !class_exists('TrustindexCollectorPlugin') &&
 function ti_woocommerce_notice() {
 global $pluginManager;
 if (!current_user_can($pluginManager::$permissionNeeded)) {
-return;
-}
+            return;
+        }
 $wcNotification = get_option('trustindex-wc-notification', time() - 1);
 if ($wcNotification == 'hide' || (int)$wcNotification > time()) {
-return;
-}
+            return;
+        }
 ?>
 <div class="notice notice-warning trustindex-notification-row is-dismissible" style="margin: 5px 0 15px">
 <p><strong><?php
@@ -132,9 +139,9 @@ echo wp_kses_post(sprintf(__('Download our new <a href="%1$s" target="_blank">%2
 <button class="button button-secondary"><?php echo esc_html(__('Do not remind me again', 'wp-reviews-plugin-for-google')); ?></button>
 </a>
 </p>
-</div>
-<?php
-}
+        </div>
+        <?php
+    }
 add_action('admin_notices', 'ti_woocommerce_notice');
 }
 add_action('admin_notices', function() use ($pluginManager, $pluginManagerInstance) {

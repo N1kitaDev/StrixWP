@@ -117,25 +117,25 @@ if ($pluginManagerInstance->is_ten_scale_rating_platform()) {
 return '<div class="strix-rating-box">'. $pluginManagerInstance->formatTenRating($score) .'</div>';
 }
 $text = "";
-$link = "https://cdn.trustindex.io/assets/platform/".ucfirst("google")."/star/";
+$link = plugins_url('static/img/', dirname(__FILE__));
 if (!is_numeric($score)) {
 return $text;
 }
 for ($si = 1; $si <= $score; $si++) {
-$text .= '<img src="'. $link .'f.svg" class="strix-star" />';
+$text .= '<img src="'. $link .'star.svg" class="strix-star" />';
 }
 $fractional = $score - floor($score);
 if (0.25 <= $fractional) {
 if ($fractional < 0.75) {
-$text .= '<img src="'. $link .'h.svg" class="strix-star" />';
+$text .= '<img src="'. $link .'star.svg" class="strix-star" style="opacity:0.5;" />';
 }
 else {
-$text .= '<img src="'. $link .'f.svg" class="strix-star" />';
+$text .= '<img src="'. $link .'star.svg" class="strix-star" />';
 }
 $si++;
 }
 for (; $si <= 5; $si++) {
-$text .= '<img src="'. $link .'e.svg" class="strix-star" />';
+$text .= '<img src="'. $link .'star.svg" class="strix-star" style="opacity:0.3;" />';
 }
 return $text;
 }
@@ -143,8 +143,10 @@ $widgetCssPath = plugin_dir_path(__FILE__) . '../static/css/widget-presetted-css
 if (file_exists($widgetCssPath)) {
 wp_enqueue_style('strix-widget-css', plugins_url('static/css/widget-presetted-css/v2/4-light-background.css', dirname(__FILE__)), [], filemtime($widgetCssPath));
 } else {
-wp_enqueue_style('strix-widget-css', 'https://cdn.trustindex.io/assets/widget-presetted-css/4-light-background.css', [], true);
+// Fallback на CDN если локальный файл не найден
+wp_enqueue_style('strix-widget-css', 'https://cdn.trustindex.io/assets/widget-presetted-css/v2/4-light-background.css', [], true);
 }
+// JS файл пока оставляем на CDN, так как его нет локально
 wp_enqueue_script('strix-review-js', 'https://cdn.trustindex.io/assets/js/strix-review.js', [], true, true);
 wp_add_inline_script('strix-review-js', '
 jQuery(".strix-review-content").TI_shorten({

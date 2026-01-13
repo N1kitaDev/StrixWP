@@ -13,7 +13,7 @@ $newBadgeTabs []= 'instagram-feed-widget';
 }
 $noContainerElementTabs = [ 'free-widget-configurator', 'instagram-feed-widget' ];
 $logoCampaignId = 'strix-google-l';
-$logoFile = 'static/img/strix-logo.svg';
+$logoFile = 'static/img/Strix Themes.png';
 $assetCheckJs = [
 'common' => 'static/js/admin-page-settings-common.js',
 'connect' => 'static/js/admin-page-settings-connect.js'

@@ -477,6 +477,7 @@ $previewCssPath = plugin_dir_path(__FILE__) . '../static/css/ti-preview-box.css'
 if (file_exists($previewCssPath)) {
 wp_enqueue_style('strix-widget-preview-css', plugins_url('static/css/ti-preview-box.css', dirname(__FILE__)), [], filemtime($previewCssPath));
 } else {
+// Fallback на CDN если локальный файл не найден
 wp_enqueue_style('strix-widget-preview-css', 'https://cdn.trustindex.io/assets/ti-preview-box.css', [], true);
 }
 ?>
@@ -664,7 +665,7 @@ break;
 <div class="strix-preview-boxes-container">
 <?php foreach ($pluginManager::$widget_templates['templates'] as $id => $template): ?>
 <?php
-$className = 'ti-full-width';
+$className = 'strix-full-width';
 if (in_array($template['type'], [ 'badge', 'button', 'floating', 'popup', 'sidebar', 'top-rated-badge', 'fomo' ])) {
 $className = 'ti-half-width';
 }
@@ -746,7 +747,7 @@ echo esc_html(sprintf(__('There are no reviews on your %s platform.', 'wp-review
 </div>
 <?php endif; ?>
 <?php
-$className = 'ti-full-width';
+$className = 'strix-full-width';
 if (in_array($pluginManager::$widget_templates['templates'][ $styleId ]['type'], [ 'badge', 'button', 'floating', 'popup', 'sidebar', 'top-rated-badge' ])) {
 $className = 'ti-half-width';
 }

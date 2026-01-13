@@ -253,6 +253,10 @@ $url .= $appendMark . 'ver=' . $this->getVersion();
 }
 return $url ? $url : '';
 }
+public function get_image_url_with_cache_bust($file)
+{
+return $this->get_plugin_file_url($file, false);
+}
 public function get_plugin_slug()
 {
 return basename($this->get_plugin_dir());
@@ -355,7 +359,7 @@ $settingsPageTitle,
 self::$permissionNeeded,
 $settingsPageUrl,
 '',
-$this->get_plugin_file_url('static/img/strix-logo.png', false)
+$this->get_plugin_file_url('static/img/strix-logo.png')
 );
 }
 else {
@@ -988,13 +992,19 @@ if (file_exists($localCssPath)) {
 $cssContent = file_get_contents($localCssPath);
 $cssContent = str_replace('../img', $this->get_plugin_file_url('static/img'), $cssContent);
 } else {
+// Попытка загрузить с локального CDN или fallback на оригинальный CDN
 $response = wp_remote_get('https://cdn.trustindex.io/assets/widget-presetted-css/v2/'.$cssFileName, [ 'timeout' => 30 ]);
 $cssContent = wp_remote_retrieve_body($response);
-$cssContent = str_replace('../../../assets', 'https://cdn.trustindex.io/assets', $cssContent);
 if (is_wp_error($response) || !$cssContent) {
 echo wp_kses_post($this->get_alertbox('error', "Trustindex's system is not available at the moment, please try again later."));
 die;
 }
+// Заменяем пути на локальные
+$cssContent = str_replace('https://cdn.trustindex.io/assets/fonts/', $this->get_plugin_file_url('static/fonts/'), $cssContent);
+$cssContent = str_replace('cdn.trustindex.io/assets/fonts/', $this->get_plugin_file_url('static/fonts/'), $cssContent);
+$cssContent = str_replace('https://cdn.trustindex.io/assets/', $this->get_plugin_file_url('static/img/'), $cssContent);
+$cssContent = str_replace('cdn.trustindex.io/assets/', $this->get_plugin_file_url('static/img/'), $cssContent);
+$cssContent = str_replace('../../../assets', $this->get_plugin_file_url('static/img'), $cssContent);
 }
 $cssContent = str_replace(".ti-widget[data-layout-id='$styleId'][data-set-id='$setId']", '.ti-widget.ti-'. substr($this->getShortName(), 0, 4), $cssContent);
 if (!$setChange) {
@@ -1003,6 +1013,20 @@ update_option($this->get_option_name('scss-set'), $defaultSet, false);
 if (in_array($styleId, [17, 21, 52, 53, 112, 114])) {
 $cssContent .= '.ti-preview-box { position: unset !important }';
 }
+// Ограничиваем максимальную ширину виджета, чтобы избежать слишком широких виджетов
+// Для слайдеров (slider) не переопределяем width, чтобы они могли правильно рассчитывать количество видимых элементов
+// Только ограничиваем максимальную ширину до 100% контейнера
+$cssContent .= '.ti-widget[data-layout-id]:not([data-layout-category*="slider"]) { max-width: 100% !important; width: 100% !important; box-sizing: border-box !important; }';
+$cssContent .= '.ti-widget[data-layout-id][data-layout-category*="slider"] { max-width: 100% !important; box-sizing: border-box !important; }';
+$cssContent .= '.ti-widget.ti-'. substr($this->getShortName(), 0, 4) .':not([data-layout-category*="slider"]) { max-width: 100% !important; width: 100% !important; box-sizing: border-box !important; }';
+$cssContent .= '.ti-widget.ti-'. substr($this->getShortName(), 0, 4) .'[data-layout-category*="slider"] { max-width: 100% !important; box-sizing: border-box !important; }';
+// Для не-слайдеров переопределяем inline style width
+$cssContent .= '.ti-widget[style*="width"]:not([data-layout-category*="slider"]) { max-width: 100% !important; width: 100% !important; }';
+// Для слайдеров только ограничиваем максимальную ширину, но позволяем JavaScript устанавливать width
+$cssContent .= '.ti-widget[style*="width"][data-layout-category*="slider"] { max-width: 100% !important; }';
+// Ограничиваем ширину виджетов в превью (админка) - важно для правильной работы слайдеров
+$cssContent .= '.ti-preview-box .preview .ti-widget[data-layout-category*="slider"], .preview .ti-widget[data-layout-category*="slider"] { max-width: 100% !important; }';
+$cssContent .= '.ti-preview-box .preview, .preview { max-width: 100%; overflow: hidden; }';
 update_option($this->get_option_name('css-content'), $cssContent, false);
 return $this->handleCssFile();
 }
@@ -6089,7 +6113,49 @@ return $this->frontEndErrorForAdmins($text);
 $attributesHtml = implode(' ', array_map(function($attribute, $value) {
 return esc_attr($attribute).'="'.esc_attr($value).'"';
 }, array_keys($attributes), $attributes));
-return $preContent.'<div '.$attributesHtml.'></div>';
+// Добавляем скрипт для удаления атрибута style с width после инициализации виджета
+// НЕ применяем к слайдерам, так как им нужна ширина для правильной работы
+$script = '<script type="text/javascript">
+(function() {
+    function removeWidgetWidth() {
+        document.querySelectorAll(".ti-widget[style*=\"width\"]:not([data-layout-category*=\"slider\"])").forEach(function(widget) {
+            var style = widget.getAttribute("style");
+            if (style && style.indexOf("width") !== -1) {
+                // Удаляем width из style или очищаем style полностью, если там только width
+                style = style.replace(/width\\s*:\\s*[^;]+;?/gi, "").trim();
+                if (style === "" || style === ";") {
+                    widget.removeAttribute("style");
+                } else {
+                    widget.setAttribute("style", style);
+                }
+            }
+        });
+    }
+    // Выполняем сразу и после загрузки DOM
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(removeWidgetWidth, 100);
+            setTimeout(removeWidgetWidth, 500);
+            setTimeout(removeWidgetWidth, 1000);
+        });
+    } else {
+        setTimeout(removeWidgetWidth, 100);
+        setTimeout(removeWidgetWidth, 500);
+        setTimeout(removeWidgetWidth, 1000);
+    }
+    // Также слушаем события инициализации виджетов
+    if (window.TrustindexWidget) {
+        var originalInit = window.TrustindexWidget.initWidgetsFromDom;
+        if (originalInit) {
+            window.TrustindexWidget.initWidgetsFromDom = function() {
+                originalInit.apply(this, arguments);
+                setTimeout(removeWidgetWidth, 100);
+            };
+        }
+    }
+})();
+</script>';
+return $preContent.'<div '.$attributesHtml.'></div>'.$script;
 }
 public function renderWidgetAdmin($isDemoReviews = false, $isForceDemoReviews = false, $previewData = null)
 {
@@ -6103,6 +6169,7 @@ $localCssPath = $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'css'
 if (file_exists($localCssPath)) {
 wp_enqueue_style('trustindex-widget-preview-'.$fileName, $this->get_plugin_file_url('static/css/widget-presetted-css/v2/'.$fileName), [], filemtime($localCssPath));
 } else {
+// Fallback на CDN если локальный файл не найден
 wp_enqueue_style('trustindex-widget-preview-'.$fileName, "https://cdn.trustindex.io/assets/widget-presetted-css/v2/$fileName", [], true);
 }
 if (isset($previewData['verified-by-trustindex']) && $previewData['verified-by-trustindex']) {
@@ -6120,6 +6187,53 @@ wp_enqueue_style('trustindex-widget-editor', $this->getCssUrl(), [], filemtime($
 } else {
 $html .= '<style type="text/css">'.get_option($this->get_option_name('css-content')).'</style>';
 }
+} else {
+// Для превью добавляем скрипт для ограничения ширины и пересчета слайдера
+$html .= '<script>
+(function() {
+function limitPreviewWidgetWidth() {
+document.querySelectorAll(".ti-preview-box .preview .ti-widget[data-layout-category*=\"slider\"], .preview .ti-widget[data-layout-category*=\"slider\"]").forEach(function(widget) {
+var previewContainer = widget.closest(".preview") || widget.closest(".ti-preview-box");
+if (previewContainer) {
+var containerWidth = previewContainer.offsetWidth || previewContainer.clientWidth;
+if (containerWidth > 0 && containerWidth < 1200) {
+// Ограничиваем ширину виджета до ширины контейнера
+var currentWidth = parseInt(widget.style.width) || widget.offsetWidth;
+if (currentWidth > containerWidth) {
+widget.style.maxWidth = containerWidth + "px";
+// Пересчитываем слайдер после изменения ширины
+if (widget.TrustindexWidget && widget.TrustindexWidget.resize) {
+setTimeout(function() {
+widget.TrustindexWidget.resize(true);
+}, 100);
+}
+}
+}
+}
+});
+}
+// Выполняем после загрузки DOM и инициализации виджетов
+if (document.readyState === "loading") {
+document.addEventListener("DOMContentLoaded", function() {
+setTimeout(limitPreviewWidgetWidth, 500);
+setTimeout(limitPreviewWidgetWidth, 1500);
+});
+} else {
+setTimeout(limitPreviewWidgetWidth, 500);
+setTimeout(limitPreviewWidgetWidth, 1500);
+}
+// Также слушаем события инициализации виджетов
+if (window.TrustindexWidget) {
+var originalInit = window.TrustindexWidget.initWidgetsFromDom;
+if (originalInit) {
+window.TrustindexWidget.initWidgetsFromDom = function() {
+originalInit.apply(this, arguments);
+setTimeout(limitPreviewWidgetWidth, 200);
+};
+}
+}
+})();
+</script>';
 }
 if ($this->isElementorEditing()) {
 // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
@@ -6506,8 +6620,8 @@ $image2xUrl.' 2x',
 $imageUrl,
 $this->get_platform_name($this->getShortName(), $pageDetails['id']),
 $this->get_rating_stars($this->is_ten_scale_rating_platform() ? $ratingScore / 2 : $ratingScore, $showStars),
-'<div class="ti-small-logo"><img src="'.$this->get_plugin_file_url('static/img/platform/logo.svg').'" alt="'.ucfirst($this->getShortName()).'" width="150" height="25" loading="lazy"></div>',
-'<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy" />',
+'<div class="ti-small-logo"><img src="'.$this->get_image_url_with_cache_bust('static/img/platform/logo.svg').'" alt="'.ucfirst($this->getShortName()).'" width="150" height="25" loading="lazy"></div>',
+'<img class="ti-platform-icon" src="'.$this->get_image_url_with_cache_bust('static/img/platform/icon.svg').'" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy" />',
 '<div class="ti-profile-images">'.$profileImageListForButton.'</div>',
 ], $content);
 if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge', 'fomo' ]) && !$this->getWidgetOption('show-logos', false, $isPreview)) {
@@ -6547,7 +6661,7 @@ $content = str_replace('class="ti-widget-container"', 'class="ti-widget-containe
 }
 $iconType = $this->getWidgetOption('fomo-icon', false, $isPreview);
 $iconHtml = '<div class="ti-fomo-icon" data-type="'.$iconType.'"></div>';
-$platformIconHtml = '<img class="ti-platform-icon" src="https://cdn.trustindex.io/assets/platform/'.ucfirst($this->getShortName()).'/icon.svg" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy">';
+$platformIconHtml = '<img class="ti-platform-icon" src="'.$this->get_image_url_with_cache_bust('static/img/platform/icon.svg').'" alt="'.ucfirst($this->getShortName()).'" width="20" height="20" loading="lazy">';
 if ('hide' === $iconType) {
 $iconHtml = '';
 } else if ('profile-images' === $iconType) {
@@ -6849,7 +6963,7 @@ $altPlatform = $platform;
 if (!$platformStars) {
 $platform = 'Trustindex';
 }
-$fullStarUrl = '<img class="ti-star" src="https://cdn.trustindex.io/assets/platform/'.$platform.'/star/f.svg" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
+$fullStarUrl = '<img class="ti-star" src="'.$this->get_image_url_with_cache_bust('static/img/star.svg').'" alt="'.$altPlatform.'" width="17" height="17" loading="lazy" />';
 if ('custom' === $platformStars) {
 $fullStarUrl = '<span class="ti-star f"></span>';
 }

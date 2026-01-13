@@ -56,7 +56,7 @@ $demoList = [
 foreach ($demoList as $layout => $style): ?>
 <?php
 $template = $pluginManager::$widget_templates['templates'][ $layout ];
-$className = 'ti-full-width';
+$className = 'strix-full-width';
 if (in_array($template['type'], [ 'badge', 'button', 'floating', 'popup', 'sidebar', 'top-rated-badge' ])) {
 $className = 'ti-half-width';
 }
