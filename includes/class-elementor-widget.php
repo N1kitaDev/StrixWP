@@ -7,10 +7,17 @@ if (!defined('ABSPATH')) {
 }
 
 // Check if Elementor is installed and activated
+// Don't load if Elementor is not available
 if (!did_action('elementor/loaded')) {
     return;
 }
 
+// Check if Elementor classes exist before using them
+if (!class_exists('\Elementor\Widget_Base') || !class_exists('\Elementor\Controls_Manager')) {
+    return;
+}
+
+// Use fully qualified names to avoid issues
 use Elementor\Widget_Base;
 use Elementor\Controls_Manager;
 

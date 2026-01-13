@@ -85,10 +85,16 @@ class Strix_Google_Reviews {
         require_once plugin_dir_path(__FILE__) . 'includes/class-yelp-reviews.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-review-manager.php';
         
-        // Elementor integration
-        if (did_action('elementor/loaded')) {
-            require_once plugin_dir_path(__FILE__) . 'includes/class-elementor-widget.php';
-        }
+        // Elementor integration - load only when Elementor is available
+        // Use plugins_loaded hook with high priority to ensure Elementor is loaded first
+        add_action('plugins_loaded', function() {
+            // Check if Elementor is installed
+            if (did_action('elementor/loaded') || class_exists('\Elementor\Plugin')) {
+                if (file_exists(plugin_dir_path(__FILE__) . 'includes/class-elementor-widget.php')) {
+                    require_once plugin_dir_path(__FILE__) . 'includes/class-elementor-widget.php';
+                }
+            }
+        }, 99);
         
         // WP Bakery / Visual Composer integration
         if (defined('WPB_VC_VERSION')) {
