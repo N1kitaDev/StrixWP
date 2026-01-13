@@ -5949,7 +5949,8 @@ return "";
 $pageId = $pageDetails['id'];
 $domain = "";
 
-$url = str_replace([ '%domain%', '%page_id%', '%25page_id%25' ], [ $domain, $pageId, $pageId ], self::$page_urls[ $this->getShortName() ]);
+$pageUrl = isset(self::$page_urls[ $this->getShortName() ]) ? self::$page_urls[ $this->getShortName() ] : '';
+$url = $pageUrl ? str_replace([ '%domain%', '%page_id%', '%25page_id%25' ], [ $domain, $pageId, $pageId ], $pageUrl) : '';
 if ($this->getGoogleType($pageId) === 'shop') {
 $url = 'https://customerreviews.google.com/v/merchant?q=' . $pageId;
 }
@@ -6217,6 +6218,7 @@ $classAppends []= 'ti-'.(in_array($styleId, [36, 37, 38, 39]) ? 'content' : 'tex
 if (self::$widget_styles[$setId]['hide-stars'] === 'custom') {
 $classAppends []= 'ti-custom-stars';
 }
+if ($content) {
 $content = str_replace('" data-layout-id=', ' '. implode(' ', $classAppends) .'" data-no-translation="true" data-layout-id=', $content);
 if ($this->isRtlLanguage()) {
 $content = str_replace('" data-layout-id=', '" data-rotate-to="left" data-layout-id=', $content);
@@ -6224,6 +6226,8 @@ $content = str_replace('" data-layout-id=', '" data-rotate-to="left" data-layout
 if ($this->getWidgetOption('dateformat', false, $isPreview) === 'modern') {
 $language = $this->getWidgetOption('lang', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[$language] .'" data-layout-id=', $content);
+}
+}
 }
 if ($this->isFomoWidget()) {
 $styleText = '--fomo-color:'.$this->getWidgetOption('fomo-color', false, $isPreview).';';
@@ -6399,7 +6403,9 @@ $ratingContent,
 $reviewContent = str_replace('<div></div>', '', $reviewContent);
 }
 }
+if ($content && isset($matches[0])) {
 $content = str_replace($matches[0], $reviewContent, $content);
+}
 }
 $ratingCount = $pageDetails['rating_number'];
 $ratingScore = $pageDetails['rating_score'];
@@ -6493,7 +6499,9 @@ if (!in_array($widgetTemplate['type'], [ 'button', 'badge', 'top-rated-badge', '
 $content = preg_replace('/<img class="ti-platform-icon".+>/U', '', $content);
 }
 if ($this->is_ten_scale_rating_platform() && $styleId === 11) {
+if ($content) {
 $content = str_replace('<span class="ti-rating">'. $ratingScore .'</span> ', '', $content);
+}
 }
 if (in_array($styleId, [8, 10, 11, 12, 13, 14, 20, 22, 24, 25, 26, 27, 28, 29, 35, 55, 56, 57, 58, 59, 60, 61, 62, 106, 107, 109, 110, 111, 113, 115]) || $widgetTemplate['type'] === 'fomo') {
 if ($widgetTemplate['type'] === 'fomo' && !$this->getWidgetOption('fomo-link', false, $isPreview)) {
@@ -6509,7 +6517,9 @@ $footerUrl = in_array($styleId, [8, 13, 14, 26]) ? $this->getReviewWriteUrl() : 
 if ($widgetTemplate['type'] === 'fomo') {
 $footerUrl = $this->getWidgetOption('fomo-url', false, $isPreview);
 }
+if ($content && $footerUrl) {
 $content = str_replace('%footer_link%', $footerUrl, $content);
+}
 }
 } else {
 $content = preg_replace('/<a href=[\'"]%footer_link%[\'"][^>]*>(.+)<\/a>/mU', '$1', $content);
