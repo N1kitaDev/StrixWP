@@ -61,7 +61,7 @@ $noContainerElementTabs = array('widget-configurator');
         </a>
         <?php endforeach; ?>
         <a href="https://strixmedia.ru" target="_blank" title="Strix Media" class="strix-logo">
-            <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . '../assets/img/strix-logo.svg'); ?>" alt="Strix Media" />
+            <span style="color: white; font-weight: bold; font-size: 18px;">STRIX</span>
         </a>
     </div>
     
