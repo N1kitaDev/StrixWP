@@ -6247,6 +6247,13 @@ $styleText .= 'left: '.$this->getWidgetOption('fomo-margin', false, $isPreview).
 $hideCount = $this->getWidgetOption('fomo-hide-count', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" style="'.$styleText.'" data-hide-count='.$hideCount.' data-layout-id=', $content);
 }
+// Final replacement of all trustindex.io references to strixmedia.ru
+if (is_string($content)) {
+$content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
+$content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
+$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
+$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
+}
 return $content;
 }
 private function getReviewsForWidgetHtml($isDemoReviews = false, $isForceDemoReviews = false, $isPreview = false)
