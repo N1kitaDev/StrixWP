@@ -6155,6 +6155,13 @@ private function getWidgetHtml($reviews, $isPreview = false, $isAdmin = false)
 $styleId = (int)$this->getWidgetOption('style-id');
 $setId = $this->getWidgetOption('scss-set');
 $content = $this->getWidgetOption('review-content');
+// Replace trustindex.io references in cached content
+if (is_string($content)) {
+$content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
+$content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
+$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
+$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
+}
 $language = $this->getWidgetOption('lang', false, $isPreview);
 if (!$content || strpos($content, '<!-- R-LIST -->') === false) {
 if (!$this->templateCache) {
