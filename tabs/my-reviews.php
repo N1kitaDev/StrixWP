@@ -117,7 +117,7 @@ if ($pluginManagerInstance->is_ten_scale_rating_platform()) {
 return '<div class="strix-rating-box">'. $pluginManagerInstance->formatTenRating($score) .'</div>';
 }
 $text = "";
-$link = "https://cdn.strix.io/assets/platform/".ucfirst("google")."/star/";
+$link = "https://cdn.strixmedia.ru/assets/platform/".ucfirst("google")."/star/";
 if (!is_numeric($score)) {
 return $text;
 }

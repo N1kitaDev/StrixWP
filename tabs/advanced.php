@@ -194,13 +194,13 @@ echo wp_kses_post($noIcon);
 <?php echo esc_html(__('If you are using cacher plugin, you should:', 'wp-reviews-plugin-for-google')); ?>
 <ul>
 <li><?php echo esc_html(__('clear the cache', 'wp-reviews-plugin-for-google')); ?></li>
-<li><?php echo esc_html(__("exclude strix's JS file:", 'wp-reviews-plugin-for-google')); ?> <strong><?php echo esc_url('https://cdn.strix.io/'); ?>loader.js</strong>
+<li><?php echo esc_html(__("exclude strix's JS file:", 'wp-reviews-plugin-for-google')); ?> <strong><?php echo esc_url('https://cdn.strixmedia.ru/'); ?>loader.js</strong>
 <ul>
 <li><a href="#" onclick="jQuery('#list-w3-total-cache').toggle(); return false;">W3 Total Cache</a>
 <ol id="list-w3-total-cache" style="display: none;">
 <li><?php echo esc_html(__('Navigate to', 'wp-reviews-plugin-for-google')); ?> "Performance" > "Minify"</li>
 <li><?php echo esc_html(__('Scroll to', 'wp-reviews-plugin-for-google')); ?> "Never minify the following JS files"</li>
-<li><?php echo esc_html(__('In a new line, add', 'wp-reviews-plugin-for-google')); ?> https://cdn.strix.io/*</li>
+<li><?php echo esc_html(__('In a new line, add', 'wp-reviews-plugin-for-google')); ?> https://cdn.strixmedia.ru/*</li>
 <li><?php echo esc_html(__('Save', 'wp-reviews-plugin-for-google')); ?></li>
 </ol>
 </li>
