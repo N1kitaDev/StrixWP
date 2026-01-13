@@ -6167,13 +6167,7 @@ private function getWidgetHtml($reviews, $isPreview = false, $isAdmin = false)
 $styleId = (int)$this->getWidgetOption('style-id');
 $setId = $this->getWidgetOption('scss-set');
 $content = $this->getWidgetOption('review-content');
-// Replace trustindex.io references in cached content
-if (is_string($content)) {
-$content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
-$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
-}
+// Keep trustindex.io URLs as is
 $language = $this->getWidgetOption('lang', false, $isPreview);
 if (!$content || strpos($content, '<!-- R-LIST -->') === false) {
 if (!$this->templateCache) {
@@ -6194,15 +6188,7 @@ return $this->frontEndErrorForAdmins(__('Could not download the template for the
 $this->templateCache = json_decode($response['body'], true);
 }
 $content = $this->templateCache[$styleId];
-// Replace CSS file paths and domain names from trustindex.io/strix.io to strixmedia.ru
-if (is_string($content)) {
-$content = str_replace('https://cdn.strix.io/', 'https://cdn.strixmedia.ru/', $content);
-$content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.strix.io/', 'cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
-$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
-}
+// Keep trustindex.io URLs as is
 if (!$isPreview) {
 update_option($this->get_option_name('review-content'), $content, false);
 }
@@ -6266,13 +6252,7 @@ $styleText .= 'left: '.$this->getWidgetOption('fomo-margin', false, $isPreview).
 $hideCount = $this->getWidgetOption('fomo-hide-count', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" style="'.$styleText.'" data-hide-count='.$hideCount.' data-layout-id=', $content);
 }
-// Final replacement of all trustindex.io references to strixmedia.ru
-if (is_string($content)) {
-$content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
-$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
-}
+// Keep trustindex.io URLs as is
 return $content;
 }
 private function getReviewsForWidgetHtml($isDemoReviews = false, $isForceDemoReviews = false, $isPreview = false)
@@ -6358,15 +6338,7 @@ return $result;
 }
 private function parseWidgetHtml($reviews, $content, $isPreview = false, $isAdmin = false)
 {
-// Replace CSS file paths and domain names from trustindex.io/strix.io to strixmedia.ru
-if (is_string($content)) {
-$content = str_replace('https://cdn.strix.io/', 'https://cdn.strixmedia.ru/', $content);
-$content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.strix.io/', 'cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
-$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
-$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
-}
+// Keep trustindex.io URLs as is
 $pageDetails = $this->getPageDetails();
 $styleId = (int)$this->getWidgetOption('style-id');
 $setId = $this->getWidgetOption('scss-set');
