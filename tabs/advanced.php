@@ -273,7 +273,7 @@ echo wp_kses_post(sprintf(__('If you have an (webserver) error log, you can copy
 <?php endif; ?>
 <?php if ($strixSubscriptionId): ?>
 <?php
-$tiWidgets = $pluginManagerInstance->get_strix_widgets();
+$tiWidgets = $pluginManagerInstance->get_trustindex_widgets();
 $tiPackage = is_array($tiWidgets) && $tiWidgets && isset($tiWidgets[0]['package']) ? $tiWidgets[0]['package'] : null;
 ?>
 <p>
