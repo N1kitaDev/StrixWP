@@ -513,7 +513,7 @@ $stepCurrent = $stepDone + 1;
 include(plugin_dir_path(__FILE__) . '../include/step-list.php');
 ?>
 <div class="strix-container<?php if ($stepCurrent < 5): ?> ti-narrow-page<?php endif; ?>">
-<?php if ($pluginManagerInstance->is_strix_connected()): ?>
+<?php if ($pluginManagerInstance->is_trustindex_connected()): ?>
 <div class="strix-notice ti-notice-warning">
 <p>
 <?php
@@ -529,7 +529,7 @@ echo esc_html(sprintf(__("You have connected your strix account, so you can find
 <div class="strix-notice ti-notice-warning is-dismissible">
 <p>
 <?php echo esc_html(__('Free plugin features are unavailable with AMP plugin.', 'wp-reviews-plugin-for-google')); ?>
-<?php if ($pluginManagerInstance->is_strix_connected()): ?>
+<?php if ($pluginManagerInstance->is_trustindex_connected()): ?>
  <a href="?page=<?php echo esc_attr($_page); ?>&tab=advanced">strix admin</a>
 <?php else: ?>
  <a href="https://www.strix.io/?a=sys&c=wp-amp" target="_blank"><?php echo esc_html(__('Try premium features (like AMP) for free', 'wp-reviews-plugin-for-google')); ?></a>
