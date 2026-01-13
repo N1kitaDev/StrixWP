@@ -77,7 +77,7 @@ header('Location: #strix-admin');
 exit;
 }
 $strixSubscriptionId = $pluginManagerInstance->is_trustindex_connected();
-$widgetNumber = $pluginManagerInstance->get_strix_widget_number();
+$widgetNumber = $pluginManagerInstance->get_trustindex_widget_number();
 ?>
 <h1 class="strix-header-title"><?php echo esc_html(__('Advanced', 'wp-reviews-plugin-for-google')); ?></h1>
 <div class="strix-box">
