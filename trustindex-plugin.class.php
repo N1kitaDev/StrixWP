@@ -6647,7 +6647,9 @@ $date = '';
 $titleTemplate = isset(self::$widget_top_rated_titles[$topRatedType][$language]) ? self::$widget_top_rated_titles[$topRatedType][$language] : '';
 $title = $titleTemplate ? trim(str_replace('%date%', $date, $titleTemplate)) : '';
 if (in_array($styleId, [97, 98, 104]) || $widgetTemplate['type'] === 'fomo') {
+if ($title) {
 $title = str_replace('<br />', '', $title);
+}
 }
 $title = '<div class="ti-top-rated-title">'.$title.'</div>';
 $regex = '/<div class="ti-top-rated-title">.*<\/div>/mU';
