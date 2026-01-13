@@ -83,6 +83,7 @@ class Strix_Google_Reviews {
         require_once plugin_dir_path(__FILE__) . 'includes/class-widget.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-facebook-reviews.php';
         require_once plugin_dir_path(__FILE__) . 'includes/class-yelp-reviews.php';
+        require_once plugin_dir_path(__FILE__) . 'includes/class-review-manager.php';
         
         // Elementor integration
         if (did_action('elementor/loaded')) {
@@ -412,7 +413,26 @@ class Strix_Google_Reviews {
             'strix-google-reviews-reviews',
             array($this, 'reviews_page')
         );
-
+        
+        add_submenu_page(
+            'strix-google-reviews',
+            __('Manage Reviews', 'strix-google-reviews'),
+            __('Manage Reviews', 'strix-google-reviews'),
+            'manage_options',
+            'strix-google-reviews-manage',
+            array($this, 'manage_reviews_page')
+        );
+        
+        if (get_option('strix_enable_statistics', '1')) {
+            add_submenu_page(
+                'strix-google-reviews',
+                __('Statistics', 'strix-google-reviews'),
+                __('Statistics', 'strix-google-reviews'),
+                'manage_options',
+                'strix-google-reviews-statistics',
+                array($this, 'statistics_page')
+            );
+        }
 
         // Custom Reviews submenu is automatically added by register_post_type with show_in_menu
     }
@@ -960,6 +980,242 @@ class Strix_Google_Reviews {
             });
         });
         </script>
+        <?php
+    }
+    
+    /**
+     * Manage Reviews page
+     */
+    public function manage_reviews_page() {
+        if (!class_exists('Strix_Review_Manager')) {
+            echo '<div class="wrap"><h1>' . __('Manage Reviews', 'strix-google-reviews') . '</h1>';
+            echo '<p>' . __('Review management system is not available.', 'strix-google-reviews') . '</p></div>';
+            return;
+        }
+        
+        $review_manager = Strix_Review_Manager::get_instance();
+        
+        // Get all reviews from Google
+        $reviews_data = $this->fetch_google_reviews();
+        $reviews = isset($reviews_data['reviews']) ? $reviews_data['reviews'] : array();
+        
+        ?>
+        <div class="wrap">
+            <h1><?php _e('Manage Reviews', 'strix-google-reviews'); ?></h1>
+            <p><?php _e('Hide, highlight, or anonymize reviews. Hidden reviews will not be displayed on your site.', 'strix-google-reviews'); ?></p>
+            
+            <div class="strix-reviews-management">
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th><?php _e('Author', 'strix-google-reviews'); ?></th>
+                            <th><?php _e('Rating', 'strix-google-reviews'); ?></th>
+                            <th><?php _e('Review', 'strix-google-reviews'); ?></th>
+                            <th><?php _e('Actions', 'strix-google-reviews'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($reviews)): ?>
+                            <tr>
+                                <td colspan="4"><?php _e('No reviews found. Fetch reviews first.', 'strix-google-reviews'); ?></td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($reviews as $review): 
+                                $review_id = md5($review['author_name'] . $review['text']);
+                                $settings = $review_manager->get_review_settings($review_id, 'google');
+                                $is_hidden = $settings && $settings['hidden'];
+                                $is_highlighted = $settings && $settings['highlighted'];
+                                $is_anonymized = $settings && $settings['anonymized'];
+                            ?>
+                                <tr data-review-id="<?php echo esc_attr($review_id); ?>" <?php echo $is_hidden ? 'style="opacity: 0.5;"' : ''; ?>>
+                                    <td>
+                                        <?php echo esc_html($is_anonymized ? __('Anonymous', 'strix-google-reviews') : $review['author_name']); ?>
+                                    </td>
+                                    <td><?php echo $this->render_stars($review['rating']); ?></td>
+                                    <td><?php echo esc_html(wp_trim_words($review['text'], 30)); ?></td>
+                                    <td>
+                                        <button class="button strix-hide-review" data-review-id="<?php echo esc_attr($review_id); ?>" data-hide="<?php echo $is_hidden ? '0' : '1'; ?>">
+                                            <?php echo $is_hidden ? __('Show', 'strix-google-reviews') : __('Hide', 'strix-google-reviews'); ?>
+                                        </button>
+                                        <button class="button strix-highlight-review" data-review-id="<?php echo esc_attr($review_id); ?>" data-highlight="<?php echo $is_highlighted ? '0' : '1'; ?>">
+                                            <?php echo $is_highlighted ? __('Unhighlight', 'strix-google-reviews') : __('Highlight', 'strix-google-reviews'); ?>
+                                        </button>
+                                        <button class="button strix-anonymize-review" data-review-id="<?php echo esc_attr($review_id); ?>" data-anonymize="<?php echo $is_anonymized ? '0' : '1'; ?>">
+                                            <?php echo $is_anonymized ? __('Show Name', 'strix-google-reviews') : __('Anonymize', 'strix-google-reviews'); ?>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            $('.strix-hide-review').on('click', function() {
+                var $btn = $(this);
+                var reviewId = $btn.data('review-id');
+                var hide = $btn.data('hide') == '1';
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'strix_hide_review',
+                        review_id: reviewId,
+                        source: 'google',
+                        hide: hide,
+                        nonce: '<?php echo wp_create_nonce('strix_reviews_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        }
+                    }
+                });
+            });
+            
+            $('.strix-highlight-review').on('click', function() {
+                var $btn = $(this);
+                var reviewId = $btn.data('review-id');
+                var highlight = $btn.data('highlight') == '1';
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'strix_highlight_review',
+                        review_id: reviewId,
+                        source: 'google',
+                        highlight: highlight,
+                        color: '#ffd700',
+                        nonce: '<?php echo wp_create_nonce('strix_reviews_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        }
+                    }
+                });
+            });
+            
+            $('.strix-anonymize-review').on('click', function() {
+                var $btn = $(this);
+                var reviewId = $btn.data('review-id');
+                var anonymize = $btn.data('anonymize') == '1';
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'strix_anonymize_review',
+                        review_id: reviewId,
+                        source: 'google',
+                        anonymize: anonymize,
+                        nonce: '<?php echo wp_create_nonce('strix_reviews_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        }
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+    
+    /**
+     * Statistics page
+     */
+    public function statistics_page() {
+        if (!class_exists('Strix_Review_Manager')) {
+            echo '<div class="wrap"><h1>' . __('Statistics', 'strix-google-reviews') . '</h1>';
+            echo '<p>' . __('Statistics system is not available.', 'strix-google-reviews') . '</p></div>';
+            return;
+        }
+        
+        $review_manager = Strix_Review_Manager::get_instance();
+        $stats = $review_manager->get_statistics(30);
+        
+        ?>
+        <div class="wrap">
+            <h1><?php _e('Review Statistics', 'strix-google-reviews'); ?></h1>
+            
+            <div class="strix-statistics-dashboard">
+                <div class="strix-stat-card">
+                    <h3><?php _e('Total Views', 'strix-google-reviews'); ?></h3>
+                    <p class="strix-stat-number"><?php echo number_format($stats['total']); ?></p>
+                    <p class="strix-stat-period"><?php printf(__('Last %d days', 'strix-google-reviews'), $stats['period']); ?></p>
+                </div>
+                
+                <div class="strix-stat-card">
+                    <h3><?php _e('Daily Average', 'strix-google-reviews'); ?></h3>
+                    <p class="strix-stat-number"><?php echo number_format($stats['total'] / max(1, count($stats['daily']))); ?></p>
+                    <p class="strix-stat-period"><?php _e('Views per day', 'strix-google-reviews'); ?></p>
+                </div>
+            </div>
+            
+            <h2><?php _e('Daily Views', 'strix-google-reviews'); ?></h2>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th><?php _e('Date', 'strix-google-reviews'); ?></th>
+                        <th><?php _e('Views', 'strix-google-reviews'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($stats['daily'])): ?>
+                        <tr>
+                            <td colspan="2"><?php _e('No statistics available yet.', 'strix-google-reviews'); ?></td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($stats['daily'] as $day): ?>
+                            <tr>
+                                <td><?php echo esc_html($day['date']); ?></td>
+                                <td><?php echo number_format($day['total_views']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        
+        <style>
+        .strix-statistics-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .strix-stat-card {
+            background: #fff;
+            border: 1px solid #ccd0d4;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+        }
+        .strix-stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #646970;
+        }
+        .strix-stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 10px 0;
+            color: #2271b1;
+        }
+        .strix-stat-period {
+            margin: 0;
+            font-size: 12px;
+            color: #646970;
+        }
+        </style>
         <?php
     }
 
@@ -3207,8 +3463,14 @@ class Strix_Google_Reviews {
         </div>
 
         <div class="strix-reviews-list">
-            <?php foreach ($reviews_data['reviews'] as $review): ?>
-                <div class="strix-review-item">
+            <?php foreach ($reviews_data['reviews'] as $review): 
+                $review_id = isset($review['reviewId']) ? $review['reviewId'] : md5($review['author_name'] . $review['text']);
+                $highlighted = isset($review['highlighted']) && $review['highlighted'];
+                $highlight_color = isset($review['highlight_color']) ? $review['highlight_color'] : '#ffd700';
+            ?>
+                <div class="strix-review-item <?php echo $highlighted ? 'highlighted' : ''; ?>" 
+                     <?php if ($highlighted): ?>data-highlight-color="<?php echo esc_attr($highlight_color); ?>" style="border-color: <?php echo esc_attr($highlight_color); ?>;"<?php endif; ?>
+                     data-review-id="<?php echo esc_attr($review_id); ?>">
                     <div class="strix-review-header">
                         <?php if (!empty($review['profile_photo_url'])): ?>
                             <img src="<?php echo esc_url($review['profile_photo_url']); ?>" alt="<?php echo esc_attr($review['author_name']); ?>" class="strix-review-avatar" />
@@ -3933,9 +4195,18 @@ class Strix_Google_Reviews {
 
         // Apply filters to reviews data
         $reviews_data = $this->apply_review_filters($reviews_data, $atts);
+        
+        // Apply review management settings (hide, highlight, anonymize)
+        if (class_exists('Strix_Review_Manager')) {
+            $review_manager = Strix_Review_Manager::get_instance();
+            if (isset($reviews_data['reviews']) && is_array($reviews_data['reviews'])) {
+                $reviews_data['reviews'] = $review_manager->apply_review_settings($reviews_data['reviews'], 'google');
+            }
+        }
 
         ob_start();
-        echo '<div class="strix-google-reviews-shortcode strix-layout-' . esc_attr($atts['layout']) . ' strix-layout-' . esc_attr($atts['layout']) . '-' . esc_attr($atts['layout_style']) . '">';
+        $widget_id = 'shortcode_' . uniqid();
+        echo '<div class="strix-google-reviews-shortcode strix-layout-' . esc_attr($atts['layout']) . ' strix-layout-' . esc_attr($atts['layout']) . '-' . esc_attr($atts['layout_style']) . '" data-widget-id="' . esc_attr($widget_id) . '">';
         
         // Display place badges if enabled
         $this->display_place_badges($reviews_data);
@@ -3945,6 +4216,12 @@ class Strix_Google_Reviews {
         // Add structured data for SEO
         $this->add_review_structured_data($reviews_data);
         echo '</div>';
+        
+        // Track view
+        if (class_exists('Strix_Review_Manager') && get_option('strix_enable_statistics', '1')) {
+            $review_manager = Strix_Review_Manager::get_instance();
+            $review_manager->track_view($widget_id);
+        }
 
         // Restore original setting
         if ($atts['show_company'] !== null) {

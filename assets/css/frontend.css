@@ -1221,3 +1221,94 @@ body.strix-popup-open {
 .strix-layout-popup-5 .strix-popup-content {
     border: 3px solid #667eea;
 }
+
+/* Highlighted Reviews */
+.strix-review-item.highlighted {
+    border: 2px solid #ffd700;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    position: relative;
+}
+
+.strix-review-item.highlighted::before {
+    content: '⭐';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+}
+
+.strix-review-item[data-highlight-color] {
+    border-color: var(--highlight-color, #ffd700);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .strix-dark-mode-enabled .strix-google-reviews-shortcode,
+    .strix-dark-mode-enabled .strix-google-reviews-widget {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+    
+    .strix-dark-mode-enabled .strix-review-item {
+        background: #2a2a2a;
+        border-color: #3a3a3a;
+        color: #e0e0e0;
+    }
+    
+    .strix-dark-mode-enabled .strix-review-text {
+        color: #d0d0d0;
+    }
+    
+    .strix-dark-mode-enabled .strix-review-author {
+        color: #ffffff;
+    }
+    
+    .strix-dark-mode-enabled .strix-reviews-summary {
+        background: #2a2a2a;
+        color: #e0e0e0;
+    }
+}
+
+.strix-dark-mode .strix-google-reviews-shortcode,
+.strix-dark-mode .strix-google-reviews-widget {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
+.strix-dark-mode .strix-review-item {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #e0e0e0;
+}
+
+.strix-dark-mode .strix-review-text {
+    color: #d0d0d0;
+}
+
+.strix-dark-mode .strix-review-author {
+    color: #ffffff;
+}
+
+.strix-dark-mode .strix-reviews-summary {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+
+/* Lazy Load Support */
+.strix-review-item[data-lazy="true"] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.strix-review-item[data-lazy="true"].loaded {
+    opacity: 1;
+}
+
+.strix-review-item img[data-src] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.strix-review-item img[data-src].loaded {
+    opacity: 1;
+}

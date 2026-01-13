@@ -336,8 +336,40 @@ jQuery(document).ready(function($) {
         initializeMasonry();
     });
 
+    // Track review views
+    function trackReviewViews() {
+        var widgets = document.querySelectorAll('.strix-google-reviews-shortcode, .strix-google-reviews-widget');
+        widgets.forEach(function(widget) {
+            var widgetId = widget.getAttribute('data-widget-id') || 'default';
+            
+            // Track view once per page load
+            if (!widget.hasAttribute('data-view-tracked')) {
+                $.ajax({
+                    url: strix_reviews_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'strix_track_view',
+                        widget_id: widgetId,
+                        nonce: strix_reviews_ajax.nonce
+                    }
+                });
+                
+                widget.setAttribute('data-view-tracked', 'true');
+            }
+        });
+    }
+    
+    // Track views on page load
+    trackReviewViews();
+    
+    // Track views after AJAX loads
+    $(document).on('strix_reviews_loaded', function() {
+        trackReviewViews();
+    });
+
     // Expose functions globally for AJAX calls
     window.initializeSwipers = initializeSwipers;
     window.reinitializeAllSwipers = reinitializeAllSwipers;
     window.initializeMasonry = initializeMasonry;
+    window.trackReviewViews = trackReviewViews;
 });
