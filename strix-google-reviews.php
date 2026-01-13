@@ -4600,25 +4600,67 @@ function strix_google_reviews_init() {
 register_activation_hook(__FILE__, 'strix_google_reviews_activate');
 
 function strix_google_reviews_activate() {
+    global $wpdb;
+    
+    // Check if wpdb is available
+    if (!isset($wpdb) || !is_object($wpdb)) {
+        return;
+    }
+    
     // Set flag to flush rewrite rules on next init
     update_option('strix_reviews_flush_rewrite_rules', true);
 
     // Create the custom post types immediately
-    $plugin = Strix_Google_Reviews::get_instance();
-    if (method_exists($plugin, 'register_custom_post_type')) {
-        $plugin->register_custom_post_type();
-    }
-    if (method_exists($plugin, 'register_widget_post_type')) {
-        $plugin->register_widget_post_type();
+    try {
+        $plugin = Strix_Google_Reviews::get_instance();
+        if (method_exists($plugin, 'register_custom_post_type')) {
+            $plugin->register_custom_post_type();
+        }
+        if (method_exists($plugin, 'register_widget_post_type')) {
+            $plugin->register_widget_post_type();
+        }
+    } catch (Exception $e) {
+        // Log error but continue
+        error_log('Strix Google Reviews activation error: ' . $e->getMessage());
     }
     
-    // Create review management tables
-    if (class_exists('Strix_Review_Manager')) {
-        $review_manager = Strix_Review_Manager::get_instance();
-        if (method_exists($review_manager, 'create_tables')) {
-            $review_manager->create_tables();
-        }
-    }
+    // Create review management tables directly (safer during activation)
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    
+    $table_reviews = $wpdb->prefix . 'strix_reviews';
+    $table_views = $wpdb->prefix . 'strix_review_views';
+    $charset_collate = $wpdb->get_charset_collate();
+    
+    $sql_reviews = "CREATE TABLE IF NOT EXISTS {$table_reviews} (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        review_id varchar(255) NOT NULL,
+        source varchar(50) NOT NULL DEFAULT 'google',
+        hidden tinyint(1) NOT NULL DEFAULT 0,
+        highlighted tinyint(1) NOT NULL DEFAULT 0,
+        anonymized tinyint(1) NOT NULL DEFAULT 0,
+        original_author_name varchar(255) DEFAULT NULL,
+        highlight_color varchar(11) DEFAULT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY review_id (review_id),
+        KEY source (source),
+        KEY hidden (hidden)
+    ) $charset_collate;";
+    
+    $sql_views = "CREATE TABLE IF NOT EXISTS {$table_views} (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        date date NOT NULL,
+        viewed bigint(20) NOT NULL DEFAULT 0,
+        widget_id varchar(255) DEFAULT NULL,
+        page_url varchar(500) DEFAULT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY date_widget (date, widget_id),
+        KEY date (date)
+    ) $charset_collate;";
+    
+    dbDelta($sql_reviews);
+    dbDelta($sql_views);
 }
 
 // Start the plugin

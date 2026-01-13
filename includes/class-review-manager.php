@@ -22,6 +22,12 @@ class Strix_Review_Manager {
     
     private function __construct() {
         global $wpdb;
+        
+        // Check if wpdb is available
+        if (!isset($wpdb) || !is_object($wpdb)) {
+            return;
+        }
+        
         $this->table_reviews = $wpdb->prefix . 'strix_reviews';
         $this->table_views = $wpdb->prefix . 'strix_review_views';
         
@@ -44,12 +50,17 @@ class Strix_Review_Manager {
     public function create_tables() {
         global $wpdb;
         
+        // Check if wpdb is available
+        if (!isset($wpdb) || !is_object($wpdb)) {
+            return false;
+        }
+        
         // Check if tables already exist to avoid unnecessary operations
-        $reviews_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
-        $views_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_views}'") == $this->table_views;
+        $reviews_table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->table_reviews)) == $this->table_reviews;
+        $views_table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $this->table_views)) == $this->table_views;
         
         if ($reviews_table_exists && $views_table_exists) {
-            return; // Tables already exist
+            return true; // Tables already exist
         }
         
         $charset_collate = $wpdb->get_charset_collate();
