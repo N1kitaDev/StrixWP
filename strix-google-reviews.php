@@ -4611,6 +4611,14 @@ function strix_google_reviews_activate() {
     if (method_exists($plugin, 'register_widget_post_type')) {
         $plugin->register_widget_post_type();
     }
+    
+    // Create review management tables
+    if (class_exists('Strix_Review_Manager')) {
+        $review_manager = Strix_Review_Manager::get_instance();
+        if (method_exists($review_manager, 'create_tables')) {
+            $review_manager->create_tables();
+        }
+    }
 }
 
 // Start the plugin

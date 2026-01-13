@@ -25,7 +25,12 @@ class Strix_Review_Manager {
         $this->table_reviews = $wpdb->prefix . 'strix_reviews';
         $this->table_views = $wpdb->prefix . 'strix_review_views';
         
-        add_action('init', array($this, 'create_tables'));
+        // Create tables on admin init (safer than init)
+        if (is_admin()) {
+            add_action('admin_init', array($this, 'create_tables'));
+        }
+        
+        // AJAX handlers
         add_action('wp_ajax_strix_hide_review', array($this, 'ajax_hide_review'));
         add_action('wp_ajax_strix_highlight_review', array($this, 'ajax_highlight_review'));
         add_action('wp_ajax_strix_anonymize_review', array($this, 'ajax_anonymize_review'));
@@ -38,6 +43,14 @@ class Strix_Review_Manager {
      */
     public function create_tables() {
         global $wpdb;
+        
+        // Check if tables already exist to avoid unnecessary operations
+        $reviews_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        $views_table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_views}'") == $this->table_views;
+        
+        if ($reviews_table_exists && $views_table_exists) {
+            return; // Tables already exist
+        }
         
         $charset_collate = $wpdb->get_charset_collate();
         
@@ -72,8 +85,14 @@ class Strix_Review_Manager {
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql_reviews);
-        dbDelta($sql_views);
+        
+        if (!$reviews_table_exists) {
+            dbDelta($sql_reviews);
+        }
+        
+        if (!$views_table_exists) {
+            dbDelta($sql_views);
+        }
     }
     
     /**
@@ -81,6 +100,12 @@ class Strix_Review_Manager {
      */
     public function save_review($review_id, $source = 'google', $author_name = '') {
         global $wpdb;
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        if (!$table_exists) {
+            return false;
+        }
         
         $review_id = sanitize_text_field($review_id);
         $source = sanitize_text_field($source);
@@ -93,7 +118,7 @@ class Strix_Review_Manager {
         ));
         
         if (!$exists) {
-            $wpdb->insert(
+            return $wpdb->insert(
                 $this->table_reviews,
                 array(
                     'review_id' => $review_id,
@@ -103,6 +128,8 @@ class Strix_Review_Manager {
                 array('%s', '%s', '%s')
             );
         }
+        
+        return true;
     }
     
     /**
@@ -110,6 +137,12 @@ class Strix_Review_Manager {
      */
     public function get_review_settings($review_id, $source = 'google') {
         global $wpdb;
+        
+        // Check if table exists before querying
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        if (!$table_exists) {
+            return null;
+        }
         
         return $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$this->table_reviews} WHERE review_id = %s AND source = %s",
@@ -123,6 +156,12 @@ class Strix_Review_Manager {
      */
     public function hide_review($review_id, $source = 'google', $hide = true) {
         global $wpdb;
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        if (!$table_exists) {
+            return false;
+        }
         
         $this->save_review($review_id, $source);
         
@@ -140,6 +179,12 @@ class Strix_Review_Manager {
      */
     public function highlight_review($review_id, $source = 'google', $highlight = true, $color = '#ffd700') {
         global $wpdb;
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        if (!$table_exists) {
+            return false;
+        }
         
         $this->save_review($review_id, $source);
         
@@ -160,6 +205,12 @@ class Strix_Review_Manager {
      */
     public function anonymize_review($review_id, $source = 'google', $anonymize = true) {
         global $wpdb;
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        if (!$table_exists) {
+            return false;
+        }
         
         $settings = $this->get_review_settings($review_id, $source);
         if (!$settings) {
@@ -187,6 +238,12 @@ class Strix_Review_Manager {
     public function track_view($widget_id = null, $page_url = null) {
         global $wpdb;
         
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_views}'") == $this->table_views;
+        if (!$table_exists) {
+            return false;
+        }
+        
         $date = current_time('Y-m-d');
         $widget_id = $widget_id ? sanitize_text_field($widget_id) : 'default';
         $page_url = $page_url ? sanitize_url($page_url) : '';
@@ -198,13 +255,13 @@ class Strix_Review_Manager {
         ));
         
         if ($exists) {
-            $wpdb->query($wpdb->prepare(
+            return $wpdb->query($wpdb->prepare(
                 "UPDATE {$this->table_views} SET viewed = viewed + 1 WHERE date = %s AND widget_id = %s",
                 $date,
                 $widget_id
             ));
         } else {
-            $wpdb->insert(
+            return $wpdb->insert(
                 $this->table_views,
                 array(
                     'date' => $date,
@@ -223,6 +280,16 @@ class Strix_Review_Manager {
     public function get_statistics($days = 30) {
         global $wpdb;
         
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_views}'") == $this->table_views;
+        if (!$table_exists) {
+            return array(
+                'daily' => array(),
+                'total' => 0,
+                'period' => $days
+            );
+        }
+        
         $date_from = date('Y-m-d', strtotime("-{$days} days"));
         
         $stats = $wpdb->get_results($wpdb->prepare(
@@ -240,7 +307,7 @@ class Strix_Review_Manager {
         ));
         
         return array(
-            'daily' => $stats,
+            'daily' => $stats ? $stats : array(),
             'total' => $total_views ? intval($total_views) : 0,
             'period' => $days
         );
@@ -256,10 +323,20 @@ class Strix_Review_Manager {
             return $reviews;
         }
         
+        // Check if table exists before querying
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_reviews}'") == $this->table_reviews;
+        if (!$table_exists) {
+            return $reviews; // Return reviews as-is if table doesn't exist
+        }
+        
         $review_ids = array_map(function($review) {
             return isset($review['reviewId']) ? $review['reviewId'] : 
                    (isset($review['id']) ? $review['id'] : md5($review['author_name'] . $review['text']));
         }, $reviews);
+        
+        if (empty($review_ids)) {
+            return $reviews;
+        }
         
         $placeholders = implode(',', array_fill(0, count($review_ids), '%s'));
         $settings = $wpdb->get_results($wpdb->prepare(
@@ -386,5 +463,9 @@ class Strix_Review_Manager {
     }
 }
 
-// Initialize
-Strix_Review_Manager::get_instance();
+// Initialize on plugins_loaded hook to ensure WordPress is fully loaded
+add_action('plugins_loaded', function() {
+    if (class_exists('Strix_Review_Manager')) {
+        Strix_Review_Manager::get_instance();
+    }
+}, 10);
