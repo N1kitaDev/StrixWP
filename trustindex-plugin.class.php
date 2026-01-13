@@ -6228,7 +6228,6 @@ $language = $this->getWidgetOption('lang', false, $isPreview);
 $content = str_replace('" data-layout-id=', '" data-time-locale="'. self::$widget_date_format_locales[$language] .'" data-layout-id=', $content);
 }
 }
-}
 if ($this->isFomoWidget()) {
 $styleText = '--fomo-color:'.$this->getWidgetOption('fomo-color', false, $isPreview).';';
 if ('right' === $this->getWidgetOption('align', false, $isPreview)) {
