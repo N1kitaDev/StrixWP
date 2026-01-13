@@ -355,7 +355,7 @@ $settingsPageTitle,
 self::$permissionNeeded,
 $settingsPageUrl,
 '',
-$this->get_plugin_file_url('static/img/strix-logo.png')
+$this->get_plugin_file_url('static/img/strix-logo.png', false)
 );
 }
 else {
