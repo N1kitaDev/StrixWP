@@ -1076,7 +1076,7 @@ class Strix_Google_Reviews {
      * Enqueue admin scripts
      */
     public function enqueue_admin_scripts($hook) {
-        if ('toplevel_page_strix-google-reviews' !== $hook) {
+        if (strpos($hook, 'strix-google-reviews') === false) {
             return;
         }
 
@@ -1094,6 +1094,14 @@ class Strix_Google_Reviews {
             self::VERSION,
             true
         );
+        
+        // Localize script
+        wp_localize_script('strix-google-reviews-admin', 'strixAdmin', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('strix_admin_nonce'),
+            'loading' => __('Loading...', 'strix-google-reviews'),
+            'error' => __('An error occurred. Please try again.', 'strix-google-reviews')
+        ));
     }
 
     /**
