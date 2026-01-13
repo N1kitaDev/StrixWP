@@ -1,6 +1,6 @@
 <?php
 defined('ABSPATH') || exit;
-class TrustindexGutenbergPlugin
+class strixGutenbergPlugin
 {
 
 public static $instance = null;
@@ -30,11 +30,11 @@ filemtime(plugin_dir_path(__FILE__) . 'block-editor.js'),
 }
 function register_block()
 {
-register_block_type('trustindex/block-selector', [
+register_block_type('strix/block-selector', [
 'render_callback' => [ $this, 'render_block' ],
 'attributes' => [
 'widget_id' => [ 'type' => 'string' ],
-'trustindex_widgets' => [ 'type' => 'object' ],
+'strix_widgets' => [ 'type' => 'object' ],
 'free_widgets' => [ 'type' => 'object' ],
 'custom_id' => [ 'type' => 'boolean' ],
 'setup_url' => [ 'type' => 'string' ]
@@ -53,7 +53,7 @@ $shortCode = 'no-registration=' . $attributes['widget_id'];
 else {
 $shortCode = 'data-widget-id="'. $attributes['widget_id'] .'"';
 }
-return '[trustindex '. $shortCode .']';
+return '[strix '. $shortCode .']';
 }
 function is_gutenberg_page()
 {

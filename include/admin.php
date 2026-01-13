@@ -4,7 +4,7 @@ if (!current_user_can('edit_pages')) {
 die('The account you are logged in to does not have permission to access this page.');
 }
 if (isset($_GET['test_proxy'])) {
-check_admin_referer('ti-test-proxy');
+check_admin_referer('strix-test-proxy');
 delete_option($pluginManagerInstance->get_option_name('proxy-check'));
 $params = [];
 if (isset($_GET['page'])) {
@@ -18,7 +18,7 @@ exit;
 }
 if (isset($_GET['notification'])) {
 if (isset($_GET['action'])) {
-check_admin_referer('ti-notification');
+check_admin_referer('strix-notification');
 $type = sanitize_text_field(wp_unslash($_GET['notification']));
 $action = sanitize_text_field(wp_unslash($_GET['action']));
 
@@ -55,7 +55,7 @@ break;
 exit;
 }
 if (isset($_REQUEST['command']) && $_REQUEST['command'] === 'rate-us-feedback') {
-check_admin_referer('ti-rate-us');
+check_admin_referer('strix-rate-us');
 $text = isset($_POST['text']) ? trim(wp_kses_post(sanitize_text_field(wp_unslash($_POST['text'])))) : "";
 $email = isset($_POST['email']) ? trim(sanitize_text_field(wp_unslash($_POST['email']))) : "";
 $star = isset($_REQUEST['star']) ? (int)$_REQUEST['star'] : 1;
@@ -64,7 +64,7 @@ if ($star > 3) {
 header('Location: https://wordpress.org/support/plugin/'. $pluginManagerInstance->get_plugin_slug() . '/reviews/?rate='. $star .'#new-post');
 }
 else {
-wp_mail('support@trustindex.io', 'Feedback from '. $pluginNameForEmails .' plugin', "We received a <strong>$star star</strong> feedback about the $pluginNameForEmails plugin from $email:<br /><br />$text", [
+wp_mail('support@strixmedia.ru', 'Feedback from '. $pluginNameForEmails .' plugin', "We received a <strong>$star star</strong> feedback about the $pluginNameForEmails plugin from $email:<br /><br />$text", [
 'From: '. $email,
 'Content-Type: text/html; charset=UTF-8'
 ]);
@@ -73,7 +73,7 @@ exit;
 }
 $httpBlocked = false;
 if (defined('WP_HTTP_BLOCK_EXTERNAL') && WP_HTTP_BLOCK_EXTERNAL) {
-if (!defined('WP_ACCESSIBLE_HOSTS') || strpos(WP_ACCESSIBLE_HOSTS, '*.trustindex.io') === FALSE) {
+if (!defined('WP_ACCESSIBLE_HOSTS') || strpos(WP_ACCESSIBLE_HOSTS, '*.strix.io') === FALSE) {
 $httpBlocked = true;
 }
 }
@@ -83,7 +83,7 @@ if ($proxy->is_enabled()) {
 $optName = $pluginManagerInstance->get_option_name('proxy-check');
 $dbData = get_option($optName, "");
 if (!$dbData) {
-$response = wp_remote_post("https://admin.trustindex.io/" . 'api/userCheckLoggedIn', [
+$response = wp_remote_post("https://admin.strix.io/" . 'api/userCheckLoggedIn', [
 'timeout' => '30',
 'redirection' => '5',
 'blocking' => true
@@ -109,13 +109,13 @@ $selectedTab = $tabs[0]['slug'];
 }
 ?>
 <?php if (isset($assetCheckJs) && isset($assetCheckCssFile)): ?>
-<div id="ti-assets-error" class="notice notice-warning" style="display: none; margin-left: 0; margin-right: 0; padding-bottom: 9px">
+<div id="strix-assets-error" class="notice notice-warning" style="display: none; margin-left: 0; margin-right: 0; padding-bottom: 9px">
 <p>
 <?php echo wp_kses_post(__('For some reason, the <strong>CSS</strong> file required to run the plugin was not loaded.<br />One of your plugins is probably causing the problem.', 'wp-reviews-plugin-for-google')); ?>
 </p>
 </div>
 <?php
-$jsKey = 'trustindex-check-frontend-assets';
+$jsKey = 'strix-check-frontend-assets';
 $jsFiles = [];
 foreach ($assetCheckJs as $id => $file) {
 $jsFiles []= [
@@ -149,15 +149,15 @@ let link = document.getElementById('". esc_html($assetCheckCssId) ."-css');
 return link && Boolean(link.sheet);
 };
 let isJSExists = function(id) {
-return typeof TrustindexJsLoaded !== 'undefined' && typeof TrustindexJsLoaded[ id ] !== 'undefined';
+return typeof strixJsLoaded !== 'undefined' && typeof strixJsLoaded[ id ] !== 'undefined';
 };
 let process = function() {
 if (loadedCount < jsFiles.length + 1) {
 return false;
 }
 if (notLoaded.length) {
-document.getElementById('trustindex-plugin-settings-page').remove();
-let warningBox = document.getElementById('ti-assets-error');
+document.getElementById('strix-plugin-settings-page').remove();
+let warningBox = document.getElementById('strix-assets-error');
 if (warningBox) {
 warningBox.style.display = 'block';
 warningBox.querySelector('p strong').innerHTML = notLoaded.join(', ');
@@ -199,53 +199,53 @@ wp_enqueue_script($jsKey);
 wp_add_inline_script($jsKey, $jsContent);
 ?>
 <?php endif; ?>
-<div id="trustindex-plugin-settings-page" class="ti-plugin-wrapper ti-toggle-opacity">
-<div class="ti-header-nav">
+<div id="strix-plugin-settings-page" class="strix-plugin-wrapper strix-toggle-opacity">
+<div class="strix-header-nav">
 <?php foreach ($tabs as $tab): ?>
 <a
-class="ti-nav-item<?php if ($selectedTab === $tab['slug']): ?> ti-active<?php endif; ?><?php if ($tab['place'] === 'right'): ?> ti-right<?php endif; ?>"
+class="strix-nav-item<?php if ($selectedTab === $tab['slug']): ?> strix-active<?php endif; ?><?php if ($tab['place'] === 'right'): ?> strix-right<?php endif; ?>"
 href="<?php echo esc_url(admin_url('admin.php?page='. esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) .'&tab='. esc_attr($tab['slug']))); ?>"
 >
 <?php echo esc_html($tab['name']); ?>
 <?php if (isset($newBadgeTabs) && in_array($tab['slug'], $newBadgeTabs)): ?>
-<span class="ti-new-badge"><?php echo esc_html(__('new', 'wp-reviews-plugin-for-google')); ?></span>
+<span class="strix-new-badge"><?php echo esc_html(__('new', 'wp-reviews-plugin-for-google')); ?></span>
 <?php endif; ?>
 </a>
 <?php endforeach; ?>
-<a href="https://www.trustindex.io/?a=sys&c=<?php echo esc_attr($logoCampaignId); ?>" target="_blank" title="Trustindex" class="ti-logo">
+<a href="https://strixmedia.ru" target="_blank" title="Strix Media" class="strix-logo">
 <img src="<?php echo esc_url($pluginManagerInstance->get_plugin_file_url($logoFile)); ?>" />
 </a>
 </div>
 <?php if ($httpBlocked): ?>
-<div class="ti-box ti-notice-error ti-mb-1">
+<div class="strix-box strix-notice-error strix-mb-1">
 <p>
 <?php echo esc_html(__('Your site cannot download our widget templates, because of your server settings not allowing that:', 'wp-reviews-plugin-for-google')); ?><br /><a href="https://wordpress.org/support/article/editing-wp-config-php/#block-external-url-requests" target="_blank">https://wordpress.org/support/article/editing-wp-config-php/#block-external-url-requests</a><br /><br />
 <strong><?php echo esc_html(__('Solution', 'wp-reviews-plugin-for-google')); ?></strong><br />
 <?php echo wp_kses_post(__('a) You should define <strong>WP_HTTP_BLOCK_EXTERNAL</strong> as false', 'wp-reviews-plugin-for-google')); ?><br />
-<?php echo wp_kses_post(__("b) or you should add Trustindex as an <strong>WP_ACCESSIBLE_HOSTS</strong>: \"*.trustindex.io\"", 'wp-reviews-plugin-for-google')); ?><br />
+<?php echo wp_kses_post(__("b) or you should add Strix as an <strong>WP_ACCESSIBLE_HOSTS</strong>: \"*.strixmedia.ru\"", 'wp-reviews-plugin-for-google')); ?><br />
 </p>
 </div>
 <?php endif; ?>
 <?php if ($proxyCheck !== TRUE): ?>
-<div class="ti-box ti-notice-error ti-mb-1">
+<div class="strix-box strix-notice-error strix-mb-1">
 <p>
 <?php echo esc_html(__('It seems you are using a proxy for HTTP requests but after a test request it returned a following error:', 'wp-reviews-plugin-for-google')); ?><br />
 <strong><?php echo wp_kses_post($proxyCheck); ?></strong><br /><br />
 <?php echo esc_html(__('Therefore, our plugin might not work properly. Please, contact your hosting support, they can resolve this easily.', 'wp-reviews-plugin-for-google')); ?>
 </p>
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) .'&tab='. esc_attr(sanitize_text_field(wp_unslash($_GET['tab']))) .'&test_proxy', 'ti-test-proxy')); ?>" class="ti-btn ti-btn-loading-on-click"><?php echo esc_html(__('Test again', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr(sanitize_text_field(wp_unslash($_GET['page']))) .'&tab='. esc_attr(sanitize_text_field(wp_unslash($_GET['tab']))) .'&test_proxy', 'strix-test-proxy')); ?>" class="strix-btn strix-btn-loading-on-click"><?php echo esc_html(__('Test again', 'wp-reviews-plugin-for-google')); ?></a>
 </div>
 <?php endif; ?>
 <?php if (!isset($noContainerElementTabs) || !in_array($selectedTab, $noContainerElementTabs)): ?>
-<div class="ti-container" id="tab-<?php echo esc_attr($selectedTab); ?>">
+<div class="strix-container" id="tab-<?php echo esc_attr($selectedTab); ?>">
 <?php include(plugin_dir_path(__FILE__) . '../tabs' . DIRECTORY_SEPARATOR . $selectedTab . '.php'); ?>
 </div>
 <?php else: ?>
 <?php include(plugin_dir_path(__FILE__) . '../tabs' . DIRECTORY_SEPARATOR . $selectedTab . '.php'); ?>
 <?php endif; ?>
 </div>
-<div id="ti-loading">
-<div class="ti-loading-effect">
+<div id="strix-loading">
+<div class="strix-loading-effect">
 <div></div>
 <div></div>
 <div></div>

@@ -1,11 +1,11 @@
 <?php
 defined('ABSPATH') or die('No script kiddies please!');
 ?>
-<div class="ti-preview-boxes-container">
-<div class="ti-full-width">
-<div class="ti-box ti-preview-boxes">
-<div class="ti-box-inner">
-<div class="ti-box-header ti-box-header-normal">
+<div class="strix-preview-boxes-container">
+<div class="strix-full-width">
+<div class="strix-box ti-preview-boxes">
+<div class="strix-box-inner">
+<div class="strix-box-header ti-box-header-normal">
 <?php echo esc_html(__('Example Widget', 'wp-reviews-plugin-for-google')); ?>:
 <strong><?php echo esc_html($pluginManager::$widget_templates['templates'][4]['name']); ?></strong>
  (<?php echo esc_html($pluginManager::$widget_styles['light-background']['name']); ?>)
@@ -62,9 +62,9 @@ $className = 'ti-half-width';
 }
 ?>
 <div class="<?php echo esc_attr($className); ?>">
-<div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($layout); ?>" data-set-id="<?php echo esc_attr($style); ?>">
-<div class="ti-box-inner">
-<div class="ti-box-header ti-box-header-normal">
+<div class="strix-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($layout); ?>" data-set-id="<?php echo esc_attr($style); ?>">
+<div class="strix-box-inner">
+<div class="strix-box-header ti-box-header-normal">
 <?php echo esc_html(__('Example Widget', 'wp-reviews-plugin-for-google')); ?>:
 <strong><?php echo esc_html($template['name']); ?></strong>
  (<?php echo esc_html($pluginManager::$widget_styles[ $style ]['name']); ?>)

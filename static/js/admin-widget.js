@@ -15,7 +15,7 @@ jQuery(document).ready(function() {
 		jQuery(this).closest('.help-block').remove();
 	});
 
-	// select Trustindex widget ID
+	// select strix widget ID
 	wpContent.on('click', '.btn-copy-widget-id', function(event) {
 		event.preventDefault();
 
@@ -25,7 +25,7 @@ jQuery(document).ready(function() {
 		TImanageCopyLinks(link.closest('form'), link);
 	});
 
-	wpContent.on('blur', '.trustindex-widget-admin .form-control', function() {
+	wpContent.on('blur', '.strix-widget-admin .form-control', function() {
 		let input = jQuery(this);
 
 		if (input.attr('required') !== 'required' || input.val()) {

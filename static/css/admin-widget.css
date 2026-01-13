@@ -6,11 +6,11 @@
   color: green;
 }
 
-.trustindex-widget-admin .block-help-template {
+.strix-widget-admin .block-help-template {
   display: none;
 }
 
-.trustindex-widget-admin .help-block {
+.strix-widget-admin .help-block {
   position: absolute;
   background: white;
   padding: 10px;
@@ -18,23 +18,23 @@
   z-index: 10;
 }
 
-.trustindex-widget-admin .help-block p {
+.strix-widget-admin .help-block p {
   margin-top: 0px;
 }
 
-.trustindex-widget-admin .help-block .dashicons-dismiss {
+.strix-widget-admin .help-block .dashicons-dismiss {
   float: right;
   cursor: pointer;
 }
 
-.trustindex-widget-admin .btn-insert-tooltip {
+.strix-widget-admin .btn-insert-tooltip {
   cursor: pointer;
 }
 
-.trustindex-widget-admin label .dashicons {
+.strix-widget-admin label .dashicons {
   float: right;
 }
 
-.trustindex-widget-admin .btn-copy-widget-id {
+.strix-widget-admin .btn-copy-widget-id {
   text-decoration: none;
 }

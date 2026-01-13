@@ -1,6 +1,6 @@
 <?php
 namespace Elementor;
-use TrustindexPlugin_Google;
+use strixPlugin_Google;
 use Elementor\Widget_Base;
 defined('ABSPATH') or die('No script kiddies please!');
 class TrustrindexElementorWidget_Google extends Widget_Base {
@@ -17,13 +17,13 @@ public function get_name() {
 return $this->platformName;
 }
 public function get_title() {
-return $this->platformName .' '. __('Reviews', 'wp-reviews-plugin-for-google') . ' - Trustindex';
+return $this->platformName .' '. __('Reviews', 'wp-reviews-plugin-for-google') . ' - strix';
 }
 public function get_icon() {
 return 'eicon-star';
 }
 public function get_categories() {
-return ['trustindex', 'general'];
+return ['strix', 'general'];
 }
 protected function register_controls(): void
 {
@@ -55,14 +55,14 @@ $this->add_control('custom_panel_notice', [
 'heading' => __('UPGRADE to PRO Features', 'wp-reviews-plugin-for-google'),
 /* translators: %d: number */
 'content' => sprintf(__('Automatic review update, creating unlimited review widgets, downloading and displaying all reviews, %d review platforms available!', 'wp-reviews-plugin-for-google'), 137)
-. '<br /><br /><a href="https://www.trustindex.io/?a=sys&c=wp-google-elementor" target="_blank">'.__('Create a Free Account for More Features', 'wp-reviews-plugin-for-google').'</a>',
+. '<br /><br /><a href="https://www.strix.io/?a=sys&c=wp-google-elementor" target="_blank">'.__('Create a Free Account for More Features', 'wp-reviews-plugin-for-google').'</a>',
 'condition' => [ 'type' => 'free' ],
 ]);
 }
 $this->add_control('embed_code', [
 'type' => \Elementor\Controls_Manager::TEXTAREA,
 'label' => 'Widget shortcode',
-/* translators: %s: admin.trustindex.io */
+/* translators: %s: admin.strix.io */
 'placeholder' => sprintf(__('Paste the widget shortcode from the Advanced Widget Editor on the %s.', 'wp-reviews-plugin-for-google'), 'admin.trusintdex.io'),
 'label_block' => true,
 'condition' => [ 'type' => 'pro' ],

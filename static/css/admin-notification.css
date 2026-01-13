@@ -1,4 +1,4 @@
-.trustindex-popup {
+.strix-popup {
   position: fixed !important;
   top: 30px;
   right: 20px;
@@ -8,9 +8,9 @@
   max-width: 750px;
 }
 
-.trustindex-notification-row a { text-decoration: none }
+.strix-notification-row a { text-decoration: none }
 
-.trustindex-star-row {
+.strix-star-row {
   display: block;
   color: rgb(246, 187, 6);
   font-size: 23px;
@@ -18,18 +18,18 @@
   letter-spacing: -1px;
 }
 
-.ti-button-primary {
+.strix-button-primary {
   background-color: #1a976a !important;
   border-color: #1a976a !important;
   margin-right: 10px !important;
   margin-top: 10px !important;
 }
 
-.ti-button-primary:hover {
+.strix-button-primary:hover {
   background-color: #136b4b !important;
   border-color: #136b4b !important;
 }
 
-.trustindex-popup a {
+.strix-popup a {
   color: #888 !important;
 }

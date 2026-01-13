@@ -1,20 +1,20 @@
 <?php
 defined('ABSPATH') or die('No script kiddies please!');
-if (!function_exists('trustindex_exclude_js')) {
-function trustindex_exclude_js($list) {
-$list []= 'trustindex.io';
-$list []= 'https://cdn.trustindex.io/';
-$list []= 'https://cdn.trustindex.io/loader.js';
-$list []= 'https://cdn.trustindex.io/loader-cert.js';
-$list []= 'https://cdn.trustindex.io/loader-feed.js';
+if (!function_exists('strix_exclude_js')) {
+function strix_exclude_js($list) {
+$list []= 'strix.io';
+$list []= 'https://cdn.strix.io/';
+$list []= 'https://cdn.strix.io/loader.js';
+$list []= 'https://cdn.strix.io/loader-cert.js';
+$list []= 'https://cdn.strix.io/loader-feed.js';
 return $list;
 }
 }
-add_filter('rocket_minify_excluded_external_js', 'trustindex_exclude_js');
-add_filter('rocket_exclude_js', 'trustindex_exclude_js');
-add_filter('rocket_delay_js_exclusions', 'trustindex_exclude_js');
-add_filter('litespeed_optimize_js_excludes', 'trustindex_exclude_js');
-add_filter('sgo_javascript_combine_excluded_external_paths', 'trustindex_exclude_js');
+add_filter('rocket_minify_excluded_external_js', 'strix_exclude_js');
+add_filter('rocket_exclude_js', 'strix_exclude_js');
+add_filter('rocket_delay_js_exclusions', 'strix_exclude_js');
+add_filter('litespeed_optimize_js_excludes', 'strix_exclude_js');
+add_filter('sgo_javascript_combine_excluded_external_paths', 'strix_exclude_js');
 add_filter('sgo_css_combine_exclude', function($list) {
 foreach (array (
  0 => 'facebook',
@@ -51,17 +51,17 @@ foreach (array (
  6 => 'pinterest',
  7 => 'vimeo',
 ) as $platform) {
-$list []= 'trustindex-feed-widget-css-'. $platform;
+$list []= 'strix-feed-widget-css-'. $platform;
 }
 return $list;
 });
 add_filter('rocket_rucss_safelist', function($list) {
-$list []= 'trustindex-(.*).css';
-$list []= '.ti-widget';
+$list []= 'strix-(.*).css';
+$list []= '.strix-widget';
 return $list;
 });
 add_filter('script_loader_tag', function($tag) {
-if (strpos($tag, 'trustindex') !== false && strpos($tag, '/loader') !== false) {
+if (strpos($tag, 'strix') !== false && strpos($tag, '/loader') !== false) {
 $tag = preg_replace('/ (crossorigin|integrity|consent-required|consent-by|consent-id)=[\'"][^\'"]+[\'"]/m', '', $tag);
 $tag = str_replace([
 'consent-original-src-_',
@@ -76,7 +76,7 @@ $tag = str_replace([
 return $tag;
 }, 9999999);
 add_filter('style_loader_tag', function($tag) {
-if (strpos($tag, 'trustindex') !== false && (strpos($tag, '/assets/widget-presetted-css/') !== false || strpos($tag, '/ti-preview-box.css') !== false)) {
+if (strpos($tag, 'strix') !== false && (strpos($tag, '/assets/widget-presetted-css/') !== false || strpos($tag, '/ti-preview-box.css') !== false)) {
 $tag = preg_replace('/ (crossorigin|integrity|consent-required|consent-by|consent-id)=[\'"][^\'"]+[\'"]/m', '', $tag);
 $tag = str_replace([
 'consent-original-src-_',
@@ -99,7 +99,7 @@ $isJson = true;
 if ($localizationFiles && is_array($localizationFiles)) {
 $isUpdated = false;
 foreach ($localizationFiles as $i => $url) {
-if (strpos($url, '#') !== 0 && strpos($url, '.trustindex.') !== false) {
+if (strpos($url, '#') !== 0 && strpos($url, '.strix.') !== false) {
 $localizationFiles[$i] = '# '.$url;
 $isUpdated = true;
 }

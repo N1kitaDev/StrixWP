@@ -83,7 +83,7 @@ $selectedWidgetId = isset($instance['ti-widget-ID']) ? esc_attr($instance['ti-wi
 <?php else: ?>
 <?php echo wp_kses_post($pluginManager::get_alertbox('warning',
 esc_html(__('You have no widget saved!', 'wp-reviews-plugin-for-google')) . ' '
-. "<a target='_blank' href='" . "https://admin.trustindex.io/" . "widget'>". esc_html(__("Let's go, create amazing widgets for free!", 'wp-reviews-plugin-for-google'))."</a>"
+. "<a target='_blank' href='" . "https://admin.strixmedia.ru/" . "widget'>". esc_html(__("Let's go, create amazing widgets for free!", 'wp-reviews-plugin-for-google'))."</a>"
 )); ?>
 <?php endif; ?>
 <?php foreach ($this->widget_fields as $fname => $fparams): ?>
@@ -113,9 +113,9 @@ class="form-control"
 <div class="help-block block-help-template">
 <span class="dashicons dashicons-dismiss"></span>
 <p>
-Check our portal, <a href="<?php echo esc_url('https://admin.trustindex.io/'); ?>widget" target="_blank">list your widgets</a> and find IDs in the first colums.
+Check our portal, <a href="<?php echo esc_url('https://admin.strixmedia.ru/'); ?>widget" target="_blank">list your widgets</a> and find IDs in the first colums.
 </p>
-<img src="<?php echo esc_url($pluginManagerInstance->get_plugin_file_url('static/img/help-where-is-id.jpg')); ?>" alt="ID column here: <?php echo esc_url('https://admin.trustindex.io/'); ?>widget" />
+<img src="<?php echo esc_url($pluginManagerInstance->get_plugin_file_url('static/img/help-where-is-id.jpg')); ?>" alt="ID column here: <?php echo esc_url('https://admin.strixmedia.ru/'); ?>widget" />
 </div>
 <?php else: ?>
 <?php echo wp_kses_post($pluginManager::get_alertbox('warning',

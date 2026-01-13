@@ -1,10 +1,10 @@
 <?php
 defined('ABSPATH') or die('No script kiddies please!');
 ?>
-<ul class="ti-step-list">
+<ul class="strix-step-list">
 <?php foreach ($stepList as $i => $name): ?>
 <?php if ($i > 0): ?>
-<span class="ti-step-arrow"></span>
+<span class="strix-step-arrow"></span>
 <?php endif; ?>
 <?php
 $classList = [];
@@ -25,12 +25,12 @@ $classList []= 'ti-current';
 </a>
 </li>
 <?php endforeach; ?>
-<div class="ti-step-buttons <?php if (isset($stepRightButton)): ?>ti-has-multiple<?php endif; ?>">
+<div class="strix-step-buttons <?php if (isset($stepRightButton)): ?>ti-has-multiple<?php endif; ?>">
 <?php if ($stepCurrent > 1): ?>
-<a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="ti-btn ti-btn-default"><?php echo esc_html(__('Back', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="strix-btn ti-btn-default"><?php echo esc_html(__('Back', 'wp-reviews-plugin-for-google')); ?></a>
 <?php endif; ?>
 <?php if (isset($stepRightButton)): ?>
-<a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="ti-btn <?php echo esc_attr($stepRightButton['class']); ?>"><?php echo esc_attr($stepRightButton['text']); ?></a>
+<a href="<?php echo esc_attr(str_replace('%step%', $stepCurrent - 1, $stepUrl)); ?>" class="strix-btn <?php echo esc_attr($stepRightButton['class']); ?>"><?php echo esc_attr($stepRightButton['text']); ?></a>
 <?php endif; ?>
 </div>
 </ul>

@@ -23,14 +23,14 @@ $ti_command_list = [
 'save-fomo-day',
 'save-fomo-hide-count',
 'save-review-text-mode',
-'save-verified-by-trustindex',
+'save-verified-by-strix',
 'save-amp-notice-hide',
 
 ];
 if (!in_array($ti_command, $ti_command_list)) {
 $ti_command = null;
 }
-function trustindex_plugin_disconnect_page($settingsDelete = true)
+function strix_plugin_disconnect_page($settingsDelete = true)
 {
 global $pluginManagerInstance;
 global $wpdb;
@@ -60,14 +60,14 @@ delete_option($pluginManagerInstance->get_option_name('reviews-load-more'));
 delete_option($pluginManagerInstance->get_option_name('show-reviewers-photo'));
 delete_option($pluginManagerInstance->get_option_name('widget-setted-up'));
 delete_option($pluginManagerInstance->get_option_name('show-review-replies'));
-delete_option($pluginManagerInstance->get_option_name('verified-by-trustindex'));
+delete_option($pluginManagerInstance->get_option_name('verified-by-strix'));
 }
 $wpdb->query($wpdb->prepare('TRUNCATE %i', $pluginManagerInstance->get_tablename('reviews')));
 $pluginManagerInstance->setNotificationParam('not-using-no-connection', 'active', true);
 $pluginManagerInstance->setNotificationParam('not-using-no-connection', 'timestamp', time() + 86400);
 $pluginManagerInstance->setNotificationParam('not-using-no-widget', 'active', false);
 }
-function trustindex_plugin_change_step($step = 5)
+function strix_plugin_change_step($step = 5)
 {
 global $pluginManagerInstance;
 if ($step < 5) {
@@ -91,7 +91,7 @@ $optionsToDelete = [
 'dateformat',
 'nameformat',
 'show-review-replies',
-'verified-by-trustindex',
+'verified-by-strix',
 'fomo-open',
 'fomo-link',
 'fomo-border',
@@ -118,7 +118,7 @@ if ($step < 3) {
 delete_option($pluginManagerInstance->get_option_name('style-id'));
 }
 if ($step < 2) {
-trustindex_plugin_disconnect_page();
+strix_plugin_disconnect_page();
 }
 }
 if ($ti_command === 'save-page') {
@@ -200,7 +200,7 @@ exit;
 }
 else if ($ti_command === 'delete-page') {
 check_admin_referer('ti-delete-page');
-trustindex_plugin_disconnect_page();
+strix_plugin_disconnect_page();
 header('Location: admin.php?page='.esc_attr($_page).'&tab=free-widget-configurator');
 exit;
 }
@@ -210,7 +210,7 @@ $styleId = isset($_REQUEST['style_id']) ? (int)$_REQUEST['style_id'] : 4;
 if (14 !== $styleId) {
 update_option($pluginManagerInstance->get_option_name('style-id'), $styleId, false);
 delete_option($pluginManagerInstance->get_option_name('review-content'));
-trustindex_plugin_change_step(3);
+strix_plugin_change_step(3);
 if (in_array($pluginManager::$widget_templates['templates'][$styleId]['type'], ['floating', 'fomo'])) {
 $pluginManagerInstance->noreg_save_css();
 }
@@ -224,10 +224,10 @@ else if ($ti_command === 'save-set') {
 check_admin_referer('ti-save-set');
 $setId = isset($_REQUEST['set_id']) ? sanitize_text_field(wp_unslash($_REQUEST['set_id'])) : 'light-background';
 update_option($pluginManagerInstance->get_option_name('scss-set'), $setId, false);
-trustindex_plugin_change_step(4);
+strix_plugin_change_step(4);
 $pluginManagerInstance->noreg_save_css(true);
-if (isset($_GET['verified_by_trustindex'])) {
-update_option($pluginManagerInstance->get_option_name('verified-by-trustindex'), 1, false);
+if (isset($_GET['verified_by_strix'])) {
+update_option($pluginManagerInstance->get_option_name('verified-by-strix'), 1, false);
 }
 if (isset($_GET['set_id'])) {
 header('Location: admin.php?page='.esc_attr($_page).'&tab=free-widget-configurator');
@@ -435,10 +435,10 @@ $value = isset($_POST['review_text_mode']) ? sanitize_text_field(wp_unslash($_PO
 update_option($pluginManagerInstance->get_option_name('review-text-mode'), $value, false);
 exit;
 }
-else if ($ti_command === 'save-verified-by-trustindex') {
-check_admin_referer('ti-save-verified-by-trustindex');
-$value = isset($_POST['verified-by-trustindex']) ? sanitize_text_field(wp_unslash($_POST['verified-by-trustindex'])) : '';
-update_option($pluginManagerInstance->get_option_name('verified-by-trustindex'), $value, false);
+else if ($ti_command === 'save-verified-by-strix') {
+check_admin_referer('ti-save-verified-by-strix');
+$value = isset($_POST['verified-by-strix']) ? sanitize_text_field(wp_unslash($_POST['verified-by-strix'])) : '';
+update_option($pluginManagerInstance->get_option_name('verified-by-strix'), $value, false);
 exit;
 }
 else if ($ti_command === 'save-amp-notice-hide') {
@@ -473,7 +473,7 @@ if ($isTopRatedBadge) {
 $isTopRatedBadgeValid = isset($pageDetails['rating_score']) ? (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore : false;
 }
 }
-wp_enqueue_style('trustindex-widget-preview-css', 'https://cdn.trustindex.io/assets/ti-preview-box.css', [], true);
+wp_enqueue_style('strix-widget-preview-css', 'https://cdn.strix.io/assets/ti-preview-box.css', [], true);
 ?>
 <?php
 $stepUrl = '?page='.esc_attr($_page).'&tab=free-widget-configurator&step=%step%';
@@ -512,43 +512,43 @@ $stepCurrent = $stepDone + 1;
 }
 include(plugin_dir_path(__FILE__) . '../include/step-list.php');
 ?>
-<div class="ti-container<?php if ($stepCurrent < 5): ?> ti-narrow-page<?php endif; ?>">
-<?php if ($pluginManagerInstance->is_trustindex_connected()): ?>
-<div class="ti-notice ti-notice-warning">
+<div class="strix-container<?php if ($stepCurrent < 5): ?> ti-narrow-page<?php endif; ?>">
+<?php if ($pluginManagerInstance->is_strix_connected()): ?>
+<div class="strix-notice ti-notice-warning">
 <p>
 <?php
-$advancedTab = '<a href="?page='.esc_attr($_page).'&tab=advanced#trustindex-admin">'.__('Advanced', 'wp-reviews-plugin-for-google').'</a>';
+$advancedTab = '<a href="?page='.esc_attr($_page).'&tab=advanced#strix-admin">'.__('Advanced', 'wp-reviews-plugin-for-google').'</a>';
 /* translators: %s: Advanced tab link */
-echo esc_html(sprintf(__("You have connected your Trustindex account, so you can find premium functionality under the %s tab. You no longer need this tab unless you choose the limited but forever free mode.", 'wp-reviews-plugin-for-google'), $advancedTab));
+echo esc_html(sprintf(__("You have connected your strix account, so you can find premium functionality under the %s tab. You no longer need this tab unless you choose the limited but forever free mode.", 'wp-reviews-plugin-for-google'), $advancedTab));
 ?>
 </p>
 </div>
 <?php endif; ?>
 
 <?php if ($pluginManager::is_amp_active() && !get_option($pluginManagerInstance->get_option_name('amp-hidden-notification'), 0)): ?>
-<div class="ti-notice ti-notice-warning is-dismissible">
+<div class="strix-notice ti-notice-warning is-dismissible">
 <p>
 <?php echo esc_html(__('Free plugin features are unavailable with AMP plugin.', 'wp-reviews-plugin-for-google')); ?>
-<?php if ($pluginManagerInstance->is_trustindex_connected()): ?>
- <a href="?page=<?php echo esc_attr($_page); ?>&tab=advanced">Trustindex admin</a>
+<?php if ($pluginManagerInstance->is_strix_connected()): ?>
+ <a href="?page=<?php echo esc_attr($_page); ?>&tab=advanced">strix admin</a>
 <?php else: ?>
- <a href="https://www.trustindex.io/?a=sys&c=wp-amp" target="_blank"><?php echo esc_html(__('Try premium features (like AMP) for free', 'wp-reviews-plugin-for-google')); ?></a>
+ <a href="https://www.strix.io/?a=sys&c=wp-amp" target="_blank"><?php echo esc_html(__('Try premium features (like AMP) for free', 'wp-reviews-plugin-for-google')); ?></a>
 <?php endif; ?>
 </p>
 <button type="button" class="notice-dismiss" data-command="save-amp-notice-hide"></button>
 </div>
 <?php endif; ?>
 <?php if ($stepCurrent === 1): ?>
-<h1 class="ti-header-title"><?php
+<h1 class="strix-header-title"><?php
 /* translators: %s: Google */
 echo esc_html(sprintf(__('Connect %s', 'wp-reviews-plugin-for-google'), 'Google'));
 ?></h1>
 <?php if ($pluginManagerInstance->is_noreg_linked()): ?>
-<div class="ti-source-box">
+<div class="strix-source-box">
 <?php if (isset($pageDetails['avatar_url']) && $pageDetails['avatar_url']): ?>
 <img src="<?php echo esc_url($pageDetails['avatar_url']); ?>" />
 <?php endif; ?>
-<div class="ti-source-info">
+<div class="strix-source-info">
 <?php if (isset($pageDetails['name']) && $pageDetails['name']): ?>
 <strong><?php echo esc_html($pageDetails['name']); ?></strong><br />
 <?php endif; ?>
@@ -557,14 +557,14 @@ echo esc_html(sprintf(__('Connect %s', 'wp-reviews-plugin-for-google'), 'Google'
 <?php endif; ?>
 <a href="<?php echo esc_url($pluginManagerInstance->getPageUrl()); ?>" target="_blank"><?php echo esc_url($pluginManagerInstance->getPageUrl()); ?></a>
 </div>
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=delete-page', 'ti-delete-page')); ?>" class="ti-btn ti-btn-primary ti-btn-loading-on-click"><?php echo esc_html(__('Disconnect', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=delete-page', 'ti-delete-page')); ?>" class="strix-btn ti-btn-primary ti-btn-loading-on-click"><?php echo esc_html(__('Disconnect', 'wp-reviews-plugin-for-google')); ?></a>
 </div>
 <?php else: ?>
-<div class="ti-box">
-<form method="post" action="" data-platform="google" id="ti-connect-platform-form">
+<div class="strix-box">
+<form method="post" action="" data-platform="google" id="strix-connect-platform-form">
 <?php wp_nonce_field('ti-save-page'); ?>
 <input type="hidden" name="command" value="save-page" />
-<input type="hidden" name="page_details" required="required" id="ti-noreg-page-details" value="" />
+<input type="hidden" name="page_details" required="required" id="strix-noreg-page-details" value="" />
 <?php
 $reviewDownloadToken = get_option($pluginManagerInstance->get_option_name('review-download-token'));
 if (!$reviewDownloadToken) {
@@ -572,33 +572,33 @@ $reviewDownloadToken = wp_create_nonce('ti-noreg-connect-token');
 update_option($pluginManagerInstance->get_option_name('review-download-token'), $reviewDownloadToken, false);
 }
 ?>
-<input type="hidden" id="ti-noreg-connect-token" name="ti-noreg-connect-token" value="<?php echo esc_attr($reviewDownloadToken); ?>" />
-<input type="hidden" id="ti-noreg-webhook-url" value="<?php echo esc_url($pluginManagerInstance->getWebhookUrl()); ?>" />
-<input type="hidden" id="ti-noreg-email" value="<?php echo esc_attr(get_option('admin_email')); ?>" />
-<input type="hidden" id="ti-noreg-version" value="<?php echo esc_attr($pluginManagerInstance->getVersion()); ?>" />
-<input type="hidden" id="ti-noreg-review-download" name="review_download" value="0" />
-<input type="hidden" id="ti-noreg-review-request-id" name="review_request_id" value="" />
-<input type="hidden" id="ti-noreg-manual-download" name="manual_download" value=0 />
-<input type="hidden" id="ti-noreg-page-id" value="" />
-<div class="ti-notice ti-notice-info ti-d-none" id="ti-connect-info">
+<input type="hidden" id="strix-noreg-connect-token" name="ti-noreg-connect-token" value="<?php echo esc_attr($reviewDownloadToken); ?>" />
+<input type="hidden" id="strix-noreg-webhook-url" value="<?php echo esc_url($pluginManagerInstance->getWebhookUrl()); ?>" />
+<input type="hidden" id="strix-noreg-email" value="<?php echo esc_attr(get_option('admin_email')); ?>" />
+<input type="hidden" id="strix-noreg-version" value="<?php echo esc_attr($pluginManagerInstance->getVersion()); ?>" />
+<input type="hidden" id="strix-noreg-review-download" name="review_download" value="0" />
+<input type="hidden" id="strix-noreg-review-request-id" name="review_request_id" value="" />
+<input type="hidden" id="strix-noreg-manual-download" name="manual_download" value=0 />
+<input type="hidden" id="strix-noreg-page-id" value="" />
+<div class="strix-notice ti-notice-info ti-d-none" id="strix-connect-info">
 <p><?php echo esc_html(__("A popup window should be appear! Please, go to there and continue the steps! (If there is no popup window, you can check the the browser's popup blocker)", 'wp-reviews-plugin-for-google')); ?></p>
 </div>
 
-<a href="#" class="ti-btn btn-connect-public"><?php echo esc_html(__('Connect', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="#" class="strix-btn btn-connect-public"><?php echo esc_html(__('Connect', 'wp-reviews-plugin-for-google')); ?></a>
 
 
 </form>
 </div>
 <?php endif; ?>
-<h1 class="ti-header-title ti-mt-2"><?php
+<h1 class="strix-header-title ti-mt-2"><?php
 /* translators: %s: Google Reviews */
 echo esc_html(sprintf(__('Check some %s widget layouts and styles', 'wp-reviews-plugin-for-google'), 'Google Reviews'));
 ?></h1>
 <?php include(plugin_dir_path(__FILE__) . '../include/demo-widgets.php'); ?>
 <?php elseif ($stepCurrent === 2): ?>
-<h1 class="ti-header-title"><?php echo esc_html(__('Select Layout', 'wp-reviews-plugin-for-google')); ?></h1>
+<h1 class="strix-header-title"><?php echo esc_html(__('Select Layout', 'wp-reviews-plugin-for-google')); ?></h1>
 <?php if (!count($reviews) && !$isReviewDownloadInProgress): ?>
-<div class="ti-notice ti-notice-warning" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-warning" style="margin: 0 0 15px 0">
 <p>
 <?php
 /* translators: %s: Google */
@@ -607,14 +607,14 @@ echo esc_html(sprintf(__('There are no reviews on your %s platform.', 'wp-review
 </p>
 </div>
 <?php endif; ?>
-<div class="ti-box ti-box-filter">
+<div class="strix-box ti-box-filter">
 <label><?php echo esc_html(__('Layout', 'wp-reviews-plugin-for-google')); ?>:</label>
-<span class="ti-checkbox">
+<span class="strix-checkbox">
 <input type="radio" name="layout-select" value="" data-ids="" checked>
 <label><?php echo esc_html(__('All', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php foreach ($pluginManager::$widget_templates['categories'] as $category => $ids): ?>
-<span class="ti-checkbox">
+<span class="strix-checkbox">
 <input type="radio" name="layout-select" value="<?php echo esc_attr($category); ?>" data-ids="<?php echo esc_attr($ids); ?>">
 <label><?php
 switch ($category) {
@@ -656,7 +656,7 @@ break;
 </span>
 <?php endforeach; ?>
 </div>
-<div class="ti-preview-boxes-container">
+<div class="strix-preview-boxes-container">
 <?php foreach ($pluginManager::$widget_templates['templates'] as $id => $template): ?>
 <?php
 $className = 'ti-full-width';
@@ -679,32 +679,32 @@ $fomoWidgetInvalid = in_array($id, [119, 120]) && (!isset($pageDetails['rating_n
 if (!isset($template['is-active']) || $template['is-active']):
 ?>
 <div class="<?php echo esc_attr($className); ?>">
-<div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($id); ?>" data-set-id="<?php echo esc_attr($set); ?>">
-<div class="ti-box-inner">
-<div class="ti-box-header ti-box-header-normal">
+<div class="strix-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($id); ?>" data-set-id="<?php echo esc_attr($set); ?>">
+<div class="strix-box-inner">
+<div class="strix-box-header ti-box-header-normal">
 <?php echo esc_html(__('Layout', 'wp-reviews-plugin-for-google')); ?>:
 <strong><?php echo esc_html($template['name']); ?></strong>
 <?php if ($template['is-popular'] || 14 === $id): ?>
-<span class="ti-badge ti-most-popular-badge ti-tooltip">
+<span class="strix-badge ti-most-popular-badge ti-tooltip">
 <?php echo esc_html(__('Most popular', 'wp-reviews-plugin-for-google')); ?> <span class="dashicons dashicons-info-outline"></span>
-<span class="ti-tooltip-message"><?php echo
+<span class="strix-tooltip-message"><?php echo
 esc_html(__('Selected by most users!', 'wp-reviews-plugin-for-google')).' '.
 esc_html(__('This widget layout helps build trust and effectively increases sales.', 'wp-reviews-plugin-for-google'));
 ?></span>
 </span>
 <?php endif; ?>
 <?php if (14 === $id) :?>
-<a href="#" class="ti-btn ti-btn-sm ti-pull-right" style="pointer-events: none;background: grey">
+<a href="#" class="strix-btn ti-btn-sm ti-pull-right" style="pointer-events: none;background: grey">
 <?php echo esc_html(__('Paid package feature', 'wp-reviews-plugin-for-google')); ?>
 </a>
 <?php elseif ((!$template['is-top-rated-badge'] || $isTopRatedBadgeValid) && !$fomoWidgetInvalid): ?>
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-style&style_id='. esc_attr(urlencode($id)), 'ti-save-style')); ?>" class="ti-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-style&style_id='. esc_attr(urlencode($id)), 'ti-save-style')); ?>" class="strix-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="clear"></div>
 <?php endif; ?>
 </div>
 <div class="preview">
 <?php if ($template['is-top-rated-badge'] && !$isTopRatedBadgeValid): ?>
-<div class="ti-notice ti-notice-info" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-info" style="margin: 0 0 15px 0">
 <p>
 <?php
 /* translators: %d: minimum score (4.5) */
@@ -714,7 +714,7 @@ echo esc_html(sprintf(__('Our exclusive "Top Rated" badge is awarded to service 
 </div>
 <?php endif; ?>
 <?php if ($fomoWidgetInvalid): ?>
-<div class="ti-notice ti-notice-info" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-info" style="margin: 0 0 15px 0">
 <p>
 <?php echo esc_html(__('Update your reviews to use this widget.', 'wp-reviews-plugin-for-google')); ?><br />
 </p>
@@ -729,9 +729,9 @@ echo esc_html(sprintf(__('Our exclusive "Top Rated" badge is awarded to service 
 <?php endforeach; ?>
 </div>
 <?php elseif ($stepCurrent === 3): ?>
-<h1 class="ti-header-title"><?php echo esc_html(__('Select Style', 'wp-reviews-plugin-for-google')); ?></h1>
+<h1 class="strix-header-title"><?php echo esc_html(__('Select Style', 'wp-reviews-plugin-for-google')); ?></h1>
 <?php if (!count($reviews) && !$isReviewDownloadInProgress): ?>
-<div class="ti-notice ti-notice-warning" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-warning" style="margin: 0 0 15px 0">
 <p>
 <?php
 /* translators: %s: Google */
@@ -746,28 +746,28 @@ if (in_array($pluginManager::$widget_templates['templates'][ $styleId ]['type'],
 $className = 'ti-half-width';
 }
 ?>
-<div class="ti-preview-boxes-container">
+<div class="strix-preview-boxes-container">
 <?php
 $isFirstLayout = true;
-$isVerifiedByTrustindexAvailable = $pluginManagerInstance->isVerifiedByTrustindexAvailable();
+$isVerifiedBystrixAvailable = $pluginManagerInstance->isVerifiedBystrixAvailable();
 foreach ($pluginManager::$widget_styles as $id => $style): ?>
 <?php if (!isset($style['is-active']) || $style['is-active']): ?>
 <div class="<?php echo esc_attr($className); ?>">
-<div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($id); ?>">
-<div class="ti-box-inner">
-<div class="ti-box-header ti-box-header-normal">
+<div class="strix-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($id); ?>">
+<div class="strix-box-inner">
+<div class="strix-box-header ti-box-header-normal">
 <?php echo esc_html(__('Style', 'wp-reviews-plugin-for-google')); ?>:
 <strong><?php echo esc_html($style['name']); ?></strong>
-<?php if ($isFirstLayout && !$isVerifiedByTrustindexAvailable): ?>
-<span class="ti-badge ti-most-popular-badge ti-tooltip">
+<?php if ($isFirstLayout && !$isVerifiedBystrixAvailable): ?>
+<span class="strix-badge ti-most-popular-badge ti-tooltip">
 <?php echo esc_html(__('Most popular', 'wp-reviews-plugin-for-google')); ?> <span class="dashicons dashicons-info-outline"></span>
-<span class="ti-tooltip-message"><?php echo
+<span class="strix-tooltip-message"><?php echo
 esc_html(__('Selected by most users!', 'wp-reviews-plugin-for-google')).' '.
 esc_html(__('This widget style helps build trust and effectively increases sales.', 'wp-reviews-plugin-for-google'));
 ?></span>
 </span>
 <?php endif; ?>
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-set&set_id='. esc_attr(urlencode($id)), 'ti-save-set')); ?>" class="ti-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-set&set_id='. esc_attr(urlencode($id)), 'ti-save-set')); ?>" class="strix-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="clear"></div>
 </div>
 <div class="preview">
@@ -776,40 +776,40 @@ esc_html(__('This widget style helps build trust and effectively increases sales
 </div>
 </div>
 </div>
-<?php if ($id === 'light-background' && $isVerifiedByTrustindexAvailable): ?>
+<?php if ($id === 'light-background' && $isVerifiedBystrixAvailable): ?>
 <div class="<?php echo esc_attr($className); ?>">
-<div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($id); ?>">
-<div class="ti-box-inner">
-<div class="ti-box-header ti-box-header-normal">
+<div class="strix-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($id); ?>">
+<div class="strix-box-inner">
+<div class="strix-box-header ti-box-header-normal">
 <?php echo esc_html(__('Style', 'wp-reviews-plugin-for-google')); ?>:
 <strong>
 <?php echo esc_html($style['name']); ?>
 -
-<?php echo esc_html(__('with Trustindex verified', 'wp-reviews-plugin-for-google')); ?>
+<?php echo esc_html(__('with strix verified', 'wp-reviews-plugin-for-google')); ?>
 </strong>
 <?php if ($className === 'ti-half-width'): ?><br /><?php endif; ?>
-<span class="ti-badge ti-most-popular-badge ti-tooltip">
+<span class="strix-badge ti-most-popular-badge ti-tooltip">
 <?php echo esc_html(__('Most popular', 'wp-reviews-plugin-for-google')); ?> <span class="dashicons dashicons-info-outline"></span>
-<span class="ti-tooltip-message"><?php echo
+<span class="strix-tooltip-message"><?php echo
 esc_html(__('Selected by most users!', 'wp-reviews-plugin-for-google')).' '.
 esc_html(__('This widget style helps build trust and effectively increases sales.', 'wp-reviews-plugin-for-google'));
 ?></span>
 </span>
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-set&set_id='. esc_attr(urlencode($id)), 'ti-save-set')); ?>&verified_by_trustindex" class="ti-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-set&set_id='. esc_attr(urlencode($id)), 'ti-save-set')); ?>&verified_by_strix" class="strix-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="clear"></div>
 </div>
 <div class="preview">
-<?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($styleId), 'set-id' => esc_attr($id), 'verified-by-trustindex' => true]), $pluginManager::$allowedAttributesForWidget); ?>
+<?php echo wp_kses($pluginManagerInstance->renderWidgetAdmin(true, false, ['style-id' => esc_attr($styleId), 'set-id' => esc_attr($id), 'verified-by-strix' => true]), $pluginManager::$allowedAttributesForWidget); ?>
 </div>
 </div>
-<div class="ti-notice ti-notice-info ti-verified-badge-notice">
+<div class="strix-notice ti-notice-info ti-verified-badge-notice">
 <p>
 <span class="dashicons dashicons-star-empty"></span> <strong><?php echo esc_html(__('Congratulations!', 'wp-reviews-plugin-for-google')); ?></strong><br />
 <?php
 /* translators: 1: 5, 2: 4.5, 3: 12 */
 echo esc_html(sprintf(__('Our system ranked you in the top %1$d%% of companies based on your reviews. Your total rating score above %2$s in the last %3$d month, and your reviews are genuine', 'wp-reviews-plugin-for-google'), 5, $pluginManager::$topRatedMinimumScore, 12));
 ?><br />
-<?php echo wp_kses_post(__('This allows you to <strong>use in the widgets the Trustindex verified badge, the Universal Symbol of Trust.</strong> With the verified badge you can build more trust, and sell more!', 'wp-reviews-plugin-for-google')); ?>
+<?php echo wp_kses_post(__('This allows you to <strong>use in the widgets the strix verified badge, the Universal Symbol of Trust.</strong> With the verified badge you can build more trust, and sell more!', 'wp-reviews-plugin-for-google')); ?>
 </p>
 </div>
 </div>
@@ -822,9 +822,9 @@ endforeach; ?>
 </div>
 <?php elseif ($stepCurrent === 4): ?>
 <?php $widgetType = $pluginManager::$widget_templates['templates'][$styleId]['type']; ?>
-<h1 class="ti-header-title"><?php echo esc_html(__('Set up widget', 'wp-reviews-plugin-for-google')); ?></h1>
+<h1 class="strix-header-title"><?php echo esc_html(__('Set up widget', 'wp-reviews-plugin-for-google')); ?></h1>
 <?php if (!count($reviews) && !$isReviewDownloadInProgress): ?>
-<div class="ti-notice ti-notice-warning" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-warning" style="margin: 0 0 15px 0">
 <p>
 <?php
 /* translators: %s: Google */
@@ -834,29 +834,29 @@ echo esc_html(sprintf(__('There are no reviews on your %s platform.', 'wp-review
 </div>
 <?php endif; ?>
 <?php if ($isTopRatedBadge && !$isTopRatedBadgeValid): ?>
-<div class="ti-notice ti-notice-error" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-error" style="margin: 0 0 15px 0">
 <p>
 <?php
 /* translators: %s: min score (4.5) */
 echo esc_html(sprintf(__('Our exclusive "Top Rated" badge is awarded to service providers with a rating of %s and above.', 'wp-reviews-plugin-for-google'), $pluginManager::$topRatedMinimumScore));
 ?><br />
-<a href="?page=<?php echo esc_attr($_page); ?>&tab=free-widget-configurator&step=2" class="ti-btn ti-btn-sm ti-btn-loading-on-click" style="margin-top: 10px"><?php echo esc_html(__('Please select another widget', 'wp-reviews-plugin-for-google')); ?></a>
+<a href="?page=<?php echo esc_attr($_page); ?>&tab=free-widget-configurator&step=2" class="strix-btn ti-btn-sm ti-btn-loading-on-click" style="margin-top: 10px"><?php echo esc_html(__('Please select another widget', 'wp-reviews-plugin-for-google')); ?></a>
 </p>
 </div>
 <?php endif; ?>
-<div class="ti-preview-boxes-container">
-<div class="ti-full-width">
-<div class="ti-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($scssSet); ?>">
-<div class="ti-box-inner">
-<div class="ti-box-header">
+<div class="strix-preview-boxes-container">
+<div class="strix-full-width">
+<div class="strix-box ti-preview-boxes" data-layout-id="<?php echo esc_attr($styleId); ?>" data-set-id="<?php echo esc_attr($scssSet); ?>">
+<div class="strix-box-inner">
+<div class="strix-box-header">
 <?php echo esc_html(__('Widget Preview', 'wp-reviews-plugin-for-google')); ?>
 <?php if (!in_array($styleId, [17, 21, 52, 53, 112, 114])): ?>
-<span class="ti-box-header-normal ti-pull-right">
+<span class="strix-box-header-normal ti-pull-right">
 <?php echo esc_html(__('Style', 'wp-reviews-plugin-for-google')); ?>:
 <strong><?php echo esc_html($pluginManager::$widget_styles[ $scssSet ]['name']); ?></strong>
 </span>
 <?php endif; ?>
-<span class="ti-box-header-normal ti-pull-right">
+<span class="strix-box-header-normal ti-pull-right">
 <?php echo esc_html(__('Layout', 'wp-reviews-plugin-for-google')); ?>:
 <strong><?php echo esc_html($pluginManager::$widget_templates['templates'][ $styleId ]['name']); ?></strong>
 </span>
@@ -869,29 +869,29 @@ echo esc_html(sprintf(__('Our exclusive "Top Rated" badge is awarded to service 
 </div>
 </div>
 <?php $filter = $pluginManagerInstance->getWidgetOption('filter'); ?>
-<div class="ti-preview-boxes-container">
-<div class="ti-full-width">
-<div class="ti-box">
-<div class="ti-box-inner">
-<div class="ti-box-header"><?php echo esc_html(__('Widget Settings', 'wp-reviews-plugin-for-google')); ?></div>
-<div class="ti-left-block" id="ti-widget-selects">
-<?php if ($pluginManagerInstance->isVerifiedByTrustindexAvailable()): ?>
-<div class="ti-form-group">
+<div class="strix-preview-boxes-container">
+<div class="strix-full-width">
+<div class="strix-box">
+<div class="strix-box-inner">
+<div class="strix-box-header"><?php echo esc_html(__('Widget Settings', 'wp-reviews-plugin-for-google')); ?></div>
+<div class="strix-left-block" id="strix-widget-selects">
+<?php if ($pluginManagerInstance->isVerifiedBystrixAvailable()): ?>
+<div class="strix-form-group">
 <label>
-<?php echo esc_html(__('Verified by Trustindex', 'wp-reviews-plugin-for-google')); ?>
-<span class="ti-badge ti-badge-info"><?php echo esc_html(__('Recommended', 'wp-reviews-plugin-for-google')); ?></span>
+<?php echo esc_html(__('Verified by strix', 'wp-reviews-plugin-for-google')); ?>
+<span class="strix-badge ti-badge-info"><?php echo esc_html(__('Recommended', 'wp-reviews-plugin-for-google')); ?></span>
 </label>
 <form method="post" action="">
-<input type="hidden" name="command" value="save-verified-by-trustindex" />
-<?php wp_nonce_field('ti-save-verified-by-trustindex'); ?>
-<?php $verifiedByTrustindex = (int)$pluginManagerInstance->getWidgetOption('verified-by-trustindex'); ?>
-<select class="ti-form-control" name="verified-by-trustindex">
-<option value="0"<?php if (!$verifiedByTrustindex): ?> selected<?php endif; ?>><?php echo esc_html(__('Hide', 'wp-reviews-plugin-for-google')); ?></option>
-<option value="1"<?php if ($verifiedByTrustindex === 1): ?> selected<?php endif; ?>><?php echo
+<input type="hidden" name="command" value="save-verified-by-strix" />
+<?php wp_nonce_field('ti-save-verified-by-strix'); ?>
+<?php $verifiedBystrix = (int)$pluginManagerInstance->getWidgetOption('verified-by-strix'); ?>
+<select class="strix-form-control" name="verified-by-strix">
+<option value="0"<?php if (!$verifiedBystrix): ?> selected<?php endif; ?>><?php echo esc_html(__('Hide', 'wp-reviews-plugin-for-google')); ?></option>
+<option value="1"<?php if ($verifiedBystrix === 1): ?> selected<?php endif; ?>><?php echo
 /* translators: %d: 1 */
 esc_html(sprintf(__('Style %d', 'wp-reviews-plugin-for-google'), 1));
 ?></option>
-<option value="2"<?php if ($verifiedByTrustindex === 2): ?> selected<?php endif; ?>><?php
+<option value="2"<?php if ($verifiedBystrix === 2): ?> selected<?php endif; ?>><?php
 /* translators: %d: 2 */
 echo esc_html(sprintf(__('Style %d', 'wp-reviews-plugin-for-google'), 2));
 ?></option>
@@ -900,13 +900,13 @@ echo esc_html(sprintf(__('Style %d', 'wp-reviews-plugin-for-google'), 2));
 </div>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews()): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Filter your ratings', 'wp-reviews-plugin-for-google')); ?></label>
 
 <form method="post" action="">
 <input type="hidden" name="command" value="save-filter-stars" />
 <?php wp_nonce_field('ti-save-filter-stars'); ?>
-<select class="ti-form-control" name="stars">
+<select class="strix-form-control" name="stars">
 <option value="1,2,3,4,5"<?php if (count($filter['stars']) > 2): ?> selected<?php endif; ?>><?php echo esc_html(__('Show all', 'wp-reviews-plugin-for-google')); ?></option>
 <option value="4,5"<?php if (count($filter['stars']) === 2): ?> selected<?php endif; ?>>&starf;&starf;&starf;&starf; - &starf;&starf;&starf;&starf;&starf;</option>
 <option value="5"<?php if (count($filter['stars']) === 1): ?> selected<?php endif; ?>><?php echo esc_html(__('only', 'wp-reviews-plugin-for-google')); ?> &starf;&starf;&starf;&starf;&starf;</option>
@@ -914,12 +914,12 @@ echo esc_html(sprintf(__('Style %d', 'wp-reviews-plugin-for-google'), 2));
 </form>
 </div>
 <?php endif; ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Select language', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-language" />
 <?php wp_nonce_field('ti-save-language'); ?>
-<select class="ti-form-control" name="lang">
+<select class="strix-form-control" name="lang">
 <?php foreach ($pluginManager::$widget_languages as $id => $name): ?>
 <option value="<?php echo esc_attr($id); ?>" <?php echo $pluginManagerInstance->getWidgetOption('lang') == $id ? 'selected' : ''; ?>><?php echo esc_html($name); ?></option>
 <?php endforeach; ?>
@@ -927,12 +927,12 @@ echo esc_html(sprintf(__('Style %d', 'wp-reviews-plugin-for-google'), 2));
 </form>
 </div>
 <?php if ($pluginManagerInstance->isLayoutHasReviews()): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Select date format', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-dateformat" />
 <?php wp_nonce_field('ti-save-dateformat'); ?>
-<select class="ti-form-control" name="dateformat">
+<select class="strix-form-control" name="dateformat">
 <?php foreach ($pluginManager::$widget_dateformats as $format): ?>
 <option value="<?php echo esc_attr($format); ?>" <?php echo $pluginManagerInstance->getWidgetOption('dateformat') == $format ? 'selected' : ''; ?>><?php
 switch ($format) {
@@ -956,12 +956,12 @@ break;
 </select>
 </form>
 </div>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Select name format', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-nameformat" />
 <?php wp_nonce_field('ti-save-nameformat'); ?>
-<select class="ti-form-control" name="nameformat">
+<select class="strix-form-control" name="nameformat">
 <?php foreach ($pluginManager::$widget_nameformats as $format): ?>
 <option value="<?php echo esc_attr($format['id']); ?>" <?php echo $pluginManagerInstance->getWidgetOption('nameformat') == $format['id'] ? 'selected' : ''; ?>>
 <?php
@@ -977,12 +977,12 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </form>
 </div>
 <?php if (!in_array($styleId, [17, 21, 52, 53, 112, 114])): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Align', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-align" />
 <?php wp_nonce_field('ti-save-align'); ?>
-<select class="ti-form-control" name="align">
+<select class="strix-form-control" name="align">
 <option value="left" <?php echo $pluginManagerInstance->getWidgetOption('align') === 'left' ? 'selected' : ''; ?>><?php echo esc_html(__('left', 'wp-reviews-plugin-for-google')); ?></option>
 <option value="center" <?php echo $pluginManagerInstance->getWidgetOption('align') === 'center' ? 'selected' : ''; ?>><?php echo esc_html(__('center', 'wp-reviews-plugin-for-google')); ?></option>
 <option value="right" <?php echo $pluginManagerInstance->getWidgetOption('align') === 'right' ? 'selected' : ''; ?>><?php echo esc_html(__('right', 'wp-reviews-plugin-for-google')); ?></option>
@@ -990,12 +990,12 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 </select>
 </form>
 </div>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Review text', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-review-text-mode" />
 <?php wp_nonce_field('ti-save-review-text-mode'); ?>
-<select class="ti-form-control" name="review_text_mode">
+<select class="strix-form-control" name="review_text_mode">
 <option value="scroll" <?php echo $pluginManagerInstance->getWidgetOption('review-text-mode') === 'scroll' ? 'selected' : ''; ?>><?php echo esc_html(__('Scroll', 'wp-reviews-plugin-for-google')); ?></option>
 <option value="readmore" <?php echo $pluginManagerInstance->getWidgetOption('review-text-mode') === 'readmore' ? 'selected' : ''; ?>><?php echo esc_html(__('Read more', 'wp-reviews-plugin-for-google')); ?></option>
 <option value="truncated" <?php echo $pluginManagerInstance->getWidgetOption('review-text-mode') === 'truncated' ? 'selected' : ''; ?>><?php echo esc_html(__('Truncated', 'wp-reviews-plugin-for-google')); ?></option>
@@ -1005,12 +1005,12 @@ echo esc_html($pluginManagerInstance->renderNameFormat('Firstname Lastname', $fo
 <?php endif; ?>
 <?php endif; ?>
 <?php if ($isTopRatedBadge): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Select type', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-top-rated-type" />
 <?php wp_nonce_field('ti-save-top-rated-type'); ?>
-<select class="ti-form-control" name="type">
+<select class="strix-form-control" name="type">
 <?php foreach ($pluginManager::$widget_top_rated_titles as $type => $langs): ?>
 <option value="<?php echo esc_attr($type); ?>" <?php echo $pluginManagerInstance->getWidgetOption('top-rated-type') == $type ? 'selected' : ''; ?>><?php
 switch ($type) {
@@ -1051,13 +1051,13 @@ break;
 </form>
 </div>
 <?php if (!$pluginManagerInstance->isFomoWidget()): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Select date format', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-top-rated-date" />
 <?php wp_nonce_field('ti-save-top-rated-date'); ?>
 <?php $topRatedDate = $pluginManagerInstance->getWidgetOption('top-rated-date'); ?>
-<select class="ti-form-control" name="date">
+<select class="strix-form-control" name="date">
 <option value="hide"<?php if ($topRatedDate === 'hide'): ?> selected<?php endif; ?>><?php echo esc_html(__("Hide", 'wp-reviews-plugin-for-google')); ?></option>
 <option value="last-year"<?php if ($topRatedDate === 'last-year'): ?> selected<?php endif; ?>><?php echo esc_html(__("Last year", 'wp-reviews-plugin-for-google')); ?></option>
 <option value=""<?php if (!$topRatedDate): ?> selected<?php endif; ?>><?php echo esc_html(__("Current year", 'wp-reviews-plugin-for-google')); ?></option>
@@ -1068,32 +1068,32 @@ break;
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isFomoWidget()): ?>
 <?php if ($pluginManagerInstance->isFomoCustomWidget()): ?>
-<div class="ti-form-group" style="max-width: 400px">
+<div class="strix-form-group" style="max-width: 400px">
 <label><?php echo esc_html(__('Title', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-title" />
 <?php wp_nonce_field('ti-save-fomo-title'); ?>
-<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-title')); ?>" name="fomo-title" />
-<small class="ti-text-muted" style="padding-left: 5px"><?php echo esc_html(htmlentities(__('Enclose the text in <u></u> if you want to highlight it', 'wp-reviews-plugin-for-google'))); ?></small>
+<input type="text" class="strix-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-title')); ?>" name="fomo-title" />
+<small class="strix-text-muted" style="padding-left: 5px"><?php echo esc_html(htmlentities(__('Enclose the text in <u></u> if you want to highlight it', 'wp-reviews-plugin-for-google'))); ?></small>
 </form>
 </div>
-<div class="ti-form-group" style="max-width: 400px">
+<div class="strix-form-group" style="max-width: 400px">
 <label><?php echo esc_html(__('Subtitle', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-text" />
 <?php wp_nonce_field('ti-save-fomo-text'); ?>
-<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-text')); ?>" name="fomo-text" />
-<small class="ti-text-muted" style="padding-left: 5px"><?php echo esc_html(htmlentities(__('Enclose the text in <u></u> if you want to highlight it', 'wp-reviews-plugin-for-google'))); ?></small>
+<input type="text" class="strix-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-text')); ?>" name="fomo-text" />
+<small class="strix-text-muted" style="padding-left: 5px"><?php echo esc_html(htmlentities(__('Enclose the text in <u></u> if you want to highlight it', 'wp-reviews-plugin-for-google'))); ?></small>
 </form>
 </div>
 <?php endif; ?>
 <?php if ($choices = $pluginManagerInstance->getFomoSubtitleTextChoices()): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Subtitle', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-text" />
 <?php wp_nonce_field('ti-save-fomo-text'); ?>
-<select class="ti-form-control" name="fomo-text">
+<select class="strix-form-control" name="fomo-text">
 <option value="hide" <?php echo $pluginManagerInstance->getWidgetOption('fomo-text') === '' ? 'selected' : ''; ?>><?php echo esc_html(__('Hide', 'wp-reviews-plugin-for-google')); ?></option>
 <?php foreach ($choices as $choice => $choiceText): ?>
 <option value="<?php echo esc_attr($choice); ?>" <?php echo $pluginManagerInstance->getWidgetOption('fomo-text') == $choice ? 'selected' : ''; ?>><?php echo esc_html($choiceText); ?></option>
@@ -1102,13 +1102,13 @@ break;
 </form>
 </div>
 <?php endif; ?>
-<div class="ti-form-row">
-<div class="ti-form-group">
+<div class="strix-form-row">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Icon', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-icon" />
 <?php wp_nonce_field('ti-save-fomo-icon'); ?>
-<select class="ti-form-control" name="fomo-icon">
+<select class="strix-form-control" name="fomo-icon">
 <option value="hide" <?php echo $pluginManagerInstance->getWidgetOption('fomo-icon') === 'hide' ? 'selected' : ''; ?>><?php echo esc_html(__('Hide', 'wp-reviews-plugin-for-google')); ?></option>
 <?php foreach ($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-icon-choices'] as $icon): ?>
 <option value="<?php echo esc_attr($icon); ?>" <?php echo $pluginManagerInstance->getWidgetOption('fomo-icon') == $icon ? 'selected' : ''; ?>><?php
@@ -1128,44 +1128,44 @@ break;
 </select>
 </form>
 </div>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Color', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-color" />
 <?php wp_nonce_field('ti-save-fomo-color'); ?>
-<input type="text" class="ti-form-control ti-color-picker ti-save-input-on-change-color" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-color')); ?>" name="fomo-color" readonly />
+<input type="text" class="strix-form-control ti-color-picker ti-save-input-on-change-color" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-color')); ?>" name="fomo-color" readonly />
 </form>
 </div>
 </div>
-<div class="ti-form-row">
-<div class="ti-form-group">
+<div class="strix-form-row">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Align', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-align" />
 <?php wp_nonce_field('ti-save-align'); ?>
-<select class="ti-form-control" name="align">
+<select class="strix-form-control" name="align">
 <option value="left" <?php echo $pluginManagerInstance->getWidgetOption('align') === 'left' ? 'selected' : ''; ?>><?php echo esc_html(__('left', 'wp-reviews-plugin-for-google')); ?></option>
 <option value="right" <?php echo $pluginManagerInstance->getWidgetOption('align') === 'right' ? 'selected' : ''; ?>><?php echo esc_html(__('right', 'wp-reviews-plugin-for-google')); ?></option>
 </select>
 </form>
 </div>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Margin', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-margin" />
 <?php wp_nonce_field('ti-save-fomo-margin'); ?>
-<input type="number" class="ti-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-margin')); ?>" name="fomo-margin" />
+<input type="number" class="strix-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-margin')); ?>" name="fomo-margin" />
 </form>
 </div>
 </div>
-<div class="ti-form-row">
+<div class="strix-form-row">
 <?php if (isset($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-days'])): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Number of days', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-day" />
 <?php wp_nonce_field('ti-save-fomo-day'); ?>
-<select class="ti-form-control" name="fomo-day">
+<select class="strix-form-control" name="fomo-day">
 <?php foreach ($pluginManager::$widget_templates['templates'][$styleId]['params']['fomo-days'] as $day): ?>
 <?php
 /* translators: %d: Number of days */
@@ -1182,109 +1182,109 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 </div>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isFomoHideCountAvailable()): ?>
-<div class="ti-form-group">
+<div class="strix-form-group">
 <label><?php echo esc_html(__('Hide until count reaches', 'wp-reviews-plugin-for-google')); ?></label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-hide-count" />
 <?php wp_nonce_field('ti-save-fomo-hide-count'); ?>
-<input type="number" class="ti-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-hide-count')); ?>" name="fomo-hide-count" />
+<input type="number" class="strix-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-hide-count')); ?>" name="fomo-hide-count" />
 </form>
 </div>
 <?php endif; ?>
 </div>
 <?php endif; ?>
 </div>
-<div class="ti-right-block">
-<form method="post" id="ti-widget-options">
+<div class="strix-right-block">
+<form method="post" id="strix-widget-options">
 <input type="hidden" name="command" value="save-options" />
 <?php wp_nonce_field('ti-save-options'); ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews()): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="only-ratings" value="1"<?php if ($filter['only-ratings']): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Hide reviews without comments', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if (in_array($styleId, [ 4, 6, 7, 15, 16, 19, 31, 33, 36, 37, 38, 39, 44 ])): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="no-rating-text" value="1"<?php if ($pluginManagerInstance->getWidgetOption('no-rating-text')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Hide rating text', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews() && (!in_array($widgetType, ['floating']) || $styleId === 53)): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="footer-filter-text" value="1"<?php if ($pluginManagerInstance->getWidgetOption('footer-filter-text')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show minimum review filter condition', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews()): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-review-replies" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-review-replies')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show review reply', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if (in_array($styleId, [ 8, 10, 13 ])): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-header-button" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-header-button')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show write review button', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if (in_array($styleId, [ 8, 16, 18, 31, 33 ])): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="reviews-load-more" value="1"<?php if ($pluginManagerInstance->getWidgetOption('reviews-load-more')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show "Load more" button', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews() && !in_array($styleId, [53,54])): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="verified-icon" value="1"<?php if ($pluginManagerInstance->getWidgetOption('verified-icon')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show verified review icon', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if (in_array($widgetType, [ 'slider', 'sidebar' ]) && !in_array($styleId, [ 8, 9, 10, 18, 19, 37, 54 ])): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-arrows" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-arrows')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show navigation arrows', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews() && $styleId != 52): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-reviewers-photo" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-reviewers-photo')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__("Show reviewer's profile picture", 'wp-reviews-plugin-for-google')); ?></label>
 </span>
-<span class="ti-checkbox ti-checkbox-row ti-disabled">
+<span class="strix-checkbox ti-checkbox-row ti-disabled">
 <input type="checkbox" value="1" disabled />
-<label class="ti-tooltip">
+<label class="strix-tooltip">
 <?php echo esc_html(__("Show reviewer's profile picture locally, from a single image (less requests)", 'wp-reviews-plugin-for-google')); ?>
-<span class="ti-tooltip-message"><?php echo esc_html(__('Paid package feature', 'wp-reviews-plugin-for-google')); ?></span>
+<span class="strix-tooltip-message"><?php echo esc_html(__('Paid package feature', 'wp-reviews-plugin-for-google')); ?></span>
 </label>
 </span>
-<span class="ti-checkbox ti-checkbox-row ti-disabled">
+<span class="strix-checkbox ti-checkbox-row ti-disabled">
 <input type="checkbox" value="1" disabled />
-<label class="ti-tooltip">
+<label class="strix-tooltip">
 <?php echo esc_html(__('Show photos in reviews', 'wp-reviews-plugin-for-google')); ?>
-<span class="ti-tooltip-message"><?php echo esc_html(__('Paid package feature', 'wp-reviews-plugin-for-google')); ?></span>
+<span class="strix-tooltip-message"><?php echo esc_html(__('Paid package feature', 'wp-reviews-plugin-for-google')); ?></span>
 </label>
 </span>
 <?php endif; ?>
 <?php if (!in_array($widgetType, [ 'floating', 'fomo' ]) && !$isTopRatedBadge && $scssSet !== 'drop-shadow' && $styleId != 54): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="enable-animation" value="1"<?php if ($pluginManagerInstance->getWidgetOption('enable-animation')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Enable mouseover animation', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if (!$pluginManagerInstance->isFomoWidget()): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="disable-font" value="1"<?php if ($pluginManagerInstance->getWidgetOption('disable-font')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__("Use site's font", 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isLayoutHasReviews()): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-logos" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-logos')): ?> checked<?php endif;?> />
 <label><?php echo esc_html(__('Show platform logos', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php if (!$pluginManagerInstance->is_ten_scale_rating_platform() && $pluginManagerInstance->getShortName() !== 'google'): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="show-stars" value="1"<?php if ($pluginManagerInstance->getWidgetOption('show-stars')): ?> checked<?php endif;?> />
 <label><?php echo esc_html(__('Show platform stars', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
@@ -1292,27 +1292,27 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 <?php endif; ?>
 <?php if ($pluginManagerInstance->isFomoWidget()): ?>
 <?php if ('hide' !== $pluginManagerInstance->getWidgetOption('fomo-icon')): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-open" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-open')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Default open', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-border" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-border')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show border', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php if ('hide' !== $pluginManagerInstance->getWidgetOption('fomo-icon') && 'platform-images' !== $pluginManagerInstance->getWidgetOption('fomo-icon')): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-icon-background" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-icon-background')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show icon background', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php endif; ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-link" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-link')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Enable link', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
 <?php if ($pluginManagerInstance->getWidgetOption('fomo-link')): ?>
-<span class="ti-checkbox ti-checkbox-row">
+<span class="strix-checkbox ti-checkbox-row">
 <input type="checkbox" name="fomo-arrow" value="1"<?php if ($pluginManagerInstance->getWidgetOption('fomo-arrow')): ?> checked<?php endif; ?> />
 <label><?php echo esc_html(__('Show arrow', 'wp-reviews-plugin-for-google')); ?></label>
 </span>
@@ -1321,20 +1321,20 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 </form>
 <div class="clear"></div>
 <?php if ($pluginManagerInstance->getWidgetOption('fomo-link') && $pluginManagerInstance->isFomoCustomWidget()): ?>
-<div class="ti-form-group ti-mt-4">
+<div class="strix-form-group ti-mt-4">
 <label>URL</label>
 <form method="post" action="">
 <input type="hidden" name="command" value="save-fomo-url" />
 <?php wp_nonce_field('ti-save-fomo-url'); ?>
-<input type="text" class="ti-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-url')); ?>" name="fomo-url" />
+<input type="text" class="strix-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-url')); ?>" name="fomo-url" />
 </form>
 </div>
 <?php endif; ?>
 </div>
 <div class="clear"></div>
 <?php if (!$isTopRatedBadge || $isTopRatedBadgeValid): ?>
-<div class="ti-box-footer">
-<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&setup_widget', 'ti-setup-widget')); ?>" class="ti-btn ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Save and get code', 'wp-reviews-plugin-for-google')); ?></a>
+<div class="strix-box-footer">
+<a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&setup_widget', 'ti-setup-widget')); ?>" class="strix-btn ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Save and get code', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="clear"></div>
 </div>
 <?php endif; ?>
@@ -1343,9 +1343,9 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 </div>
 </div>
 <?php else: ?>
-<h1 class="ti-header-title"><?php echo esc_html(__('Insert code', 'wp-reviews-plugin-for-google')); ?></h1>
+<h1 class="strix-header-title"><?php echo esc_html(__('Insert code', 'wp-reviews-plugin-for-google')); ?></h1>
 <?php if (!count($reviews) && !$isReviewDownloadInProgress): ?>
-<div class="ti-notice ti-notice-warning" style="margin: 0 0 15px 0">
+<div class="strix-notice ti-notice-warning" style="margin: 0 0 15px 0">
 <p>
 <?php
 /* translators: %s: Google */
@@ -1354,8 +1354,8 @@ echo esc_html(sprintf(__('There are no reviews on your %s platform.', 'wp-review
 </p>
 </div>
 <?php endif; ?>
-<div class="ti-box">
-<div class="ti-box-header"><?php echo esc_html(__('Insert this shortcode into your website', 'wp-reviews-plugin-for-google')); ?></div>
+<div class="strix-box">
+<div class="strix-box-header"><?php echo esc_html(__('Insert this shortcode into your website', 'wp-reviews-plugin-for-google')); ?></div>
 <?php include(plugin_dir_path(__FILE__) . '../include/shortcode-paste-box.php'); ?>
 </div>
 <?php if (!get_option($pluginManagerInstance->get_option_name('rate-us-feedback'), 0)): ?>

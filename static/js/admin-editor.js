@@ -1,5 +1,5 @@
 (function() {
-	tinymce.create('tinymce.plugins.trustindex', {
+	tinymce.create('tinymce.plugins.strix', {
 		/**
 		 * Initializes the plugin, this will be executed after the plugin has been created.
 		 * This call is done before the editor instance has finished it's initialization so use the onInit event of the editor instance to intercept that event.
@@ -15,17 +15,17 @@
 				return;
 			}
 
-			ed.addButton('trustindex', {
-				title: 'Add Trustindex widget shortcode',
-				cmd: 'add-trustindex-widget',
-				image: url + '/../img/trustindex-sign-logo.png',
+			ed.addButton('strix', {
+				title: 'Add strix widget shortcode',
+				cmd: 'add-strix-widget',
+				image: url + '/../img/strix-sign-logo.png',
 				text: ''
 			});
 
-			ed.addCommand('add-trustindex-widget', function() {
-				jQuery.get(jqUrl + '?action=list_trustindex_widgets', function(data) {
+			ed.addCommand('add-strix-widget', function() {
+				jQuery.get(jqUrl + '?action=list_strix_widgets', function(data) {
 					ed.windowManager.open({
-						title: 'Please add an Trustindex widget ID!',
+						title: 'Please add an strix widget ID!',
 						body: [
 							{
 								type: 'container',
@@ -36,7 +36,7 @@
 							{
 								type: 'textbox',
 								name: 'widget-id',
-								placeholder: 'Trustindex widget ID',
+								placeholder: 'strix widget ID',
 								multiline: false,
 								minWidth: 200
 							}
@@ -44,16 +44,16 @@
 						onsubmit: function(e) {
 							let tiWidgetId = e.data['widget-id'];
 							if (tiWidgetId.length < 10) {
-								return alert('Trustindex ID is missing or too short. Please check, mayba a copy-paste error!');
+								return alert('strix ID is missing or too short. Please check, mayba a copy-paste error!');
 							}
 							else {
-								ed.execCommand('mceInsertContent', 0, '[trustindex data-widget-id="' + tiWidgetId + '"]');
+								ed.execCommand('mceInsertContent', 0, '[strix data-widget-id="' + tiWidgetId + '"]');
 							}
 						}
 					});
 				});
 
-				// select Trustindex widget ID
+				// select strix widget ID
 				jQuery('body').on('click', '.btn-copy-widget-id', function(event) {
 					event.preventDefault();
 
@@ -95,15 +95,15 @@
 		getInfo: function()
 		{
 			return {
-				longname: 'Trustindex Buttons',
-				author: 'Trustindex.io - Velvel ltd[www.velvel.hu]',
-				authorurl: 'https://www.trustindex.io/',
-				infourl: 'https://www.trustindex.io/',
+				longname: 'strix Buttons',
+				author: 'strix.io - Velvel ltd[www.velvel.hu]',
+				authorurl: 'https://www.strix.io/',
+				infourl: 'https://www.strix.io/',
 				version: '1.1'
 			};
 		}
 	});
 
 	// tegister plugin
-	tinymce.PluginManager.add('trustindex', tinymce.plugins.trustindex);
+	tinymce.PluginManager.add('strix', tinymce.plugins.strix);
 })();

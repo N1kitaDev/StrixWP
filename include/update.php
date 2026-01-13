@@ -30,7 +30,7 @@ if (!in_array('hidden', $columns)) {
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 $wpdb->query($wpdb->prepare('ALTER TABLE %i ADD hidden TINYINT(1) NOT NULL DEFAULT 0 AFTER id', $tableName));
 }
-$oldRateUs = get_option('trustindex-'. $this->getShortName() .'-rate-us');
+$oldRateUs = get_option('strix-'. $this->getShortName() .'-rate-us');
 if ($oldRateUs) {
 if ($oldRateUs === 'hide') {
 $this->setNotificationParam('rate-us', 'hidden', true);
@@ -40,12 +40,12 @@ $this->setNotificationParam('rate-us', 'active', true);
 $this->setNotificationParam('rate-us', 'timestamp', $oldRateUs);
 }
 }
-$oldNotificationEmail = get_option('trustindex-'. $this->getShortName() .'-review-download-notification-email');
+$oldNotificationEmail = get_option('strix-'. $this->getShortName() .'-review-download-notification-email');
 if ($oldNotificationEmail) {
 $this->setNotificationParam('review-download-finished', 'email', $oldNotificationEmail);
 }
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-$results = $wpdb->get_results($wpdb->prepare('SELECT option_name FROM %i WHERE option_name LIKE %s', $wpdb->options, 'trustindex-'.$this->getShortName().'-%'), ARRAY_A);
+$results = $wpdb->get_results($wpdb->prepare('SELECT option_name FROM %i WHERE option_name LIKE %s', $wpdb->options, 'strix-'.$this->getShortName().'-%'), ARRAY_A);
 $optionNamesInDb = array_column($results, 'option_name');
 $usedOptionNames = [];
 foreach ($this->get_option_names() as $optName) {

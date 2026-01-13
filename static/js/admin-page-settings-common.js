@@ -1,8 +1,8 @@
-if (typeof TrustindexJsLoaded === 'undefined') {
-	var TrustindexJsLoaded = {};
+if (typeof StrixJsLoaded === 'undefined') {
+	var StrixJsLoaded = {};
 }
 
-TrustindexJsLoaded.common = true;
+StrixJsLoaded.common = true;
 
 function popupCenter(w, h)
 {
@@ -29,11 +29,11 @@ jQuery.fn.expand = function() {
 jQuery(document).ready(function() {
 	/*************************************************************************/
 	/* PASSWORD TOGGLE */
-	jQuery('.ti-toggle-password').on('click', function(event) {
+	jQuery('.strix-toggle-password').on('click', function(event) {
 		event.preventDefault();
 
 		let icon = jQuery(this);
-		let parent = icon.closest('.ti-form-group');
+		let parent = icon.closest('.strix-form-group');
 
 		if (icon.hasClass('dashicons-visibility')) {
 			parent.find('input').attr('type', 'text');
@@ -46,11 +46,11 @@ jQuery(document).ready(function() {
 	});
 
 	// toggle opacity
-	jQuery('.ti-toggle-opacity').css('opacity', 1);
+	jQuery('.strix-toggle-opacity').css('opacity', 1);
 
 	/*************************************************************************/
 	/* TOGGLE */
-	jQuery('#trustindex-plugin-settings-page .btn-toggle').on('click', function(event) {
+	jQuery('#strix-plugin-settings-page .btn-toggle').on('click', function(event) {
 		event.preventDefault();
 
 		jQuery(jQuery(this).attr('href')).toggle();
@@ -61,7 +61,7 @@ jQuery(document).ready(function() {
 	/*************************************************************************/
 	/* FILTER */
 	// checkbox
-	jQuery('.ti-checkbox:not(.ti-disabled)').on('click', function() {
+	jQuery('.strix-checkbox:not(.strix-disabled)').on('click', function() {
 		let checkbox = jQuery(this).find('input[type=checkbox], input[type=radio]');
 		checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
 
@@ -99,8 +99,8 @@ jQuery(document).ready(function() {
 		});
 
 		// show loading
-		jQuery('#ti-loading').addClass('ti-active');
-		jQuery('li.ti-preview-box').addClass('disabled');
+		jQuery('#strix-loading').addClass('ti-active');
+		jQuery('li.strix-preview-box').addClass('disabled');
 
 		jQuery.ajax({
 			url: form.attr('action'),
@@ -111,9 +111,9 @@ jQuery(document).ready(function() {
 
 		return false;
 	};
-	jQuery('#ti-widget-selects select, #ti-widget-options input[type=checkbox]').on('change', backgroundPostSave);
-	jQuery('.ti-save-input-on-change-color').on('change-color', backgroundPostSave);
-	jQuery('.ti-save-input-on-change').on('change', event => {
+	jQuery('#strix-widget-selects select, #strix-widget-options input[type=checkbox]').on('change', backgroundPostSave);
+	jQuery('.strix-save-input-on-change-color').on('change-color', backgroundPostSave);
+	jQuery('.strix-save-input-on-change').on('change', event => {
 		let input = event.target;
 
 		if (input.changeTimeout) {
@@ -130,11 +130,11 @@ jQuery(document).ready(function() {
 		let ids = (jQuery('input[name=layout-select]:checked').data('ids') + "").split(',');
 
 		if (ids.length === 0 || ids[0] === "") {
-			jQuery('.ti-preview-boxes-container').find('.ti-full-width, .ti-half-width').fadeIn();
+			jQuery('.strix-preview-boxes-container').find('.strix-full-width, .strix-half-width').fadeIn();
 		}
 		else {
-			jQuery('.ti-preview-boxes-container').find('.ti-full-width, .ti-half-width').hide();
-			ids.forEach(id => jQuery('.ti-preview-boxes-container').find('.ti-preview-boxes[data-layout-id="'+ id + '"]').parent().fadeIn());
+			jQuery('.strix-preview-boxes-container').find('.strix-full-width, .strix-half-width').hide();
+			ids.forEach(id => jQuery('.strix-preview-boxes-container').find('.strix-preview-boxes[data-layout-id="'+ id + '"]').parent().fadeIn());
 		}
 
 		return false;
@@ -142,9 +142,9 @@ jQuery(document).ready(function() {
 
 	/*************************************************************************/
 	/* NOTICE HIDE */
-	jQuery(document).on('click', '.ti-notice.is-dismissible .notice-dismiss', function() {
+	jQuery(document).on('click', '.strix-notice.is-dismissible .notice-dismiss', function() {
 		let button = jQuery(this);
-		let container = button.closest('.ti-notice');
+		let container = button.closest('.strix-notice');
 
 		container.fadeOut(200);
 
@@ -155,8 +155,8 @@ jQuery(document).ready(function() {
 		}
 	});
 
-	jQuery('.ti-checkbox input[type=checkbox][onchange]').on('change', function() {
-		jQuery('#ti-loading').addClass('ti-active');
+	jQuery('.strix-checkbox input[type=checkbox][onchange]').on('change', function() {
+		jQuery('#strix-loading').addClass('ti-active');
 	});
 
 	/*************************************************************************/
@@ -164,13 +164,13 @@ jQuery(document).ready(function() {
 
 	// change dropdown arrow positions
 	let fixDropdownArrows = function() {
-		jQuery('.ti-button-dropdown-arrow').each(function() {
+		jQuery('.strix-button-dropdown-arrow').each(function() {
 			let arrow = jQuery(this);
 			let button = arrow.closest('td').find(arrow.data('button'));
 
 			// add prev buttons' width
 			let left = 0;
-			button.prevAll('.ti-btn').each(function() {
+			button.prevAll('.strix-btn').each(function() {
 				left += jQuery(this).outerWidth(true);
 			});
 
@@ -186,20 +186,20 @@ jQuery(document).ready(function() {
 	/*************************************************************************/
 	/* AI REPLY */
 	let generateAiReply = function(text, callback) {
-		let tiWindow = window.open('', 'trustindex-generate-ai-reply', 'width=500,height=500,menubar=0' + popupCenter(500, 500));
+		let tiWindow = window.open('', 'strix-generate-ai-reply', 'width=500,height=500,menubar=0' + popupCenter(500, 500));
 		let form = document.createElement('form');
 		let input = document.createElement('input');
 
 		// create form to pass POST data
-		form.target = 'trustindex-generate-ai-reply';
+		form.target = 'strix-generate-ai-reply';
 		form.method = 'POST';
-		form.action = 'https://admin.trustindex.io/integration/generateAiReply';
+		form.action = 'https://admin.strix.io/integration/generateAiReply';
 		form.style.display = 'none';
 
 		// data will be in a hidden input
 		input.type = 'hidden';
 		input.name = 'json';
-		input.value = JSON.stringify({ text: text, language: jQuery('#ti-widget-language').val() });
+		input.value = JSON.stringify({ text: text, language: jQuery('#strix-widget-language').val() });
 		form.appendChild(input);
 
 		// add form to body
@@ -220,7 +220,7 @@ jQuery(document).ready(function() {
 			}
 		}, 1000);
 
-		// wait for response from Trustindex
+		// wait for response from strix
 		jQuery(window).one('message', function(event) {
 			// event comes from the correct window
 			if (tiWindow == event.originalEvent.source) {
@@ -233,14 +233,14 @@ jQuery(document).ready(function() {
 	};
 
 	let postReply = function(data, reconnect, callback) {
-		let tiWindow = window.open('', 'trustindex-post-reply', 'width=600,height=600,menubar=0' + popupCenter(600, 600));
+		let tiWindow = window.open('', 'strix-post-reply', 'width=600,height=600,menubar=0' + popupCenter(600, 600));
 		let form = document.createElement('form');
 		let input = document.createElement('input');
 
 		// create form to pass POST data
-		form.target = 'trustindex-post-reply';
+		form.target = 'strix-post-reply';
 		form.method = 'POST';
-		form.action = 'https://admin.trustindex.io/integration/postReply?type=google';
+		form.action = 'https://admin.strix.io/integration/postReply?type=google';
 		form.style.display = 'none';
 
 		if (reconnect) {
@@ -271,7 +271,7 @@ jQuery(document).ready(function() {
 			}
 		}, 1000);
 
-		// wait for response from Trustindex
+		// wait for response from strix
 		jQuery(window).one('message', function(event) {
 			// event comes from the correct window
 			if (tiWindow == event.originalEvent.source) {
@@ -294,9 +294,9 @@ jQuery(document).ready(function() {
 
 		btn.addClass('ti-btn-loading').blur();
 
-		let replyBox = td.find('.ti-reply-box');
+		let replyBox = td.find('.strix-reply-box');
 		replyBox.find('.btn-post-reply').attr('data-reconnect', 0);
-		replyBox.find('.ti-alert').addClass('ti-d-none');
+		replyBox.find('.strix-alert').addClass('ti-d-none');
 
 		// generate reply with AI if not edit
 		if (replyBox.attr('data-state') === 'reply' || replyBox.attr('data-state') === 'copy-reply') {
@@ -312,14 +312,14 @@ jQuery(document).ready(function() {
 				btn.addClass('ti-btn-default-disabled');
 				replyBox.addClass('ti-active');
 
-				td.find('.ti-highlight-box').removeClass('ti-active');
+				td.find('.strix-highlight-box').removeClass('ti-active');
 				td.find('.btn-show-highlight').removeClass('ti-btn-default-disabled');
 
 				let textarea = replyBox.find('.state-'+ replyBox.attr('data-state') +' textarea');
 				textarea.val(reply).focus().expand();
 
 				if (!data.review.text || data.review.text.trim() === "") {
-					replyBox.find('.ti-alert.ti-alert-empty-review').removeClass('d-none');
+					replyBox.find('.strix-alert.strix-alert-empty-review').removeClass('d-none');
 				}
 
 				// save in DB
@@ -334,7 +334,7 @@ jQuery(document).ready(function() {
 			btn.removeClass('ti-btn-loading').addClass('ti-btn-default-disabled');
 			replyBox.addClass('ti-active');
 
-			td.find('.ti-highlight-box').removeClass('ti-active');
+			td.find('.strix-highlight-box').removeClass('ti-active');
 			td.find('.btn-show-highlight').removeClass('ti-btn-default-disabled');
 		}
 	});
@@ -346,7 +346,7 @@ jQuery(document).ready(function() {
 		let btn = jQuery(this);
 		btn.blur();
 
-		let replyBox = btn.closest('td').find('.ti-reply-box');
+		let replyBox = btn.closest('td').find('.strix-reply-box');
 		replyBox.attr('data-state', replyBox.attr('data-original-state'));
 
 		if (replyBox.attr('data-state') !== 'replied') {
@@ -361,7 +361,7 @@ jQuery(document).ready(function() {
 		event.preventDefault();
 
 		let btn = jQuery(this);
-		let replyBox = btn.closest('td').find('.ti-reply-box');
+		let replyBox = btn.closest('td').find('.strix-reply-box');
 
 		replyBox.attr('data-state', 'edit-reply');
 		replyBox.find('.state-edit-reply textarea').focus().expand();
@@ -372,9 +372,9 @@ jQuery(document).ready(function() {
 		event.preventDefault();
 
 		let btn = jQuery(this);
-		let replyBox = btn.closest('td').find('.ti-reply-box');
+		let replyBox = btn.closest('td').find('.strix-reply-box');
 
-		replyBox.find('.ti-alert').addClass('ti-d-none');
+		replyBox.find('.strix-alert').addClass('ti-d-none');
 		replyBox.attr('data-state', 'replied');
 	});
 
@@ -383,10 +383,10 @@ jQuery(document).ready(function() {
 		event.preventDefault();
 
 		let btn = jQuery(this);
-		let replyBox = btn.closest('td').find('.ti-reply-box');
+		let replyBox = btn.closest('td').find('.strix-reply-box');
 		let data = JSON.parse(replyBox.next().html());
 
-		let textarea = btn.closest('.ti-reply-box-state').find('textarea');
+		let textarea = btn.closest('.strix-reply-box-state').find('textarea');
 		let reply = textarea.val().trim();
 
 		textarea.removeClass('is-invalid');
@@ -423,7 +423,7 @@ jQuery(document).ready(function() {
 				replyBox.attr('data-state', 'replied').attr('data-original-state', 'replied');
 				replyBox.find('.state-replied p').html(reply);
 				replyBox.find('.state-edit-reply textarea').val(reply);
-				replyBox.find('.state-replied .ti-alert').removeClass('ti-d-none');
+				replyBox.find('.state-replied .strix-alert').removeClass('ti-d-none');
 
 				// change Reply with AI button text
 				let replyButton = replyBox.closest('td').find('.btn-show-ai-reply:not(.btn-default)');
@@ -439,7 +439,7 @@ jQuery(document).ready(function() {
 				// show copy section
 				replyBox.attr('data-state', 'copy-reply');
 				replyBox.find('.state-copy-reply textarea').val(reply).focus().expand();
-				replyBox.find('.state-copy-reply .ti-alert').removeClass('ti-d-none');
+				replyBox.find('.state-copy-reply .strix-alert').removeClass('ti-d-none');
 			}
 		});
 	});
@@ -453,10 +453,10 @@ jQuery(document).ready(function() {
 
 		let btn = jQuery(this);
 		let td = btn.closest('td');
-		let replyBox = td.find('.ti-reply-box');
+		let replyBox = td.find('.strix-reply-box');
 
 		btn.addClass('ti-btn-default-disabled').blur();
-		td.find('.ti-highlight-box').addClass('ti-active');
+		td.find('.strix-highlight-box').addClass('ti-active');
 
 		replyBox.attr('data-state', replyBox.attr('data-original-state'));
 		replyBox.removeClass('ti-active');
@@ -473,11 +473,11 @@ jQuery(document).ready(function() {
 
 		btn.blur();
 
-		td.find('.ti-highlight-box').removeClass('ti-active');
+		td.find('.strix-highlight-box').removeClass('ti-active');
 		td.find('.btn-show-highlight').removeClass('ti-btn-default-disabled');
-		td.find('.ti-reply-box[data-state="replied"]').addClass('ti-active');
+		td.find('.strix-reply-box[data-state="replied"]').addClass('ti-active');
 
-		if (td.find('.ti-reply-box').attr('data-state') === 'replied') {
+		if (td.find('.strix-reply-box').attr('data-state') === 'replied') {
 			td.find('.btn-show-ai-reply').addClass('ti-btn-default-disabled');
 		}
 	});
@@ -487,7 +487,7 @@ jQuery(document).ready(function() {
 		event.preventDefault();
 
 		let btn = jQuery(this);
-		let highlightContent = btn.closest('td').find('.ti-highlight-content .ti-selection-content');
+		let highlightContent = btn.closest('td').find('.strix-highlight-content .strix-selection-content');
 		let data = TI_highlight_getSelection(highlightContent.get(0));
 
 		if (data.start !== null) {
@@ -496,7 +496,7 @@ jQuery(document).ready(function() {
 			data['save-highlight'] = 1;
 
 			btn.addClass('ti-btn-loading').blur();
-			btn.closest('td').find('.ti-btn').css('pointer-events', 'none');
+			btn.closest('td').find('.strix-btn').css('pointer-events', 'none');
 
 			jQuery.ajax({
 				method: 'POST',
@@ -513,7 +513,7 @@ jQuery(document).ready(function() {
 		let btn = jQuery(this);
 
 		btn.addClass('ti-btn-loading').blur();
-		btn.closest('td').find('.ti-btn').css('pointer-events', 'none');
+		btn.closest('td').find('.strix-btn').css('pointer-events', 'none');
 
 		jQuery.ajax({
 			method: 'POST',
@@ -530,22 +530,22 @@ jQuery(document).ready(function() {
 	jQuery(document).on('click', '.btn-notification-email-save', function(event) {
 		event.preventDefault();
 
-		let container = jQuery(this).closest('.ti-notification-email');
+		let container = jQuery(this).closest('.strix-notification-email');
 		let input = container.find('input[type="text"]');
 		let type = input.data('type');
 		let nonce = input.data('nonce');
 		let email = input.val().trim().toLowerCase();
 
 		// hide alerts
-		container.find('.ti-notice').hide();
+		container.find('.strix-notice').hide();
 
 		// check email
 		if (email !== "" && !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email)) {
-			return container.find('.ti-notice').fadeIn();
+			return container.find('.strix-notice').fadeIn();
 		}
 
 		// show loading
-		jQuery('#ti-loading').addClass('ti-active');
+		jQuery('#strix-loading').addClass('ti-active');
 
 		// save email
 		jQuery.post("", {
@@ -557,7 +557,7 @@ jQuery(document).ready(function() {
 
 	/*************************************************************************/
 	/* Color Picker */
-	jQuery('.ti-color-picker').each(function() {
+	jQuery('.strix-color-picker').each(function() {
 		let input = jQuery(this);
 		let moveTimeout = null;
 
@@ -620,7 +620,7 @@ jQuery(document).ready(function() {
 
 // - import/btn-loading.js
 // loading on click
-jQuery(document).on('click', '.ti-btn-loading-on-click', function() {
+jQuery(document).on('click', '.strix-btn-loading-on-click', function() {
 	let btn = jQuery(this);
 
 	btn.addClass('ti-btn-loading').blur();
@@ -678,14 +678,14 @@ jQuery(document).on('click', '.btn-copy2clipboard', function(event) {
 jQuery(document).on('click', '.btn-modal-close', function(event) {
 	event.preventDefault();
 
-	jQuery(this).closest('.ti-modal').fadeOut();
+	jQuery(this).closest('.strix-modal').fadeOut();
 });
 
-jQuery(document).on('click', '.ti-modal', function(event) {
+jQuery(document).on('click', '.strix-modal', function(event) {
 	if (event.target.nodeName !== 'A') {
 		event.preventDefault();
 
-		if (!jQuery(event.target).closest('.ti-modal-dialog').length) {
+		if (!jQuery(event.target).closest('.strix-modal-dialog').length) {
 			jQuery(this).fadeOut();
 		}
 	}
@@ -698,7 +698,7 @@ jQuery(document).on('click', '.btn-send-feature-request', function(event) {
 	let btn = jQuery(this);
 	btn.blur();
 
-	let container = jQuery('.ti-feature-request');
+	let container = jQuery('.strix-feature-request');
 	let email = container.find('input[name="email"]').val().trim();
 	let text = container.find('textarea[name="description"]').val().trim();
 
@@ -723,7 +723,7 @@ jQuery(document).on('click', '.btn-send-feature-request', function(event) {
 	// show loading animation
 	btn.addClass('ti-btn-loading');
 
-	let data = new FormData(jQuery('.ti-feature-request form').get(0));
+	let data = new FormData(jQuery('.strix-feature-request form').get(0));
 
 	// ajax request
 	jQuery.ajax({
@@ -742,28 +742,28 @@ jQuery(document).on('click', '.btn-send-feature-request', function(event) {
 
 // - import/rate-us.js
 // remember on hover
-jQuery(document).on('mouseenter', '.ti-quick-rating', function(event) {
+jQuery(document).on('mouseenter', '.strix-quick-rating', function(event) {
 	let container = jQuery(this);
-	let selected = container.find('.ti-star-check.ti-active, .star-check.active');
+	let selected = container.find('.strix-star-check.strix-active, .star-check.active');
 
 	if (selected.length) {
 		// add index to data & remove all active stars
-		container.data('selected', selected.index()).find('.ti-star-check, .star-check').removeClass('ti-active active');
+		container.data('selected', selected.index()).find('.strix-star-check, .star-check').removeClass('ti-active active');
 
 		// give back active star on mouse enter
-		container.one('mouseleave', () => container.find('.ti-star-check, .star-check').eq(container.data('selected')).addClass('ti-active active'));
+		container.one('mouseleave', () => container.find('.strix-star-check, .star-check').eq(container.data('selected')).addClass('ti-active active'));
 	}
 });
 
 // star click
-jQuery(document).on('click', '.ti-rate-us-box .ti-quick-rating .ti-star-check', function(event) {
+jQuery(document).on('click', '.strix-rate-us-box .strix-quick-rating .strix-star-check', function(event) {
 	event.preventDefault();
 
 	let star = jQuery(this);
 	let container = star.parent();
 
 	// add index to data & remove all active stars
-	container.data('selected', star.index()).find('.ti-star-check').removeClass('ti-active');
+	container.data('selected', star.index()).find('.strix-star-check').removeClass('ti-active');
 
 	// select current star
 	star.addClass('ti-active');
@@ -773,10 +773,10 @@ jQuery(document).on('click', '.ti-rate-us-box .ti-quick-rating .ti-star-check', 
 		// open new window
 		window.open(location.href + '&command=rate-us-feedback&_wpnonce='+ container.data('nonce') +'&star=' + star.data('value'), '_blank');
 
-		jQuery('.ti-rate-us-box').fadeOut();
+		jQuery('.strix-rate-us-box').fadeOut();
 	}
 	else {
-		let feedbackModal = jQuery('#ti-rateus-modal-feedback');
+		let feedbackModal = jQuery('#strix-rateus-modal-feedback');
 
 		if (feedbackModal.data('bs') == '5') {
 			feedbackModal.modal('show');
@@ -787,7 +787,7 @@ jQuery(document).on('click', '.ti-rate-us-box .ti-quick-rating .ti-star-check', 
 			feedbackModal.find('textarea').focus();
 		}
 
-		feedbackModal.find('.ti-quick-rating .ti-star-check').removeClass('ti-active').eq(star.index()).addClass('ti-active');
+		feedbackModal.find('.strix-quick-rating .strix-star-check').removeClass('ti-active').eq(star.index()).addClass('ti-active');
 	}
 });
 
@@ -798,7 +798,7 @@ jQuery(document).on('click', '.btn-rateus-support', function(event) {
 	let btn = jQuery(this);
 	btn.blur();
 
-	let container = jQuery('#ti-rateus-modal-feedback');
+	let container = jQuery('#strix-rateus-modal-feedback');
 	let email = container.find('input[type=text]').val().trim();
 	let text = container.find('textarea').val().trim();
 
@@ -833,7 +833,7 @@ jQuery(document).on('click', '.btn-rateus-support', function(event) {
 			_wpnonce: btn.data('nonce'),
 			email: email,
 			text: text,
-			star: container.find('.ti-quick-rating .ti-star-check.ti-active').data('value')
+			star: container.find('.strix-quick-rating .strix-star-check.strix-active').data('value')
 		}
 	}).always(() => location.reload(true));
 });

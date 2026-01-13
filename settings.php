@@ -12,22 +12,22 @@ if (get_option($pluginManagerInstance->get_option_name('widget-setted-up'), 0) &
 $newBadgeTabs []= 'instagram-feed-widget';
 }
 $noContainerElementTabs = [ 'free-widget-configurator', 'instagram-feed-widget' ];
-$logoCampaignId = 'wp-google-l';
-$logoFile = 'static/img/trustindex.svg';
+$logoCampaignId = 'strix-google-l';
+$logoFile = 'static/img/strix-logo.svg';
 $assetCheckJs = [
 'common' => 'static/js/admin-page-settings-common.js',
 'connect' => 'static/js/admin-page-settings-connect.js'
 ];
-$assetCheckCssId = 'trustindex_settings_style_google';
+$assetCheckCssId = 'strix_settings_style_google';
 $assetCheckCssFile = 'static/css/admin-page-settings.css';
 if (isset($_GET['wc_notification'])) {
-check_admin_referer('ti-wc-notification');
+check_admin_referer('strix-wc-notification');
 $mode = sanitize_text_field(wp_unslash($_GET['wc_notification']));
 $dbValue = 'hide';
 if ($mode === 'later') {
 $dbValue = $time = time() + (30 * 86400);
 }
-update_option('trustindex-wc-notification', $dbValue, false);
+update_option('strix-wc-notification', $dbValue, false);
 if ($mode === 'open') {
 header('Location: https://wordpress.org/plugins/customer-reviews-collector-for-woocommerce/');
 exit;
