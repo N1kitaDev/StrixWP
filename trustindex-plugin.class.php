@@ -247,11 +247,11 @@ return plugin_dir_path($this->plugin_file_path);
 public function get_plugin_file_url($file, $addVersioning = true)
 {
 $url = plugins_url($file, $this->plugin_file_path);
-if ($addVersioning) {
+if ($addVersioning && $url) {
 $appendMark = strpos($url, '?') === FALSE ? '?' : '&';
 $url .= $appendMark . 'ver=' . $this->getVersion();
 }
-return $url;
+return $url ? $url : '';
 }
 public function get_plugin_slug()
 {
@@ -286,7 +286,8 @@ update_option($this->get_option_name('active'), '0');
 public function load()
 {
 global $wpdb;
-$this->loadI18N();
+// Load translations on init hook instead of plugins_loaded
+add_action('init', [$this, 'loadI18N'], 1);
 include $this->get_plugin_dir() . 'include' . DIRECTORY_SEPARATOR . 'update.php';
 if (get_option($this->get_option_name('activation-redirect'))) {
 delete_option($this->get_option_name('activation-redirect'));
