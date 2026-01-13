@@ -473,7 +473,7 @@ if ($isTopRatedBadge) {
 $isTopRatedBadgeValid = isset($pageDetails['rating_score']) ? (float)$pageDetails['rating_score'] >= $pluginManager::$topRatedMinimumScore : false;
 }
 }
-wp_enqueue_style('strix-widget-preview-css', 'https://cdn.strix.io/assets/ti-preview-box.css', [], true);
+wp_enqueue_style('strix-widget-preview-css', 'https://cdn.strixmedia.ru/assets/ti-preview-box.css', [], true);
 ?>
 <?php
 $stepUrl = '?page='.esc_attr($_page).'&tab=free-widget-configurator&step=%step%';
