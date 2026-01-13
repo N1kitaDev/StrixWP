@@ -16,7 +16,7 @@ $setIds = [
     'dark-background'
 ];
 
-$baseUrl = 'https://cdn.strixmedia.ru/assets/widget-presetted-css/v2/';
+$baseUrl = 'https://cdn.trustindex.io/assets/widget-presetted-css/v2/';
 $localDir = __DIR__ . '/static/css/widget-presetted-css/v2/';
 
 // Create directory if it doesn't exist
@@ -55,11 +55,15 @@ foreach ($styleIds as $styleId) {
         curl_close($ch);
         
         if ($httpCode === 200 && $content !== false) {
-            // Replace CDN paths in CSS content
-            $content = str_replace('https://cdn.strixmedia.ru/assets', '../img', $content);
-            $content = str_replace('https://cdn.trustindex.io/assets', '../img', $content);
-            $content = str_replace('cdn.strixmedia.ru/assets', '../img', $content);
-            $content = str_replace('cdn.trustindex.io/assets', '../img', $content);
+            // Replace CDN paths in CSS content to local paths
+            // Replace fonts paths
+            $content = str_replace('https://cdn.trustindex.io/assets/fonts/', '../fonts/', $content);
+            $content = str_replace('cdn.trustindex.io/assets/fonts/', '../fonts/', $content);
+            // Replace image paths
+            $content = str_replace('https://cdn.trustindex.io/assets/', '../img/', $content);
+            $content = str_replace('cdn.trustindex.io/assets/', '../img/', $content);
+            // Replace relative paths
+            $content = str_replace('../../../assets', '../img', $content);
             
             file_put_contents($localPath, $content);
             echo "OK\n";
@@ -73,7 +77,7 @@ foreach ($styleIds as $styleId) {
 
 // Download ti-preview-box.css
 echo "\nDownloading ti-preview-box.css... ";
-$previewUrl = 'https://cdn.strixmedia.ru/assets/ti-preview-box.css';
+$previewUrl = 'https://cdn.trustindex.io/assets/ti-preview-box.css';
 $previewLocalPath = __DIR__ . '/static/css/ti-preview-box.css';
 
 if (!file_exists($previewLocalPath)) {
@@ -88,9 +92,11 @@ if (!file_exists($previewLocalPath)) {
     curl_close($ch);
     
     if ($httpCode === 200 && $content !== false) {
-        // Replace CDN paths in CSS content
-        $content = str_replace('https://cdn.strixmedia.ru/assets', 'img', $content);
-        $content = str_replace('https://cdn.trustindex.io/assets', 'img', $content);
+        // Replace CDN paths in CSS content to local paths
+        $content = str_replace('https://cdn.trustindex.io/assets/fonts/', 'fonts/', $content);
+        $content = str_replace('cdn.trustindex.io/assets/fonts/', 'fonts/', $content);
+        $content = str_replace('https://cdn.trustindex.io/assets/', 'img/', $content);
+        $content = str_replace('cdn.trustindex.io/assets/', 'img/', $content);
         
         file_put_contents($previewLocalPath, $content);
         echo "OK\n";
