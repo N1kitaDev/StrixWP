@@ -6175,12 +6175,14 @@ return $this->frontEndErrorForAdmins(__('Could not download the template for the
 $this->templateCache = json_decode($response['body'], true);
 }
 $content = $this->templateCache[$styleId];
-// Replace CSS file paths from cdn.strix.io or cdn.trustindex.io to cdn.strixmedia.ru
+// Replace CSS file paths and domain names from trustindex.io/strix.io to strixmedia.ru
 if (is_string($content)) {
 $content = str_replace('https://cdn.strix.io/', 'https://cdn.strixmedia.ru/', $content);
 $content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
 $content = str_replace('cdn.strix.io/', 'cdn.strixmedia.ru/', $content);
 $content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
+$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
+$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
 }
 if (!$isPreview) {
 update_option($this->get_option_name('review-content'), $content, false);
@@ -6330,12 +6332,14 @@ return $result;
 }
 private function parseWidgetHtml($reviews, $content, $isPreview = false, $isAdmin = false)
 {
-// Replace CSS file paths from cdn.strix.io or cdn.trustindex.io to cdn.strixmedia.ru
+// Replace CSS file paths and domain names from trustindex.io/strix.io to strixmedia.ru
 if (is_string($content)) {
 $content = str_replace('https://cdn.strix.io/', 'https://cdn.strixmedia.ru/', $content);
 $content = str_replace('https://cdn.trustindex.io/', 'https://cdn.strixmedia.ru/', $content);
 $content = str_replace('cdn.strix.io/', 'cdn.strixmedia.ru/', $content);
 $content = str_replace('cdn.trustindex.io/', 'cdn.strixmedia.ru/', $content);
+$content = str_replace('cdn.trustindex.io', 'cdn.strixmedia.ru', $content);
+$content = str_replace('trustindex.io', 'strixmedia.ru', $content);
 }
 $pageDetails = $this->getPageDetails();
 $styleId = (int)$this->getWidgetOption('style-id');
