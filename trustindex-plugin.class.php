@@ -6155,7 +6155,7 @@ $script = '<script type="text/javascript">
     }
 })();
 </script>';
-return $preContent.'<div '.$attributesHtml.'></div>'.$script;
+return $preContent.'<div '.$attributesHtml.'></div>';
 }
 public function renderWidgetAdmin($isDemoReviews = false, $isForceDemoReviews = false, $previewData = null)
 {
