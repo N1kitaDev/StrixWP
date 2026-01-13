@@ -312,9 +312,9 @@ $this->getNotificationParam('not-using-no-connection', 'do-check', true)
 $this->setNotificationParam('not-using-no-connection', 'active', true);
 $this->setNotificationParam('not-using-no-connection', 'do-check', false);
 }
-if ( !class_exists('TrustindexGutenbergPlugin') && function_exists( 'register_block_type' ) && !WP_Block_Type_Registry::get_instance()->is_registered( 'trustindex/block-selector' )) {
+if ( !class_exists('strixGutenbergPlugin') && function_exists( 'register_block_type' ) && !WP_Block_Type_Registry::get_instance()->is_registered( 'strix/block-selector' )) {
 require_once $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'block-editor' . DIRECTORY_SEPARATOR . 'block-editor.php';
-TrustindexGutenbergPlugin::instance();
+strixGutenbergPlugin::instance();
 }
 }
 public function loadI18N()

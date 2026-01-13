@@ -14,7 +14,7 @@ add_action('init', [ $this, 'register_block' ]);
 function gutenberg_enqueue_block_editor_assets()
 {
 wp_enqueue_script(
-'gutenberg-ti',
+'gutenberg-strix',
 plugins_url('block-editor.js', __FILE__),
 [
 'wp-api-fetch',
