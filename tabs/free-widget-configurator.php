@@ -480,6 +480,17 @@ wp_enqueue_style('strix-widget-preview-css', plugins_url('static/css/ti-preview-
 // Fallback на CDN если локальный файл не найден
 wp_enqueue_style('strix-widget-preview-css', 'https://cdn.trustindex.io/assets/ti-preview-box.css', [], true);
 }
+
+// Check if admin panel plugin is available
+$admin_plugin_active = is_plugin_active('strix-google-reviews-admin/strix-google-reviews-admin.php');
+$admin_url = $admin_plugin_active ? admin_url('admin.php?page=strix-google-reviews-admin') : '';
+
+// Localize script for connect functionality
+wp_localize_script('strix-admin-page-settings-connect', 'strix_connect_config', array(
+    'admin_available' => $admin_plugin_active,
+    'admin_url' => $admin_url,
+    'fallback_url' => 'https://admin.strix.io/source/edit2'
+));
 ?>
 <?php
 $stepUrl = '?page='.esc_attr($_page).'&tab=free-widget-configurator&step=%step%';
@@ -706,6 +717,9 @@ esc_html(__('This widget layout helps build trust and effectively increases sale
 <?php elseif ((!$template['is-top-rated-badge'] || $isTopRatedBadgeValid) && !$fomoWidgetInvalid): ?>
 <a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&command=save-style&style_id='. esc_attr(urlencode($id)), 'ti-save-style')); ?>" class="strix-btn ti-btn-sm ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Select', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="clear"></div>
+<?php
+wp_enqueue_script('strix-admin-widget-fix', plugins_url('static/js/admin-widget-fix.js', dirname(__FILE__)), ['jquery'], filemtime(plugin_dir_path(__FILE__) . '../static/js/admin-widget-fix.js'), true);
+?>
 <?php endif; ?>
 </div>
 <div class="preview">
@@ -1196,8 +1210,14 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 <input type="number" class="strix-form-control ti-save-input-on-change" min=0 step=1 value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-hide-count')); ?>" name="fomo-hide-count" />
 </form>
 </div>
+<?php
+wp_enqueue_script('strix-admin-widget-fix', plugins_url('static/js/admin-widget-fix.js', dirname(__FILE__)), ['jquery'], filemtime(plugin_dir_path(__FILE__) . '../static/js/admin-widget-fix.js'), true);
+?>
 <?php endif; ?>
 </div>
+<?php
+wp_enqueue_script('strix-admin-widget-fix', plugins_url('static/js/admin-widget-fix.js', dirname(__FILE__)), ['jquery'], filemtime(plugin_dir_path(__FILE__) . '../static/js/admin-widget-fix.js'), true);
+?>
 <?php endif; ?>
 </div>
 <div class="strix-right-block">
@@ -1335,6 +1355,9 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 <input type="text" class="strix-form-control ti-save-input-on-change" value="<?php echo esc_attr($pluginManagerInstance->getWidgetOption('fomo-url')); ?>" name="fomo-url" />
 </form>
 </div>
+<?php
+wp_enqueue_script('strix-admin-widget-fix', plugins_url('static/js/admin-widget-fix.js', dirname(__FILE__)), ['jquery'], filemtime(plugin_dir_path(__FILE__) . '../static/js/admin-widget-fix.js'), true);
+?>
 <?php endif; ?>
 </div>
 <div class="clear"></div>
@@ -1343,6 +1366,9 @@ $name = sprintf(__('%d hours', 'wp-reviews-plugin-for-google'), 24);
 <a href="<?php echo esc_url(wp_nonce_url('?page='. esc_attr($_page) .'&tab=free-widget-configurator&setup_widget', 'ti-setup-widget')); ?>" class="strix-btn ti-btn-loading-on-click ti-pull-right"><?php echo esc_html(__('Save and get code', 'wp-reviews-plugin-for-google')); ?></a>
 <div class="clear"></div>
 </div>
+<?php
+wp_enqueue_script('strix-admin-widget-fix', plugins_url('static/js/admin-widget-fix.js', dirname(__FILE__)), ['jquery'], filemtime(plugin_dir_path(__FILE__) . '../static/js/admin-widget-fix.js'), true);
+?>
 <?php endif; ?>
 </div>
 </div>
@@ -1371,6 +1397,9 @@ echo esc_html(sprintf(__('There are no reviews on your %s platform.', 'wp-review
 $tiCampaign1 = 'wp-google-1';
 $tiCampaign2 = 'wp-google-2';
 include(plugin_dir_path(__FILE__) . '../include/get-more-customers-box.php');
+?>
+<?php
+wp_enqueue_script('strix-admin-widget-fix', plugins_url('static/js/admin-widget-fix.js', dirname(__FILE__)), ['jquery'], filemtime(plugin_dir_path(__FILE__) . '../static/js/admin-widget-fix.js'), true);
 ?>
 <?php endif; ?>
 </div>

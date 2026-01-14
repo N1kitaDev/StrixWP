@@ -63,25 +63,46 @@ jQuery(document).ready(function($) {
 
 			let dontRemoveLoading = false;
 
-			// get url params
-			let params = new URLSearchParams({
-				type: 'Google',
-				referrer: 'public',
-				webhook_url: $('#strix-noreg-webhook-url').val(),
-				token: token,
-				version: $('#strix-noreg-version').val()
-			});
+			// Check if admin plugin is active
+			if (typeof strix_connect_config === 'undefined' || !strix_connect_config.admin_available) {
+				// Fallback to original behavior if admin plugin not available
+				let params = new URLSearchParams({
+					type: 'Google',
+					referrer: 'public',
+					webhook_url: $('#strix-noreg-webhook-url').val(),
+					token: token,
+					version: $('#strix-noreg-version').val()
+				});
 
-			let tiWindow = window.open('https://admin.strix.io/source/edit2?' + params.toString(), 'strix', 'width=850,height=850,menubar=0' + popupCenter(850, 850));
+				let tiWindow = window.open('https://admin.strix.io/source/edit2?' + params.toString(), 'strix', 'width=850,height=850,menubar=0' + popupCenter(850, 850));
 
+				window.addEventListener('message', function(event) {
+					if (event.origin.startsWith('https://admin.strix.io/'.replace(/\/$/,'')) && event.data.id) {
+						dontRemoveLoading = true;
+						$('#strix-noreg-page-details').val(JSON.stringify(event.data));
+						$('#strix-noreg-review-request-id').val(event.data.request_id || '');
+						button.closest('form').submit();
+					}
+				});
+
+				return;
+			}
+
+			// Use our local admin panel
+			let adminUrl = strix_connect_config.admin_url;
+			let tiWindow = window.open(adminUrl, 'strix_admin', 'width=900,height=800,menubar=0' + popupCenter(900, 800));
+
+			// Handle messages from our local admin panel
 			window.addEventListener('message', function(event) {
-				if (event.origin.startsWith('https://admin.strix.io/'.replace(/\/$/,'')) && event.data.id) {
+				// Accept messages from our own domain
+				if (event.origin === window.location.origin && event.data.id) {
 					dontRemoveLoading = true;
 
 					tiWindow.close();
 					$('#strix-connect-info').removeClass('ti-d-none');
 
 					$('#strix-noreg-page-details').val(JSON.stringify(event.data));
+					$('#strix-noreg-review-request-id').val(event.data.request_id || '');
 
 					button.closest('form').submit();
 				}

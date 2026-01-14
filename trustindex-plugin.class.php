@@ -6113,48 +6113,6 @@ return $this->frontEndErrorForAdmins($text);
 $attributesHtml = implode(' ', array_map(function($attribute, $value) {
 return esc_attr($attribute).'="'.esc_attr($value).'"';
 }, array_keys($attributes), $attributes));
-// Добавляем скрипт для удаления атрибута style с width после инициализации виджета
-// НЕ применяем к слайдерам, так как им нужна ширина для правильной работы
-$script = '<script type="text/javascript">
-(function() {
-    function removeWidgetWidth() {
-        document.querySelectorAll(".ti-widget[style*=\"width\"]:not([data-layout-category*=\"slider\"])").forEach(function(widget) {
-            var style = widget.getAttribute("style");
-            if (style && style.indexOf("width") !== -1) {
-                // Удаляем width из style или очищаем style полностью, если там только width
-                style = style.replace(/width\\s*:\\s*[^;]+;?/gi, "").trim();
-                if (style === "" || style === ";") {
-                    widget.removeAttribute("style");
-                } else {
-                    widget.setAttribute("style", style);
-                }
-            }
-        });
-    }
-    // Выполняем сразу и после загрузки DOM
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(removeWidgetWidth, 100);
-            setTimeout(removeWidgetWidth, 500);
-            setTimeout(removeWidgetWidth, 1000);
-        });
-    } else {
-        setTimeout(removeWidgetWidth, 100);
-        setTimeout(removeWidgetWidth, 500);
-        setTimeout(removeWidgetWidth, 1000);
-    }
-    // Также слушаем события инициализации виджетов
-    if (window.TrustindexWidget) {
-        var originalInit = window.TrustindexWidget.initWidgetsFromDom;
-        if (originalInit) {
-            window.TrustindexWidget.initWidgetsFromDom = function() {
-                originalInit.apply(this, arguments);
-                setTimeout(removeWidgetWidth, 100);
-            };
-        }
-    }
-})();
-</script>';
 return $preContent.'<div '.$attributesHtml.'></div>';
 }
 public function renderWidgetAdmin($isDemoReviews = false, $isForceDemoReviews = false, $previewData = null)
@@ -6187,53 +6145,6 @@ wp_enqueue_style('trustindex-widget-editor', $this->getCssUrl(), [], filemtime($
 } else {
 $html .= '<style type="text/css">'.get_option($this->get_option_name('css-content')).'</style>';
 }
-} else {
-// Для превью добавляем скрипт для ограничения ширины и пересчета слайдера
-$html .= '<script>
-(function() {
-function limitPreviewWidgetWidth() {
-document.querySelectorAll(".ti-preview-box .preview .ti-widget[data-layout-category*=\"slider\"], .preview .ti-widget[data-layout-category*=\"slider\"]").forEach(function(widget) {
-var previewContainer = widget.closest(".preview") || widget.closest(".ti-preview-box");
-if (previewContainer) {
-var containerWidth = previewContainer.offsetWidth || previewContainer.clientWidth;
-if (containerWidth > 0 && containerWidth < 1200) {
-// Ограничиваем ширину виджета до ширины контейнера
-var currentWidth = parseInt(widget.style.width) || widget.offsetWidth;
-if (currentWidth > containerWidth) {
-widget.style.maxWidth = containerWidth + "px";
-// Пересчитываем слайдер после изменения ширины
-if (widget.TrustindexWidget && widget.TrustindexWidget.resize) {
-setTimeout(function() {
-widget.TrustindexWidget.resize(true);
-}, 100);
-}
-}
-}
-}
-});
-}
-// Выполняем после загрузки DOM и инициализации виджетов
-if (document.readyState === "loading") {
-document.addEventListener("DOMContentLoaded", function() {
-setTimeout(limitPreviewWidgetWidth, 500);
-setTimeout(limitPreviewWidgetWidth, 1500);
-});
-} else {
-setTimeout(limitPreviewWidgetWidth, 500);
-setTimeout(limitPreviewWidgetWidth, 1500);
-}
-// Также слушаем события инициализации виджетов
-if (window.TrustindexWidget) {
-var originalInit = window.TrustindexWidget.initWidgetsFromDom;
-if (originalInit) {
-window.TrustindexWidget.initWidgetsFromDom = function() {
-originalInit.apply(this, arguments);
-setTimeout(limitPreviewWidgetWidth, 200);
-};
-}
-}
-})();
-</script>';
 }
 if ($this->isElementorEditing()) {
 // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
