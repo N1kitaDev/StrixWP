@@ -1,0 +1,72 @@
+# WordPress
+wp-config.php
+wp-settings.php
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Composer
+vendor/
+composer.lock
+
+# PHP
+.phpunit.result.cache
+
+# Testing
+tests/
+bin/
+
+# Temporary files
+tmp/
+temp/
+cache/
+
+# Local development
+local-config.php
+dev-config.php
+
+# Screenshots (if any)
+screenshots/
+
+# Build files
+build/
+dist/
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Database dumps
+*.sql
+*.sqlite
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
