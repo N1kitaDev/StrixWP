@@ -492,10 +492,25 @@ wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-aw
 $admin_plugin_active = is_plugin_active('strix-google-reviews-admin/strix-google-reviews-admin.php');
 $admin_url = $admin_plugin_active ? admin_url('admin.php?page=strix-google-reviews-admin') : '';
 
-// Get Google API key from admin plugin if available
+// Get Google API key from admin plugin if available, fallback to default
 $google_api_key = '';
-if ($admin_plugin_active && class_exists('Strix_Google_Reviews_Admin') && method_exists('Strix_Google_Reviews_Admin', 'get_google_maps_api_key')) {
-    $google_api_key = Strix_Google_Reviews_Admin::get_google_maps_api_key();
+if (function_exists('is_plugin_active') && is_plugin_active('strix-google-reviews-admin/strix-google-reviews-admin.php')) {
+    try {
+        if (class_exists('Strix_Google_Reviews_Admin') && method_exists('Strix_Google_Reviews_Admin', 'get_google_maps_api_key')) {
+            $api_key_temp = Strix_Google_Reviews_Admin::get_google_maps_api_key();
+            if (is_string($api_key_temp) && !empty($api_key_temp)) {
+                $google_api_key = $api_key_temp;
+            }
+        }
+    } catch (Exception $e) {
+        // Silently fail if there's any issue with the admin plugin
+        $google_api_key = '';
+    }
+}
+
+// Fallback API key for Google Places functionality if admin plugin is not available
+if (empty($google_api_key)) {
+    $google_api_key = 'AIzaSyBrTmPaIMGG6NSb6KEcbfhVny314e3_d6c'; // Default fallback key
 }
 
 // Localize script for connect functionality
