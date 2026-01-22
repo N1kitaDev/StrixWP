@@ -1,0 +1,31 @@
+# WordPress
+*.log
+wp-config.php
+wp-content/uploads/
+wp-content/plugins/
+wp-content/themes/
+wp-content/advanced-cache.php
+wp-content/db.php
+wp-content/object-cache.php
+
+# Development
+node_modules/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Admin Plugin (separate repository)
+strix-google-reviews-admin/
+README.md
+includes/
+languages/*.pot
+
+# Temporary files
+*.tmp
+*.bak
