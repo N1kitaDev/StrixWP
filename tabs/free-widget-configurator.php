@@ -494,7 +494,7 @@ $admin_url = $admin_plugin_active ? admin_url('admin.php?page=strix-google-revie
 
 // Get Google API key from admin plugin if available
 $google_api_key = '';
-if ($admin_plugin_active && class_exists('Strix_Google_Reviews_Admin')) {
+if ($admin_plugin_active && class_exists('Strix_Google_Reviews_Admin') && method_exists('Strix_Google_Reviews_Admin', 'get_google_maps_api_key')) {
     $google_api_key = Strix_Google_Reviews_Admin::get_google_maps_api_key();
 }
 
