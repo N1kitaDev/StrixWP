@@ -317,6 +317,11 @@ $this->getNotificationParam('not-using-no-connection', 'do-check', true)
 $this->setNotificationParam('not-using-no-connection', 'active', true);
 $this->setNotificationParam('not-using-no-connection', 'do-check', false);
 }
+// Register AJAX handlers
+add_action('wp_ajax_' . $this->getWebhookAction(), [$this, 'webhook_handler']);
+add_action('wp_ajax_strix_get_google_reviews', [$this, 'ajax_get_google_reviews']);
+
+// Register Gutenberg block
 if ( !class_exists('strixGutenbergPlugin') && function_exists( 'register_block_type' ) && !WP_Block_Type_Registry::get_instance()->is_registered( 'strix/block-selector' )) {
 require_once $this->get_plugin_dir() . 'static' . DIRECTORY_SEPARATOR . 'block-editor' . DIRECTORY_SEPARATOR . 'block-editor.php';
 strixGutenbergPlugin::instance();
@@ -7379,6 +7384,79 @@ global $wpdb;
 $tableName = $this->get_tablename('views');
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 return (int) $wpdb->get_var($wpdb->prepare('SELECT SUM(viewed) FROM %i WHERE DATEDIFF(NOW(), date) <= %d', $tableName, $days));
+}
+
+public function ajax_get_google_reviews()
+{
+    check_ajax_referer('strix_google_reviews_admin_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+    }
+
+    $place_id = isset($_POST['place_id']) ? sanitize_text_field($_POST['place_id']) : '';
+    $api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
+
+    if (empty($place_id) || empty($api_key)) {
+        wp_send_json_error(__('Missing required parameters', 'wp-reviews-plugin-for-google'));
+    }
+
+    // Try to get reviews from Google Places API
+    $reviews = $this->fetch_google_reviews($place_id, $api_key);
+
+    if ($reviews === false) {
+        wp_send_json_error(__('Failed to fetch reviews from Google', 'wp-reviews-plugin-for-google'));
+    }
+
+    wp_send_json_success(array(
+        'reviews' => $reviews,
+        'total' => count($reviews)
+    ));
+}
+
+private function fetch_google_reviews($place_id, $api_key)
+{
+    $url = 'https://maps.googleapis.com/maps/api/place/details/json?' . http_build_query(array(
+        'place_id' => $place_id,
+        'fields' => 'reviews,rating,user_ratings_total',
+        'key' => $api_key,
+        'reviews_sort' => 'newest'
+    ));
+
+    $response = wp_remote_get($url, array(
+        'timeout' => 30,
+        'headers' => array(
+            'Accept' => 'application/json'
+        )
+    ));
+
+    if (is_wp_error($response)) {
+        return false;
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    if (!$data || isset($data['error_message'])) {
+        return false;
+    }
+
+    $reviews = array();
+    if (isset($data['result']['reviews'])) {
+        foreach ($data['result']['reviews'] as $review) {
+            $reviews[] = array(
+                'id' => isset($review['time']) ? $review['time'] : uniqid(),
+                'author' => isset($review['author_name']) ? $review['author_name'] : '',
+                'rating' => isset($review['rating']) ? intval($review['rating']) : 0,
+                'text' => isset($review['text']) ? $review['text'] : '',
+                'date' => isset($review['time']) ? date('Y-m-d H:i:s', $review['time']) : '',
+                'verified' => true,
+                'avatar' => isset($review['profile_photo_url']) ? $review['profile_photo_url'] : ''
+            );
+        }
+    }
+
+    return $reviews;
 }
 }
 ?>

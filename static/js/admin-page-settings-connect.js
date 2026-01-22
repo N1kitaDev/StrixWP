@@ -88,25 +88,8 @@ jQuery(document).ready(function($) {
 				return;
 			}
 
-			// Use our local admin panel
-			let adminUrl = strix_connect_config.admin_url;
-			let tiWindow = window.open(adminUrl, 'strix_admin', 'width=900,height=800,menubar=0' + popupCenter(900, 800));
-
-			// Handle messages from our local admin panel
-			window.addEventListener('message', function(event) {
-				// Accept messages from our own domain
-				if (event.origin === window.location.origin && event.data.id) {
-					dontRemoveLoading = true;
-
-					tiWindow.close();
-					$('#strix-connect-info').removeClass('ti-d-none');
-
-					$('#strix-noreg-page-details').val(JSON.stringify(event.data));
-					$('#strix-noreg-review-request-id').val(event.data.request_id || '');
-
-					button.closest('form').submit();
-				}
-			});
+			// Use modal with Google Places API integration
+			openGoogleConnectModal(button, token);
 
 			$('#strix-connect-info').removeClass('ti-d-none');
 			let timer = setInterval(function() {
@@ -187,4 +170,182 @@ jQuery(document).ready(function($) {
 			}
 		});
 	});
+
+	// Google Places API Modal Integration
+	function openGoogleConnectModal(button, token) {
+		// Reset modal state
+		$('#strix-selected-profile').hide();
+		$('#strix-connect-error').hide();
+		$('#strix-google-autocomplete-modal').val('');
+		$('#strix-connect-profile-btn').prop('disabled', true);
+
+		// Show modal
+		$('#strix-connect-modal').modal('show');
+
+		// Initialize Google Places API if available
+		if (typeof google !== 'undefined' && google.maps && google.maps.places) {
+			initializeGooglePlacesInModal();
+		} else {
+			// Load Google Maps API dynamically
+			if (!window.googleMapsApiLoaded) {
+				window.googleMapsApiLoaded = true;
+				let apiKey = strix_connect_config && strix_connect_config.google_api_key ? strix_connect_config.google_api_key : 'AIzaSyBrTmPaIMGG6NSb6KEcbfhVny314e3_d6c';
+				$.getScript('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places&v=weekly')
+					.done(function() {
+						initializeGooglePlacesInModal();
+					})
+					.fail(function() {
+						showConnectError('Failed to load Google Maps API');
+					});
+			}
+		}
+
+		// Handle connect button click
+		$('#strix-connect-profile-btn').off('click').on('click', function() {
+			connectSelectedProfile(button, token);
+		});
+	}
+
+	function initializeGooglePlacesInModal() {
+		let input = document.getElementById('strix-google-autocomplete-modal');
+		if (!input) return;
+
+		let autocomplete = new google.maps.places.Autocomplete(input, {
+			fields: ['formatted_address', 'name', 'place_id', 'photos', 'rating', 'user_ratings_total', 'types'],
+			types: ['establishment']
+		});
+
+		autocomplete.addListener('place_changed', function() {
+			let place = autocomplete.getPlace();
+
+			if (place.place_id) {
+				displaySelectedProfile({
+					id: place.place_id,
+					name: place.name,
+					address: place.formatted_address || '',
+					rating_score: place.rating || 0,
+					rating_number: place.user_ratings_total || 0,
+					avatar_url: (place.photos && place.photos.length > 0) ? place.photos[0].getUrl() : '',
+					type: place.types ? place.types.join(', ') : ''
+				});
+			}
+		});
+	}
+
+	function displaySelectedProfile(profile) {
+		$('#strix-profile-name').text(profile.name);
+		$('#strix-profile-address').text(profile.address);
+		$('#strix-profile-score').text(profile.rating_score.toFixed(1));
+		$('#strix-profile-count').text(profile.rating_number);
+
+		// Generate stars
+		let starsHtml = '';
+		let rating = Math.round(profile.rating_score);
+		for (let i = 1; i <= 5; i++) {
+			starsHtml += '<i class="fas fa-star' + (i <= rating ? '' : '-o') + ' text-warning"></i>';
+		}
+		$('#strix-profile-stars').html(starsHtml);
+
+		// Set avatar
+		if (profile.avatar_url) {
+			$('#strix-profile-avatar').attr('src', profile.avatar_url).show();
+		} else {
+			$('#strix-profile-avatar').hide();
+		}
+
+		$('#strix-selected-profile').show();
+		$('#strix-connect-profile-btn').prop('disabled', false);
+
+		// Store profile data
+		window.selectedProfileData = profile;
+	}
+
+function connectSelectedProfile(button, token) {
+	if (!window.selectedProfileData) return;
+
+	let connectBtn = $('#strix-connect-profile-btn');
+	let spinner = connectBtn.find('.spinner-border');
+	let originalText = connectBtn.text();
+
+	// Show loading
+	connectBtn.prop('disabled', true);
+	spinner.show();
+	connectBtn.contents().filter(function() {
+		return this.nodeType === 3;
+	}).each(function() {
+		this.textContent = ' Fetching Reviews...';
+	});
+
+	// First, try to get reviews using admin plugin API key
+	let apiKey = strix_connect_config.google_api_key;
+	if (!apiKey) {
+		apiKey = 'AIzaSyBrTmPaIMGG6NSb6KEcbfhVny314e3_d6c'; // fallback
+	}
+
+	// Fetch reviews from Google Places API
+	$.ajax({
+		url: ajaxurl,
+		type: 'POST',
+		data: {
+			action: 'strix_get_google_reviews',
+			nonce: strix_connect_config.nonce || '',
+			place_id: window.selectedProfileData.id,
+			api_key: apiKey
+		},
+		success: function(response) {
+			let reviews = [];
+			if (response.success && response.data && response.data.reviews) {
+				reviews = response.data.reviews;
+			}
+
+			// Prepare profile data for the plugin
+			let profileData = {
+				id: window.selectedProfileData.id,
+				name: window.selectedProfileData.name,
+				avatar_url: window.selectedProfileData.avatar_url,
+				review_url: 'https://search.google.com/local/reviews?placeid=' + window.selectedProfileData.id,
+				write_review_url: 'https://search.google.com/local/writereview?placeid=' + window.selectedProfileData.id,
+				address: window.selectedProfileData.address,
+				rating_number: window.selectedProfileData.rating_number,
+				rating_score: window.selectedProfileData.rating_score,
+				reviews: reviews
+			};
+
+			// Save to form and submit
+			$('#strix-noreg-page-details').val(JSON.stringify(profileData));
+			$('#strix-noreg-review-request-id').val('');
+
+			// Close modal and submit form
+			$('#strix-connect-modal').modal('hide');
+			button.closest('form').submit();
+		},
+		error: function(xhr, status, error) {
+			console.error('Failed to fetch reviews:', error);
+
+			// Even if reviews fetch fails, proceed with profile connection
+			let profileData = {
+				id: window.selectedProfileData.id,
+				name: window.selectedProfileData.name,
+				avatar_url: window.selectedProfileData.avatar_url,
+				review_url: 'https://search.google.com/local/reviews?placeid=' + window.selectedProfileData.id,
+				write_review_url: 'https://search.google.com/local/writereview?placeid=' + window.selectedProfileData.id,
+				address: window.selectedProfileData.address,
+				rating_number: window.selectedProfileData.rating_number,
+				rating_score: window.selectedProfileData.rating_score,
+				reviews: []
+			};
+
+			$('#strix-noreg-page-details').val(JSON.stringify(profileData));
+			$('#strix-noreg-review-request-id').val('');
+
+			// Close modal and submit form
+			$('#strix-connect-modal').modal('hide');
+			button.closest('form').submit();
+		}
+	});
+}
+
+	function showConnectError(message) {
+		$('#strix-connect-error').text(message).show();
+	}
 });

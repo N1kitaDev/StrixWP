@@ -479,17 +479,33 @@ wp_enqueue_style('strix-widget-preview-css', plugins_url('static/css/ti-preview-
 } else {
 // Fallback на CDN если локальный файл не найден
 wp_enqueue_style('strix-widget-preview-css', 'https://cdn.trustindex.io/assets/ti-preview-box.css', [], true);
+
+// Bootstrap for modal
+wp_enqueue_style('bootstrap-css', 'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css', array(), '4.1.3');
+wp_enqueue_script('bootstrap-js', 'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js', array('jquery'), '4.1.3', true);
+
+// Font Awesome for stars
+wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css', array(), '5.15.4');
 }
 
 // Check if admin panel plugin is available
 $admin_plugin_active = is_plugin_active('strix-google-reviews-admin/strix-google-reviews-admin.php');
 $admin_url = $admin_plugin_active ? admin_url('admin.php?page=strix-google-reviews-admin') : '';
 
+// Get Google API key from admin plugin if available
+$google_api_key = '';
+if ($admin_plugin_active && class_exists('Strix_Google_Reviews_Admin')) {
+    $google_api_key = Strix_Google_Reviews_Admin::get_google_maps_api_key();
+}
+
 // Localize script for connect functionality
 wp_localize_script('strix-admin-page-settings-connect', 'strix_connect_config', array(
     'admin_available' => $admin_plugin_active,
     'admin_url' => $admin_url,
-    'fallback_url' => 'https://admin.strix.io/source/edit2'
+    'fallback_url' => 'https://admin.strix.io/source/edit2',
+    'google_api_key' => $google_api_key,
+    'nonce' => wp_create_nonce('strix_google_reviews_admin_nonce'),
+    'ajaxurl' => admin_url('admin-ajax.php')
 ));
 ?>
 <?php
@@ -603,6 +619,74 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
 
 <a href="#" class="strix-btn btn-connect-public"><?php echo esc_html(__('Connect', 'wp-reviews-plugin-for-google')); ?></a>
 
+<!-- Modal for Google Business Profile Connection -->
+<div class="modal fade strix-connect-modal" id="strix-connect-modal" tabindex="-1" role="dialog" aria-labelledby="strixConnectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="strixConnectModalLabel">
+                    <?php echo esc_html(__('Connect Google Business Profile', 'wp-reviews-plugin-for-google')); ?>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="strix-connect-form">
+                    <form id="strix-google-connect-form">
+                        <div class="form-group">
+                            <label for="strix-google-autocomplete-modal">
+                                <?php echo esc_html(__('Google Business Profile name or location', 'wp-reviews-plugin-for-google')); ?>
+                            </label>
+                            <input type="text" id="strix-google-autocomplete-modal" class="form-control"
+                                   placeholder="<?php echo esc_attr(__('Type your Google Business Profile name, location, Place ID or Google Maps URL', 'wp-reviews-plugin-for-google')); ?>"
+                                   autocomplete="off">
+                            <small class="form-text text-muted">
+                                <?php echo esc_html(__('Start typing your Google Business Profile name or your location, then select your business from the drop-down list.', 'wp-reviews-plugin-for-google')); ?><br>
+                                <?php echo esc_html(__('Alternatively, you can enter either your Place ID or your', 'wp-reviews-plugin-for-google')); ?>
+                                <a href="https://cdn.trustindex.io/assets/img/trustindex-google-search-2.jpg" target="_blank">
+                                    <?php echo esc_html(__('Google Maps URL', 'wp-reviews-plugin-for-google')); ?>
+                                </a>.
+                            </small>
+                        </div>
+
+                        <div id="strix-selected-profile" class="mt-3" style="display: none;">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-auto">
+                                            <img id="strix-profile-avatar" src="" alt="" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                                        </div>
+                                        <div class="col">
+                                            <h6 id="strix-profile-name" class="mb-1"></h6>
+                                            <p id="strix-profile-address" class="mb-1 text-muted small"></p>
+                                            <p id="strix-profile-rating" class="mb-0 text-warning">
+                                                <span id="strix-profile-stars"></span>
+                                                <span id="strix-profile-score" class="ml-1"></span>
+                                                (<span id="strix-profile-count"></span> <?php echo esc_html(__('reviews', 'wp-reviews-plugin-for-google')); ?>)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="strix-connect-error" class="alert alert-danger mt-3" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <?php echo esc_html(__('Cancel', 'wp-reviews-plugin-for-google')); ?>
+                </button>
+                <button type="button" class="btn btn-primary" id="strix-connect-profile-btn" disabled>
+                    <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true" style="display: none;"></span>
+                    <?php echo esc_html(__('Connect Profile', 'wp-reviews-plugin-for-google')); ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </form>
 </div>
