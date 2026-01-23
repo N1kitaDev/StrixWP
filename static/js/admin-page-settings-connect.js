@@ -553,24 +553,42 @@ jQuery(document).ready(function($) {
 	}
 
 	function displaySelectedProfile(profile) {
-		$('#strix-profile-name').text(profile.name);
-		$('#strix-profile-address').text(profile.address);
-		$('#strix-profile-score').text(profile.rating_score.toFixed(1));
-		$('#strix-profile-count').text(profile.rating_number);
+		$('#strix-profile-name').text(profile.name || '');
+		$('#strix-profile-address').text(profile.address || '');
+		$('#strix-profile-score').text(profile.rating_score ? profile.rating_score.toFixed(1) : '0.0');
+		$('#strix-profile-count').text(profile.rating_number || 0);
 
 		// Generate stars
 		let starsHtml = '';
-		let rating = Math.round(profile.rating_score);
+		let rating = profile.rating_score ? Math.round(profile.rating_score) : 0;
 		for (let i = 1; i <= 5; i++) {
-			starsHtml += '<i class="fas fa-star' + (i <= rating ? '' : '-o') + ' text-warning"></i>';
+			starsHtml += '<i class="fas fa-star' + (i <= rating ? '' : '-o') + '" style="color: #f39c12;"></i>';
 		}
 		$('#strix-profile-stars').html(starsHtml);
+
+		// Set category/type
+		if (profile.type && profile.type.length > 0) {
+			// Get the first meaningful type (skip generic types like 'establishment', 'point_of_interest')
+			let types = Array.isArray(profile.type) ? profile.type : profile.type.split(',');
+			let meaningfulTypes = types.filter(t => {
+				t = t.trim();
+				return t && !['establishment', 'point_of_interest', 'store', 'business'].includes(t);
+			});
+			let displayType = meaningfulTypes.length > 0 ? meaningfulTypes[0] : types[0];
+			
+			// Format type name (capitalize and replace underscores)
+			displayType = displayType.trim().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+			$('#strix-profile-category').html('<span style="display: inline-block; background: #f0f0f0; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">' + displayType + '</span>');
+		} else {
+			$('#strix-profile-category').html('');
+		}
 
 		// Set avatar
 		if (profile.avatar_url) {
 			$('#strix-profile-avatar').attr('src', profile.avatar_url).show();
 		} else {
-			$('#strix-profile-avatar').hide();
+			// Use default placeholder
+			$('#strix-profile-avatar').attr('src', 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik00MCAyMEMzMy4zNzI2IDIwIDI4IDI1LjM3MjYgMjggMzJDMjggMzguNjI3NCAzMy4zNzI2IDQ0IDQwIDQ0QzQ2LjYyNzQgNDQgNTIgMzguNjI3NCA1MiAzMkM1MiAyNS4zNzI2IDQ2LjYyNzQgMjAgNDAgMjBaIiBmaWxsPSIjQ0NDQ0NDIi8+CjxwYXRoIGQ9Ik0yMCA1NkMyMCA1MS41ODE3IDIzLjU4MTcgNDggMjggNDhINTJDNTYuNDE4MyA0OCA2MCA1MS41ODE3IDYwIDU2VjYwSDIwVjU2WiIgZmlsbD0iI0NDQ0NDQyIvPgo8L3N2Zz4K').show();
 		}
 
 		$('#strix-selected-profile').show();
