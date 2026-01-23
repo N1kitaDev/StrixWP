@@ -7549,7 +7549,7 @@ public function ajax_search_google_places()
     }
 
     $places = array();
-    if (isset($data['results'])) {
+    if (isset($data['results']) && is_array($data['results'])) {
         foreach ($data['results'] as $result) {
             $photo_url = '';
             if (isset($result['photos'][0]['photo_reference'])) {
@@ -7565,11 +7565,14 @@ public function ajax_search_google_places()
                 'photo_url' => $photo_url
             );
         }
+    } else {
+        error_log('Google Places Text Search: No results in response. Status: ' . (isset($data['status']) ? $data['status'] : 'UNKNOWN'));
     }
 
     wp_send_json_success(array(
         'places' => $places,
-        'total' => count($places)
+        'total' => count($places),
+        'query' => $query // For debugging
     ));
 }
 
