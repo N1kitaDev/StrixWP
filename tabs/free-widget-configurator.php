@@ -656,40 +656,44 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
 <div class="modal fade strix-connect-modal" id="strix-connect-modal" tabindex="-1" role="dialog" aria-labelledby="strixConnectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="strixConnectModalLabel">
-                    <?php echo esc_html(__('Connect Google Business Profile', 'wp-reviews-plugin-for-google')); ?>
-                </h5>
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 10px;">
+                <h4 class="modal-title" id="strixConnectModalLabel" style="font-weight: bold; color: #333;">
+                    <?php echo esc_html(__('New Google platform', 'wp-reviews-plugin-for-google')); ?>
+                </h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding-top: 0;">
+                <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                    <?php echo esc_html(__('Set up the source of your reviews on Google!', 'wp-reviews-plugin-for-google')); ?>
+                </p>
                 <div class="strix-connect-form">
                     <form id="strix-google-connect-form">
                         <div class="form-group">
-                            <label for="strix-google-api-key-modal">
+                            <label for="strix-google-api-key-modal" style="font-weight: bold; color: #333; margin-bottom: 8px;">
                                 <?php echo esc_html(__('Google Maps API Key', 'wp-reviews-plugin-for-google')); ?>
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="strix-google-api-key-modal" class="form-control"
                                    placeholder="<?php echo esc_attr(__('Enter your Google Maps API Key', 'wp-reviews-plugin-for-google')); ?>"
                                    value="<?php echo esc_attr($google_api_key); ?>"
-                                   autocomplete="off">
-                            <small class="form-text text-muted">
+                                   autocomplete="off"
+                                   style="border: 1px solid #ddd; border-radius: 4px; padding: 10px;">
+                            <small class="form-text text-muted" style="margin-top: 5px; font-size: 12px; color: #999;">
                                 <?php echo esc_html(__('Enter your Google Maps API Key with Places API enabled. You can get it from', 'wp-reviews-plugin-for-google')); ?>
                                 <a href="https://console.cloud.google.com/apis/credentials" target="_blank"><?php echo esc_html(__('Google Cloud Console', 'wp-reviews-plugin-for-google')); ?></a>.
                             </small>
                         </div>
-                        <div class="form-group">
-                            <label for="strix-google-autocomplete-modal">
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="strix-google-autocomplete-modal" style="font-weight: bold; color: #333; margin-bottom: 8px;">
                                 <?php echo esc_html(__('Google Business Profile name or location', 'wp-reviews-plugin-for-google')); ?>
-                                <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="strix-google-autocomplete-modal" class="form-control"
                                    placeholder="<?php echo esc_attr(__('Type your Google Business Profile name, location, Place ID or Google Maps URL', 'wp-reviews-plugin-for-google')); ?>"
-                                   autocomplete="off">
-                            <small class="form-text text-muted">
+                                   autocomplete="off"
+                                   style="border: 1px solid #ddd; border-radius: 4px; padding: 10px;">
+                            <small class="form-text text-muted" style="margin-top: 5px; font-size: 12px; color: #999;">
                                 <?php echo esc_html(__('Start typing your Google Business Profile name or your location, then select your business from the drop-down list.', 'wp-reviews-plugin-for-google')); ?><br>
                                 <?php echo esc_html(__('Alternatively, you can enter either your Place ID or your', 'wp-reviews-plugin-for-google')); ?>
                                 <a href="https://cdn.trustindex.io/assets/img/trustindex-google-search-2.jpg" target="_blank">
@@ -723,13 +727,11 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
                     </form>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <?php echo esc_html(__('Cancel', 'wp-reviews-plugin-for-google')); ?>
-                </button>
-                <button type="button" class="btn btn-primary" id="strix-connect-profile-btn" disabled>
+            <div class="modal-footer" style="border-top: none; padding-top: 20px;">
+                <button type="button" class="btn btn-primary" id="strix-connect-profile-btn" disabled
+                        style="background-color: #20b2aa; border-color: #20b2aa; border-radius: 4px; padding: 10px 30px; font-weight: 500;">
                     <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true" style="display: none;"></span>
-                    <?php echo esc_html(__('Connect Profile', 'wp-reviews-plugin-for-google')); ?>
+                    <?php echo esc_html(__('Connect', 'wp-reviews-plugin-for-google')); ?>
                 </button>
             </div>
         </div>

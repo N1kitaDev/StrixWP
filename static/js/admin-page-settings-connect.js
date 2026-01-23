@@ -59,42 +59,8 @@ jQuery(document).ready(function($) {
 			let button = $(this);
 			let token = $('#strix-noreg-connect-token').val();
 
-			button.addClass('ti-btn-loading').blur();
-
-			let dontRemoveLoading = false;
-
-			// Check if admin plugin is active
-			if (typeof strix_connect_config === 'undefined' || !strix_connect_config.admin_available) {
-				// Fallback to original behavior if admin plugin not available
-				let params = new URLSearchParams({
-					type: 'Google',
-					referrer: 'public',
-					webhook_url: $('#strix-noreg-webhook-url').val(),
-					token: token,
-					version: $('#strix-noreg-version').val()
-				});
-
-				let tiWindow = window.open('https://admin.strix.io/source/edit2?' + params.toString(), 'strix', 'width=850,height=850,menubar=0' + popupCenter(850, 850));
-
-				window.addEventListener('message', function(event) {
-					if (event.origin.startsWith('https://admin.strix.io/'.replace(/\/$/,'')) && event.data.id) {
-						dontRemoveLoading = true;
-						$('#strix-noreg-page-details').val(JSON.stringify(event.data));
-						$('#strix-noreg-review-request-id').val(event.data.request_id || '');
-						button.closest('form').submit();
-					}
-				});
-
-				return;
-			}
-
-		// Use modal with Google Places API integration
-		openGoogleConnectModal(button, token);
-		
-		// Remove loading class when modal is shown (modal handles its own state)
-		setTimeout(function() {
-			button.removeClass('ti-btn-loading');
-		}, 100);
+			// Always use modal with Google Places API integration
+			openGoogleConnectModal(button, token);
 		});
 
 	
@@ -181,25 +147,36 @@ jQuery(document).ready(function($) {
 		// Show modal
 		$('#strix-connect-modal').modal('show');
 
-		// Initialize autocomplete when API key is entered
-		apiKeyInput.on('input', function() {
-			let apiKey = $(this).val().trim();
-			if (apiKey) {
-				loadGoogleMapsAPI(apiKey);
-			}
-		});
-
-		// Try to initialize with current API key
+		// Initialize autocomplete when API key is entered or changed
 		let currentApiKey = apiKeyInput.val().trim();
+		if (!currentApiKey && strix_connect_config && strix_connect_config.google_api_key) {
+			currentApiKey = strix_connect_config.google_api_key;
+			apiKeyInput.val(currentApiKey);
+		}
+
+		// Load API when key is available
 		if (currentApiKey) {
 			loadGoogleMapsAPI(currentApiKey);
-		} else {
-			// Use default API key from config
-			let defaultApiKey = strix_connect_config && strix_connect_config.google_api_key 
-				? strix_connect_config.google_api_key 
-				: 'AIzaSyBrTmPaIMGG6NSb6KEcbfhVny314e3_d6c';
-			loadGoogleMapsAPI(defaultApiKey);
 		}
+
+		// Reinitialize when API key changes
+		apiKeyInput.on('input change', function() {
+			let newApiKey = $(this).val().trim();
+			if (newApiKey && newApiKey !== currentApiKey) {
+				currentApiKey = newApiKey;
+				// Reset autocomplete
+				let input = document.getElementById('strix-google-autocomplete-modal');
+				if (input && input.autocomplete) {
+					google.maps.event.clearInstanceListeners(input);
+					input.autocomplete = null;
+				}
+				$('#strix-selected-profile').hide();
+				window.selectedProfileData = null;
+				$('#strix-connect-profile-btn').prop('disabled', true);
+				// Reload API with new key
+				loadGoogleMapsAPI(newApiKey);
+			}
+		});
 
 		// Handle connect button click
 		$('#strix-connect-profile-btn').off('click').on('click', function() {
@@ -270,7 +247,9 @@ jQuery(document).ready(function($) {
 				// Might be a Place ID or URL
 				let placeId = extractPlaceIdFromInput(value);
 				if (placeId) {
-					fetchPlaceDetails(placeId, apiKey);
+					// Get current API key from input
+					let currentApiKey = $('#strix-google-api-key-modal').val().trim() || apiKey;
+					fetchPlaceDetails(placeId, currentApiKey);
 				}
 			}
 		});
@@ -290,6 +269,22 @@ jQuery(document).ready(function($) {
 	}
 
 	function fetchPlaceDetails(placeId, apiKey) {
+		// Get current API key from input if not provided
+		if (!apiKey) {
+			apiKey = $('#strix-google-api-key-modal').val().trim();
+		}
+		
+		if (!apiKey) {
+			showConnectError('Please enter your Google Maps API Key first.');
+			return;
+		}
+
+		// Check if Google Maps API is loaded
+		if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+			showConnectError('Google Maps API is not loaded. Please wait a moment and try again.');
+			return;
+		}
+
 		let service = new google.maps.places.PlacesService(document.createElement('div'));
 		
 		service.getDetails({
@@ -309,7 +304,15 @@ jQuery(document).ready(function($) {
 				// Update input field
 				$('#strix-google-autocomplete-modal').val(place.name);
 			} else {
-				showConnectError('Place not found. Please check your Place ID or try searching by name.');
+				let errorMsg = 'Place not found. ';
+				if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+					errorMsg += 'Please check your Place ID or try searching by name.';
+				} else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+					errorMsg += 'API key may be invalid or missing required permissions.';
+				} else {
+					errorMsg += 'Status: ' + status;
+				}
+				showConnectError(errorMsg);
 			}
 		});
 	}
