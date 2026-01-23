@@ -7492,10 +7492,15 @@ private function fetch_google_reviews($place_id, $api_key)
 
 public function ajax_search_google_places()
 {
-    check_ajax_referer('strix_google_reviews_admin_nonce', 'nonce');
+    // Check nonce, but don't die if it fails - log and return error
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'strix_google_reviews_admin_nonce')) {
+        wp_send_json_error(__('Security check failed. Please refresh the page.', 'wp-reviews-plugin-for-google'));
+        return;
+    }
 
     if (!current_user_can('manage_options')) {
-        wp_die(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+        wp_send_json_error(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+        return;
     }
 
     $query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
@@ -7561,10 +7566,15 @@ public function ajax_search_google_places()
 
 public function ajax_get_place_details()
 {
-    check_ajax_referer('strix_google_reviews_admin_nonce', 'nonce');
+    // Check nonce, but don't die if it fails - log and return error
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'strix_google_reviews_admin_nonce')) {
+        wp_send_json_error(__('Security check failed. Please refresh the page.', 'wp-reviews-plugin-for-google'));
+        return;
+    }
 
     if (!current_user_can('manage_options')) {
-        wp_die(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+        wp_send_json_error(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+        return;
     }
 
     $place_id = isset($_POST['place_id']) ? sanitize_text_field($_POST['place_id']) : '';
@@ -7609,6 +7619,17 @@ public function ajax_get_place_details()
         $photo_url = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=' . $result['photos'][0]['photo_reference'] . '&key=' . $api_key;
     }
 
+    // Get primary type (first meaningful type)
+    $types = isset($result['types']) ? $result['types'] : array();
+    $primary_type = '';
+    if (!empty($types)) {
+        // Filter out generic types
+        $meaningful_types = array_filter($types, function($type) {
+            return !in_array($type, ['establishment', 'point_of_interest', 'store', 'business']);
+        });
+        $primary_type = !empty($meaningful_types) ? reset($meaningful_types) : $types[0];
+    }
+
     wp_send_json_success(array(
         'place_id' => isset($result['place_id']) ? $result['place_id'] : '',
         'name' => isset($result['name']) ? $result['name'] : '',
@@ -7616,7 +7637,8 @@ public function ajax_get_place_details()
         'rating' => isset($result['rating']) ? floatval($result['rating']) : 0,
         'user_ratings_total' => isset($result['user_ratings_total']) ? intval($result['user_ratings_total']) : 0,
         'photo_url' => $photo_url,
-        'types' => isset($result['types']) ? $result['types'] : array()
+        'types' => $types,
+        'primary_type' => $primary_type
     ));
 }
 }

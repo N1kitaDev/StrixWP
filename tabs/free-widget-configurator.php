@@ -740,20 +740,21 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
                         </div>
 
                         <div id="strix-selected-profile" class="mt-3" style="display: none;">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-auto">
-                                            <img id="strix-profile-avatar" src="" alt="" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background: #fff;">
+                                <div style="display: flex; align-items: flex-start; gap: 15px;">
+                                    <div style="flex-shrink: 0;">
+                                        <img id="strix-profile-avatar" src="" alt="" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; border: 1px solid #e0e0e0;">
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h5 id="strix-profile-name" style="margin: 0 0 8px 0; font-weight: 600; color: #333; font-size: 18px;"></h5>
+                                        <div id="strix-profile-category" style="margin-bottom: 8px;">
+                                            <span style="display: inline-block; background: #f0f0f0; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;"></span>
                                         </div>
-                                        <div class="col">
-                                            <h6 id="strix-profile-name" class="mb-1"></h6>
-                                            <p id="strix-profile-address" class="mb-1 text-muted small"></p>
-                                            <p id="strix-profile-rating" class="mb-0 text-warning">
-                                                <span id="strix-profile-stars"></span>
-                                                <span id="strix-profile-score" class="ml-1"></span>
-                                                (<span id="strix-profile-count"></span> <?php echo esc_html(__('reviews', 'wp-reviews-plugin-for-google')); ?>)
-                                            </p>
+                                        <p id="strix-profile-address" style="margin: 0 0 8px 0; color: #666; font-size: 14px; line-height: 1.5;"></p>
+                                        <div id="strix-profile-rating" style="display: flex; align-items: center; gap: 8px; color: #f39c12;">
+                                            <span id="strix-profile-stars"></span>
+                                            <span id="strix-profile-score" style="font-weight: 600;"></span>
+                                            <span style="color: #999; font-size: 13px;">(<span id="strix-profile-count"></span> <?php echo esc_html(__('reviews', 'wp-reviews-plugin-for-google')); ?>)</span>
                                         </div>
                                     </div>
                                 </div>

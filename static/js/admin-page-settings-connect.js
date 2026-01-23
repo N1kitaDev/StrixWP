@@ -233,13 +233,25 @@ jQuery(document).ready(function($) {
 			
 			if (query.length < 2) {
 				autocompleteContainer.hide().empty();
+				$('#strix-selected-profile').hide();
+				window.selectedProfileData = null;
+				$('#strix-connect-profile-btn').prop('disabled', true);
 				return;
 			}
 
-			// Debounce search
-			searchTimeout = setTimeout(function() {
-				searchPlaces(query, apiKey, autocompleteContainer, input);
-			}, 300);
+			// Check if it's a Google Maps URL
+			if (query.includes('google.com/maps') || query.includes('maps.google.com')) {
+				// It's a URL, process it immediately
+				clearTimeout(searchTimeout);
+				searchTimeout = setTimeout(function() {
+					processGoogleMapsUrl(query, apiKey, autocompleteContainer, input);
+				}, 500);
+			} else {
+				// Regular text search with debounce
+				searchTimeout = setTimeout(function() {
+					searchPlaces(query, apiKey, autocompleteContainer, input);
+				}, 300);
+			}
 		});
 
 		input.on('keydown', function(e) {
@@ -317,7 +329,24 @@ jQuery(document).ready(function($) {
 		});
 	}
 
-	function searchPlaces(query, apiKey, container, input) {
+	// Track last search to prevent duplicate requests
+	let lastSearchQuery = '';
+	let lastSearchTime = 0;
+	let isSearching = false;
+
+	function searchPlaces(query, apiKey, container, input, autoSelectSingle) {
+		autoSelectSingle = autoSelectSingle || false;
+		
+		// Prevent duplicate requests
+		let now = Date.now();
+		if (isSearching || (query === lastSearchQuery && (now - lastSearchTime) < 500)) {
+			return;
+		}
+		
+		isSearching = true;
+		lastSearchQuery = query;
+		lastSearchTime = now;
+		
 		container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">Searching...</div>').show();
 
 		// Use ajaxurl from config or fallback
@@ -335,14 +364,32 @@ jQuery(document).ready(function($) {
 				api_key: apiKey
 			},
 			success: function(response) {
+				isSearching = false;
 				if (response.success && response.data && response.data.places) {
-					displaySearchResults(response.data.places, container, input, apiKey);
+					let places = response.data.places;
+					
+					// If auto-select is enabled and only one result, select it automatically
+					if (autoSelectSingle && places.length === 1) {
+						fetchPlaceDetails(places[0].place_id, apiKey);
+						container.hide();
+						input.val(places[0].name);
+					} else {
+						displaySearchResults(places, container, input, apiKey);
+					}
 				} else {
 					container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">No results found</div>');
 				}
 			},
-			error: function() {
-				container.html('<div class="autocomplete-item" style="padding: 10px; color: #d00;">Search failed</div>');
+			error: function(xhr, status, error) {
+				isSearching = false;
+				let errorMsg = 'Search failed';
+				if (xhr.status === 403) {
+					errorMsg = 'Access denied. Please refresh the page and try again.';
+				} else if (xhr.status === 0) {
+					errorMsg = 'Network error. Please check your connection.';
+				}
+				container.html('<div class="autocomplete-item" style="padding: 10px; color: #d00;">' + errorMsg + '</div>');
+				console.error('Search error:', xhr.status, error);
 			}
 		});
 	}
@@ -416,6 +463,25 @@ jQuery(document).ready(function($) {
 		return null;
 	}
 
+	function processGoogleMapsUrl(url, apiKey, container, input) {
+		// Try to extract Place ID first
+		let placeId = extractPlaceIdFromInput(url);
+		
+		if (placeId && !placeId.match(/^0x[0-9a-fA-F]+:0x[0-9a-fA-F]+$/)) {
+			// It's a new format Place ID, fetch directly
+			fetchPlaceDetails(placeId, apiKey);
+		} else {
+			// It's old format URL with CID, extract business name and search
+			let businessName = extractBusinessNameFromUrl(url);
+			if (businessName) {
+				// Search by business name - if only one result, auto-select it
+				searchPlaces(businessName, apiKey, container, input, true);
+			} else {
+				showConnectError('Could not extract business information from URL. Please enter the business name manually.');
+			}
+		}
+	}
+
 	function searchPlacesByCid(cid, apiKey) {
 		// For old CID format, we need to search by the business name from URL
 		// Extract business name from URL if possible
@@ -468,7 +534,7 @@ jQuery(document).ready(function($) {
 						rating_score: place.rating || 0,
 						rating_number: place.user_ratings_total || 0,
 						avatar_url: place.photo_url || '',
-						type: place.types ? place.types.join(', ') : ''
+						type: place.types || (place.primary_type ? [place.primary_type] : [])
 					});
 					// Update input field
 					$('#strix-google-autocomplete-modal').val(place.name);
