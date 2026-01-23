@@ -286,10 +286,31 @@ jQuery(document).ready(function($) {
 		// Handle manual Place ID or URL input on blur
 		input.on('blur', function() {
 			let value = $(this).val().trim();
-			if (value && !value.includes(' ')) {
-				let placeId = extractPlaceIdFromInput(value);
-				if (placeId) {
-					fetchPlaceDetails(placeId, apiKey);
+			if (value) {
+				// Check if it's a Google Maps URL
+				if (value.includes('google.com/maps') || value.includes('maps.google.com')) {
+					// Try to extract Place ID first
+					let placeId = extractPlaceIdFromInput(value);
+					
+					if (placeId && !placeId.match(/^0x[0-9a-fA-F]+:0x[0-9a-fA-F]+$/)) {
+						// It's a new format Place ID, use it directly
+						fetchPlaceDetails(placeId, apiKey);
+					} else {
+						// It's old format URL with CID, extract business name and search
+						let businessName = extractBusinessNameFromUrl(value);
+						if (businessName) {
+							// Search by business name
+							searchPlaces(businessName, apiKey, autocompleteContainer, input);
+						} else {
+							showConnectError('Could not extract business information from URL. Please enter the business name manually.');
+						}
+					}
+				} else if (!value.includes(' ') && value.length > 10) {
+					// Might be a direct Place ID
+					let placeId = extractPlaceIdFromInput(value);
+					if (placeId) {
+						fetchPlaceDetails(placeId, apiKey);
+					}
 				}
 			}
 		});
@@ -354,16 +375,61 @@ jQuery(document).ready(function($) {
 	}
 
 	function extractPlaceIdFromInput(input) {
-		// Extract Place ID from Google Maps URL
-		let match = input.match(/place_id=([^&]+)/);
+		if (!input) return null;
+		
+		// 1. Extract Place ID from new Google Maps URL format: place_id=ChIJ...
+		let match = input.match(/[?&]place_id=([^&]+)/);
 		if (match) {
-			return match[1];
+			return decodeURIComponent(match[1]);
 		}
-		// Check if it's a direct Place ID (usually starts with ChIJ or similar)
+		
+		// 2. Check if it's a direct Place ID (usually starts with ChIJ or similar, 27+ chars)
 		if (input.match(/^[A-Za-z0-9_-]{27,}$/)) {
 			return input;
 		}
+		
 		return null;
+	}
+
+	function extractBusinessNameFromUrl(url) {
+		if (!url) return null;
+		
+		// Extract business name from Google Maps URL
+		// Format: /maps/place/Business+Name/@lat,lng
+		let match = url.match(/\/place\/([^\/@]+)/);
+		if (match) {
+			let name = decodeURIComponent(match[1].replace(/\+/g, ' '));
+			// Clean up the name (remove extra encoding)
+			name = name.replace(/%2B/g, '+').replace(/%20/g, ' ');
+			return name;
+		}
+		
+		// Try alternative format: /maps/place/Business+Name
+		match = url.match(/place\/([^\/\?@]+)/);
+		if (match) {
+			let name = decodeURIComponent(match[1].replace(/\+/g, ' '));
+			name = name.replace(/%2B/g, '+').replace(/%20/g, ' ');
+			return name;
+		}
+		
+		return null;
+	}
+
+	function searchPlacesByCid(cid, apiKey) {
+		// For old CID format, we need to search by the business name from URL
+		// Extract business name from URL if possible
+		let input = $('#strix-google-autocomplete-modal');
+		let value = input.val().trim();
+		
+		// Try to extract business name from URL
+		let nameMatch = value.match(/\/place\/([^\/@]+)/);
+		if (nameMatch) {
+			let businessName = decodeURIComponent(nameMatch[1].replace(/\+/g, ' '));
+			searchPlaces(businessName, apiKey, $('.strix-autocomplete-dropdown'), input);
+		} else {
+			// If we can't extract name, try to use CID directly (though this might not work)
+			showConnectError('Please enter the business name or use a Place ID instead of the old URL format.');
+		}
 	}
 
 	function fetchPlaceDetails(placeId, apiKey) {
