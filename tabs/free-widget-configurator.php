@@ -497,7 +497,23 @@ $google_api_key = '';
 if (function_exists('is_plugin_active') && is_plugin_active('strix-google-reviews-admin/strix-google-reviews-admin.php')) {
     try {
         if (class_exists('Strix_Google_Reviews_Admin') && method_exists('Strix_Google_Reviews_Admin', 'get_google_maps_api_key')) {
-            $api_key_temp = Strix_Google_Reviews_Admin::get_google_maps_api_key();
+            // Check if method is static
+            $reflection = new ReflectionMethod('Strix_Google_Reviews_Admin', 'get_google_maps_api_key');
+            if ($reflection->isStatic()) {
+                $api_key_temp = Strix_Google_Reviews_Admin::get_google_maps_api_key();
+            } else {
+                // Method is not static, try to get instance
+                if (method_exists('Strix_Google_Reviews_Admin', 'get_instance')) {
+                    $instance = Strix_Google_Reviews_Admin::get_instance();
+                    if (is_object($instance)) {
+                        $api_key_temp = $instance->get_google_maps_api_key();
+                    } else {
+                        $api_key_temp = '';
+                    }
+                } else {
+                    $api_key_temp = '';
+                }
+            }
             if (is_string($api_key_temp) && !empty($api_key_temp)) {
                 $google_api_key = $api_key_temp;
             }
@@ -514,7 +530,9 @@ if (empty($google_api_key)) {
 }
 
 // Localize script for connect functionality
-wp_localize_script('strix-admin-page-settings-connect', 'strix_connect_config', array(
+// Use the correct script handle that matches the enqueued script name
+$script_handle = 'trustindex_settings_script_connect_' . $pluginManagerInstance->getShortName();
+wp_localize_script($script_handle, 'strix_connect_config', array(
     'admin_available' => $admin_plugin_active,
     'admin_url' => $admin_url,
     'fallback_url' => 'https://admin.strix.io/source/edit2',

@@ -7438,20 +7438,49 @@ private function fetch_google_reviews($place_id, $api_key)
     $data = json_decode($body, true);
 
     if (!$data || isset($data['error_message'])) {
+        // Log error for debugging
+        if (isset($data['error_message'])) {
+            error_log('Google Places API Error: ' . $data['error_message']);
+        }
+        return false;
+    }
+    
+    // Check if status is OK
+    if (isset($data['status']) && $data['status'] !== 'OK') {
+        error_log('Google Places API Status: ' . (isset($data['status']) ? $data['status'] : 'UNKNOWN'));
+        if (isset($data['error_message'])) {
+            error_log('Google Places API Error Message: ' . $data['error_message']);
+        }
         return false;
     }
 
     $reviews = array();
     if (isset($data['result']['reviews'])) {
         foreach ($data['result']['reviews'] as $review) {
+            // Format review data to match expected structure in JavaScript and save-page handler
+            // Google Places API returns time as Unix timestamp in seconds
+            $reviewTime = time(); // Default to current time
+            if (isset($review['time'])) {
+                $reviewTime = intval($review['time']);
+                // If time is in milliseconds (more than reasonable timestamp), convert to seconds
+                if ($reviewTime > 2147483647) { // Year 2038 problem threshold
+                    $reviewTime = intval($reviewTime / 1000);
+                }
+            }
+            
+            $reviewId = isset($review['time']) ? $review['time'] : (isset($review['author_name']) ? md5($review['author_name'] . $reviewTime) : uniqid());
+            
             $reviews[] = array(
-                'id' => isset($review['time']) ? $review['time'] : uniqid(),
-                'author' => isset($review['author_name']) ? $review['author_name'] : '',
+                'id' => $reviewId,
+                'reviewer' => array(
+                    'name' => isset($review['author_name']) ? sanitize_text_field($review['author_name']) : '',
+                    'avatar_url' => isset($review['profile_photo_url']) ? esc_url_raw($review['profile_photo_url']) : ''
+                ),
                 'rating' => isset($review['rating']) ? intval($review['rating']) : 0,
-                'text' => isset($review['text']) ? $review['text'] : '',
-                'date' => isset($review['time']) ? date('Y-m-d H:i:s', $review['time']) : '',
-                'verified' => true,
-                'avatar' => isset($review['profile_photo_url']) ? $review['profile_photo_url'] : ''
+                'text' => isset($review['text']) ? sanitize_textarea_field($review['text']) : '',
+                'created_at' => date('Y-m-d', $reviewTime),
+                'date' => date('Y-m-d', $reviewTime),
+                'time' => $reviewTime
             );
         }
     }

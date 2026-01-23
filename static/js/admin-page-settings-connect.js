@@ -283,8 +283,13 @@ function connectSelectedProfile(button, token) {
 	}
 
 	// Fetch reviews from Google Places API
+	// Use ajaxurl from config or fallback to global ajaxurl
+	let ajaxUrl = (typeof strix_connect_config !== 'undefined' && strix_connect_config.ajaxurl) 
+		? strix_connect_config.ajaxurl 
+		: (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+	
 	$.ajax({
-		url: ajaxurl,
+		url: ajaxUrl,
 		type: 'POST',
 		data: {
 			action: 'strix_get_google_reviews',
@@ -296,6 +301,9 @@ function connectSelectedProfile(button, token) {
 			let reviews = [];
 			if (response.success && response.data && response.data.reviews) {
 				reviews = response.data.reviews;
+			} else if (!response.success) {
+				// Log error but continue with connection
+				console.warn('Failed to fetch reviews:', response.data || 'Unknown error');
 			}
 
 			// Prepare profile data for the plugin
@@ -320,9 +328,15 @@ function connectSelectedProfile(button, token) {
 			button.closest('form').submit();
 		},
 		error: function(xhr, status, error) {
-			console.error('Failed to fetch reviews:', error);
+			console.error('AJAX request failed:', {
+				status: status,
+				error: error,
+				response: xhr.responseText,
+				statusCode: xhr.status
+			});
 
 			// Even if reviews fetch fails, proceed with profile connection
+			// This allows users to connect even if API key has issues
 			let profileData = {
 				id: window.selectedProfileData.id,
 				name: window.selectedProfileData.name,
