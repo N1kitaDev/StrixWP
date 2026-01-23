@@ -353,6 +353,11 @@ jQuery(document).ready(function($) {
 		let config = (typeof strix_connect_config !== 'undefined') ? strix_connect_config : {};
 		let ajaxUrl = config.ajaxurl || (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
 		let nonce = config.nonce || '';
+		
+		// Debug nonce
+		if (!nonce) {
+			console.warn('Nonce is empty! Config:', config);
+		}
 
 		$.ajax({
 			url: ajaxUrl,
