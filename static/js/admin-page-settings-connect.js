@@ -729,9 +729,18 @@ function connectSelectedProfile(button, token) {
 			$('#strix-noreg-page-details').val(JSON.stringify(profileData));
 			$('#strix-noreg-review-request-id').val('');
 
-			// Close modal and submit form
+			// Close modal
 			$('#strix-connect-modal').modal('hide');
-			button.closest('form').submit();
+			
+			// Find and submit the correct form (outside modal)
+			let form = $('#strix-connect-platform-form');
+			if (form.length) {
+				form.submit();
+			} else {
+				// Fallback: reload page to step 2
+				console.warn('Form not found, redirecting to step 2');
+				window.location.href = window.location.pathname + '?page=' + new URLSearchParams(window.location.search).get('page') + '&tab=free-widget-configurator&step=2';
+			}
 		},
 		error: function(xhr, status, error) {
 			console.error('AJAX request failed:', {
@@ -758,9 +767,18 @@ function connectSelectedProfile(button, token) {
 			$('#strix-noreg-page-details').val(JSON.stringify(profileData));
 			$('#strix-noreg-review-request-id').val('');
 
-			// Close modal and submit form
+			// Close modal
 			$('#strix-connect-modal').modal('hide');
-			button.closest('form').submit();
+			
+			// Find and submit the correct form (outside modal)
+			let form = $('#strix-connect-platform-form');
+			if (form.length) {
+				form.submit();
+			} else {
+				// Fallback: reload page to step 2
+				console.warn('Form not found, redirecting to step 2');
+				window.location.href = window.location.pathname + '?page=' + new URLSearchParams(window.location.search).get('page') + '&tab=free-widget-configurator&step=2';
+			}
 		}
 	});
 }
