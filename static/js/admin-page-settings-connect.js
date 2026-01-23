@@ -578,6 +578,9 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				if (response.success && response.data) {
+					// Hide any previous errors on success
+					hideConnectError();
+					
 					let place = response.data;
 					displaySelectedProfile({
 						id: place.place_id,
