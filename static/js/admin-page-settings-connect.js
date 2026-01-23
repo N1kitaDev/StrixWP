@@ -150,8 +150,9 @@ jQuery(document).ready(function($) {
 		
 		// Reset API key field to default if empty
 		let apiKeyInput = $('#strix-google-api-key-modal');
-		if (!apiKeyInput.val() && strix_connect_config && strix_connect_config.google_api_key) {
-			apiKeyInput.val(strix_connect_config.google_api_key);
+		let config = (typeof strix_connect_config !== 'undefined') ? strix_connect_config : {};
+		if (!apiKeyInput.val() && config.google_api_key) {
+			apiKeyInput.val(config.google_api_key);
 		}
 
 		// Show modal
@@ -159,8 +160,8 @@ jQuery(document).ready(function($) {
 
 		// Initialize autocomplete when API key is entered or changed
 		let currentApiKey = apiKeyInput.val().trim();
-		if (!currentApiKey && strix_connect_config && strix_connect_config.google_api_key) {
-			currentApiKey = strix_connect_config.google_api_key;
+		if (!currentApiKey && config.google_api_key) {
+			currentApiKey = config.google_api_key;
 			apiKeyInput.val(currentApiKey);
 		}
 
@@ -542,16 +543,16 @@ function connectSelectedProfile(button, token) {
 
 	// Fetch reviews from Google Places API
 	// Use ajaxurl from config or fallback to global ajaxurl
-	let ajaxUrl = (typeof strix_connect_config !== 'undefined' && strix_connect_config.ajaxurl) 
-		? strix_connect_config.ajaxurl 
-		: (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+	let config = (typeof strix_connect_config !== 'undefined') ? strix_connect_config : {};
+	let ajaxUrl = config.ajaxurl || (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+	let nonce = config.nonce || '';
 	
 	$.ajax({
 		url: ajaxUrl,
 		type: 'POST',
 		data: {
 			action: 'strix_get_google_reviews',
-			nonce: strix_connect_config.nonce || '',
+			nonce: nonce,
 			place_id: window.selectedProfileData.id,
 			api_key: apiKey
 		},
