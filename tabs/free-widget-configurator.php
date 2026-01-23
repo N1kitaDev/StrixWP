@@ -668,8 +668,23 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
                 <div class="strix-connect-form">
                     <form id="strix-google-connect-form">
                         <div class="form-group">
+                            <label for="strix-google-api-key-modal">
+                                <?php echo esc_html(__('Google Maps API Key', 'wp-reviews-plugin-for-google')); ?>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="strix-google-api-key-modal" class="form-control"
+                                   placeholder="<?php echo esc_attr(__('Enter your Google Maps API Key', 'wp-reviews-plugin-for-google')); ?>"
+                                   value="<?php echo esc_attr($google_api_key); ?>"
+                                   autocomplete="off">
+                            <small class="form-text text-muted">
+                                <?php echo esc_html(__('Enter your Google Maps API Key with Places API enabled. You can get it from', 'wp-reviews-plugin-for-google')); ?>
+                                <a href="https://console.cloud.google.com/apis/credentials" target="_blank"><?php echo esc_html(__('Google Cloud Console', 'wp-reviews-plugin-for-google')); ?></a>.
+                            </small>
+                        </div>
+                        <div class="form-group">
                             <label for="strix-google-autocomplete-modal">
                                 <?php echo esc_html(__('Google Business Profile name or location', 'wp-reviews-plugin-for-google')); ?>
+                                <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="strix-google-autocomplete-modal" class="form-control"
                                    placeholder="<?php echo esc_attr(__('Type your Google Business Profile name, location, Place ID or Google Maps URL', 'wp-reviews-plugin-for-google')); ?>"
