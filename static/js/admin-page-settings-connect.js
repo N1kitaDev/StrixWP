@@ -231,6 +231,9 @@ jQuery(document).ready(function($) {
 			
 			clearTimeout(searchTimeout);
 			
+			// Hide error when user starts typing
+			hideConnectError();
+			
 			if (query.length < 2) {
 				autocompleteContainer.hide().empty();
 				$('#strix-selected-profile').hide();
