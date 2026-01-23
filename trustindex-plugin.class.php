@@ -7511,10 +7511,10 @@ public function ajax_search_google_places()
     }
 
     // Search places using Google Places API Text Search
+    // Don't restrict by type to get more results
     $url = 'https://maps.googleapis.com/maps/api/place/textsearch/json?' . http_build_query(array(
         'query' => $query,
-        'key' => $api_key,
-        'type' => 'establishment'
+        'key' => $api_key
     ));
 
     $response = wp_remote_get($url, array(
@@ -7525,18 +7525,27 @@ public function ajax_search_google_places()
     ));
 
     if (is_wp_error($response)) {
-        wp_send_json_error(__('Failed to search places', 'wp-reviews-plugin-for-google'));
+        error_log('Google Places Text Search Error: ' . $response->get_error_message());
+        wp_send_json_error(__('Failed to search places: ', 'wp-reviews-plugin-for-google') . $response->get_error_message());
     }
 
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
 
-    if (!$data || isset($data['error_message'])) {
-        wp_send_json_error(isset($data['error_message']) ? $data['error_message'] : __('Search failed', 'wp-reviews-plugin-for-google'));
+    if (!$data) {
+        error_log('Google Places Text Search: Invalid JSON response');
+        wp_send_json_error(__('Invalid response from Google API', 'wp-reviews-plugin-for-google'));
+    }
+
+    if (isset($data['error_message'])) {
+        error_log('Google Places Text Search Error: ' . $data['error_message']);
+        wp_send_json_error($data['error_message']);
     }
 
     if (isset($data['status']) && $data['status'] !== 'OK') {
-        wp_send_json_error(isset($data['error_message']) ? $data['error_message'] : __('Search failed', 'wp-reviews-plugin-for-google'));
+        $error_msg = isset($data['error_message']) ? $data['error_message'] : 'Status: ' . $data['status'];
+        error_log('Google Places Text Search Status: ' . $data['status'] . ' - ' . $error_msg);
+        wp_send_json_error($error_msg);
     }
 
     $places = array();

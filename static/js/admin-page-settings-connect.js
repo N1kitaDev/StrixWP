@@ -365,8 +365,16 @@ jQuery(document).ready(function($) {
 			},
 			success: function(response) {
 				isSearching = false;
+				console.log('Search response:', response);
+				
 				if (response.success && response.data && response.data.places) {
 					let places = response.data.places;
+					console.log('Found places:', places.length);
+					
+					if (places.length === 0) {
+						container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">No results found for "' + query + '"</div>');
+						return;
+					}
 					
 					// If auto-select is enabled and only one result, select it automatically
 					if (autoSelectSingle && places.length === 1) {
@@ -377,7 +385,12 @@ jQuery(document).ready(function($) {
 						displaySearchResults(places, container, input, apiKey);
 					}
 				} else {
-					container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">No results found</div>');
+					let errorMsg = 'No results found';
+					if (response.data) {
+						errorMsg = typeof response.data === 'string' ? response.data : 'Search failed';
+					}
+					container.html('<div class="autocomplete-item" style="padding: 10px; color: #d00;">' + errorMsg + '</div>');
+					console.error('Search failed:', response);
 				}
 			},
 			error: function(xhr, status, error) {
@@ -387,9 +400,17 @@ jQuery(document).ready(function($) {
 					errorMsg = 'Access denied. Please refresh the page and try again.';
 				} else if (xhr.status === 0) {
 					errorMsg = 'Network error. Please check your connection.';
+				} else if (xhr.responseJSON && xhr.responseJSON.data) {
+					errorMsg = xhr.responseJSON.data;
 				}
 				container.html('<div class="autocomplete-item" style="padding: 10px; color: #d00;">' + errorMsg + '</div>');
-				console.error('Search error:', xhr.status, error);
+				console.error('Search error:', {
+					status: xhr.status,
+					statusText: xhr.statusText,
+					error: error,
+					response: xhr.responseText,
+					responseJSON: xhr.responseJSON
+				});
 			}
 		});
 	}
