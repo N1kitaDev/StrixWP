@@ -386,6 +386,9 @@ jQuery(document).ready(function($) {
 				console.log('Search response:', response);
 				
 				if (response.success && response.data && response.data.places) {
+					// Hide any previous errors on success
+					hideConnectError();
+					
 					let places = response.data.places;
 					console.log('Found places:', places.length);
 					
