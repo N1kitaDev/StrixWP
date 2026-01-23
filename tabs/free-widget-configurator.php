@@ -195,7 +195,8 @@ if (!isset($pluginManager::$widget_languages[ $lang ])) {
 $lang = 'en';
 }
 update_option($pluginManagerInstance->get_option_name('lang'), $lang, false);
-header('Location: admin.php?page='.esc_attr($_page).'&tab=free-widget-configurator');
+// Redirect to step 2 (Select Layout) after successful connection
+header('Location: admin.php?page='.esc_attr($_page).'&tab=free-widget-configurator&step=2');
 exit;
 }
 else if ($ti_command === 'delete-page') {
