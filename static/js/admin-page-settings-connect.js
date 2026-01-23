@@ -137,6 +137,16 @@ jQuery(document).ready(function($) {
 		$('#strix-google-autocomplete-modal').val('');
 		$('#strix-connect-profile-btn').prop('disabled', true);
 		window.selectedProfileData = null;
+
+		// Disable browser validation for all inputs in the form
+		$('#strix-google-connect-form input').each(function() {
+			$(this).removeAttr('required');
+			$(this).removeAttr('pattern');
+			$(this).removeAttr('min');
+			$(this).removeAttr('max');
+			$(this).removeAttr('minlength');
+			$(this).removeAttr('maxlength');
+		});
 		
 		// Reset API key field to default if empty
 		let apiKeyInput = $('#strix-google-api-key-modal');
@@ -210,6 +220,14 @@ jQuery(document).ready(function($) {
 	function initializeGooglePlacesInModal(apiKey) {
 		let input = document.getElementById('strix-google-autocomplete-modal');
 		if (!input) return;
+
+		// Disable browser validation for this input
+		$(input).removeAttr('required');
+		$(input).removeAttr('pattern');
+		$(input).removeAttr('min');
+		$(input).removeAttr('max');
+		$(input).removeAttr('minlength');
+		$(input).removeAttr('maxlength');
 
 		// Destroy existing autocomplete if exists
 		if (input.autocomplete) {

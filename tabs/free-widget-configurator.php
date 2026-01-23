@@ -653,6 +653,18 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
 <a href="#" class="strix-btn btn-connect-public"><?php echo esc_html(__('Connect', 'wp-reviews-plugin-for-google')); ?></a>
 
 <!-- Modal for Google Business Profile Connection -->
+<style>
+#strix-connect-modal input:invalid {
+    box-shadow: none !important;
+    border-color: #ddd !important;
+}
+#strix-connect-modal input::-webkit-validation-bubble-message {
+    display: none !important;
+}
+#strix-connect-modal input:invalid::-webkit-validation-bubble-icon {
+    display: none !important;
+}
+</style>
 <div class="modal fade strix-connect-modal" id="strix-connect-modal" tabindex="-1" role="dialog" aria-labelledby="strixConnectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -669,7 +681,7 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
                     <?php echo esc_html(__('Set up the source of your reviews on Google!', 'wp-reviews-plugin-for-google')); ?>
                 </p>
                 <div class="strix-connect-form">
-                    <form id="strix-google-connect-form">
+                    <form id="strix-google-connect-form" novalidate>
                         <div class="form-group">
                             <label for="strix-google-api-key-modal" style="font-weight: bold; color: #333; margin-bottom: 8px;">
                                 <?php echo esc_html(__('Google Maps API Key', 'wp-reviews-plugin-for-google')); ?>
