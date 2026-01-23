@@ -354,9 +354,19 @@ jQuery(document).ready(function($) {
 		let ajaxUrl = config.ajaxurl || (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
 		let nonce = config.nonce || '';
 		
+		// Try to get nonce from hidden form field if available (priority: form field > config)
+		let formNonce = $('#strix-google-connect-form input[name="strix_google_nonce"]').val() || 
+		                $('#strix-google-connect-form input[name="_wpnonce"]').val();
+		if (formNonce) {
+			nonce = formNonce;
+		}
+		
 		// Debug nonce
 		if (!nonce) {
 			console.warn('Nonce is empty! Config:', config);
+			console.warn('Form nonce:', formNonce);
+		} else {
+			console.log('Using nonce:', nonce.substring(0, 10) + '...');
 		}
 
 		$.ajax({
