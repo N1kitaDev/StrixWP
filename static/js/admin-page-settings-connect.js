@@ -347,6 +347,9 @@ jQuery(document).ready(function($) {
 		lastSearchQuery = query;
 		lastSearchTime = now;
 		
+		// Hide previous errors when starting new search
+		hideConnectError();
+		
 		container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">Searching...</div>').show();
 
 		// Use ajaxurl from config or fallback

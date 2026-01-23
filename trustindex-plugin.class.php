@@ -7561,7 +7561,9 @@ public function ajax_search_google_places()
         
         // Provide more helpful error messages
         if (strpos($error_msg, 'referer restrictions') !== false || strpos($error_msg, 'referer restriction') !== false) {
-            $error_msg = __('Your API key has referer restrictions that prevent server-side requests. Please remove referer restrictions from your API key in Google Cloud Console, or use IP restrictions instead.', 'wp-reviews-plugin-for-google');
+            $error_msg = __('Your API key has referer restrictions that prevent server-side requests. Go to Google Cloud Console → APIs & Services → Credentials → Edit your API key → Change "Application restrictions" from "HTTP referrers" to "IP addresses" or "None", then save. Changes may take up to 5 minutes to take effect.', 'wp-reviews-plugin-for-google');
+        } elseif (strpos($error_msg, 'not authorized') !== false || strpos($error_msg, 'REQUEST_DENIED') !== false) {
+            $error_msg = __('Your API key is not authorized for this IP address. Go to Google Cloud Console → APIs & Services → Credentials → Edit your API key → Add your server IP address to "IP addresses" restrictions, or change "Application restrictions" to "None" for testing.', 'wp-reviews-plugin-for-google');
         } elseif (strpos($error_msg, 'API key not valid') !== false || strpos($error_msg, 'invalid') !== false) {
             $error_msg = __('Invalid API key. Please check your Google Maps API key in Google Cloud Console.', 'wp-reviews-plugin-for-google');
         } elseif (strpos($error_msg, 'quota') !== false || strpos($error_msg, 'billing') !== false) {
