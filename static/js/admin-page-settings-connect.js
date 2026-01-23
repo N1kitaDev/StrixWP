@@ -59,8 +59,40 @@ jQuery(document).ready(function($) {
 			let button = $(this);
 			let token = $('#strix-noreg-connect-token').val();
 
-			// Always use modal with Google Places API integration
-			openGoogleConnectModal(button, token);
+			// Check if we should use old method (admin.strix.io) or new modal
+			// For now, use old method as it was working before
+			// This avoids API key referer restriction issues
+			strixConnect.asyncRequest(function(token, request_id, manual_download, place) {
+				if (place) {
+					// Place data received from strix.io
+					let profileData = {
+						id: place.place_id || place.id,
+						name: place.name,
+						avatar_url: place.avatar_url || place.photo_url || '',
+						review_url: place.review_url || 'https://search.google.com/local/reviews?placeid=' + (place.place_id || place.id),
+						write_review_url: place.write_review_url || 'https://search.google.com/local/writereview?placeid=' + (place.place_id || place.id),
+						address: place.address || place.formatted_address || '',
+						rating_number: place.rating_number || place.user_ratings_total || 0,
+						rating_score: place.rating_score || place.rating || 0,
+						reviews: place.reviews || []
+					};
+
+					$('#strix-noreg-page-details').val(JSON.stringify(profileData));
+					$('#strix-noreg-review-request-id').val(request_id || '');
+					$('#strix-noreg-manual-download').val(manual_download || 0);
+					
+					// Submit form to save and redirect to step 2
+					$('#strix-connect-platform-form').submit();
+				} else {
+					// Use request_id for async download
+					$('#strix-noreg-review-request-id').val(request_id || '');
+					$('#strix-noreg-manual-download').val(manual_download || 0);
+					$('#strix-noreg-review-download').val('1');
+					
+					// Submit form
+					$('#strix-connect-platform-form').submit();
+				}
+			}, button);
 		});
 
 	
