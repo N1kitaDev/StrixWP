@@ -320,16 +320,16 @@ jQuery(document).ready(function($) {
 		container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">Searching...</div>').show();
 
 		// Use ajaxurl from config or fallback
-		let ajaxUrl = (typeof strix_connect_config !== 'undefined' && strix_connect_config.ajaxurl) 
-			? strix_connect_config.ajaxurl 
-			: (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+		let config = (typeof strix_connect_config !== 'undefined') ? strix_connect_config : {};
+		let ajaxUrl = config.ajaxurl || (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+		let nonce = config.nonce || '';
 
 		$.ajax({
 			url: ajaxUrl,
 			type: 'POST',
 			data: {
 				action: 'strix_search_google_places',
-				nonce: strix_connect_config.nonce || '',
+				nonce: nonce,
 				query: query,
 				api_key: apiKey
 			},
@@ -444,16 +444,16 @@ jQuery(document).ready(function($) {
 		}
 
 		// Use ajaxurl from config or fallback
-		let ajaxUrl = (typeof strix_connect_config !== 'undefined' && strix_connect_config.ajaxurl) 
-			? strix_connect_config.ajaxurl 
-			: (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+		let config = (typeof strix_connect_config !== 'undefined') ? strix_connect_config : {};
+		let ajaxUrl = config.ajaxurl || (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+		let nonce = config.nonce || '';
 
 		$.ajax({
 			url: ajaxUrl,
 			type: 'POST',
 			data: {
 				action: 'strix_get_place_details',
-				nonce: strix_connect_config.nonce || '',
+				nonce: nonce,
 				place_id: placeId,
 				api_key: apiKey
 			},
