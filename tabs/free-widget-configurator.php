@@ -708,6 +708,7 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
                 <div class="strix-connect-form">
                     <form id="strix-google-connect-form" novalidate>
                         <?php wp_nonce_field('strix_google_reviews_admin_nonce', 'strix_google_nonce'); ?>
+                        <input type="hidden" id="strix-ajax-nonce" value="<?php echo esc_attr(wp_create_nonce('strix_google_reviews_admin_nonce')); ?>" />
                         <div class="form-group">
                             <label for="strix-google-api-key-modal" style="font-weight: bold; color: #333; margin-bottom: 8px;">
                                 <?php echo esc_html(__('Google Maps API Key', 'wp-reviews-plugin-for-google')); ?>

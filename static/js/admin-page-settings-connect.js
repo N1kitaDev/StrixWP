@@ -352,19 +352,22 @@ jQuery(document).ready(function($) {
 		// Use ajaxurl from config or fallback
 		let config = (typeof strix_connect_config !== 'undefined') ? strix_connect_config : {};
 		let ajaxUrl = config.ajaxurl || (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
-		let nonce = config.nonce || '';
 		
-		// Try to get nonce from hidden form field if available (priority: form field > config)
-		let formNonce = $('#strix-google-connect-form input[name="strix_google_nonce"]').val() || 
-		                $('#strix-google-connect-form input[name="_wpnonce"]').val();
-		if (formNonce) {
-			nonce = formNonce;
-		}
+		// Get nonce with priority: hidden input > form field > config
+		let nonce = $('#strix-ajax-nonce').val() || 
+		            $('#strix-google-connect-form input[name="strix_google_nonce"]').val() || 
+		            $('#strix-google-connect-form input[name="_wpnonce"]').val() ||
+		            (config.nonce || '');
 		
 		// Debug nonce
 		if (!nonce) {
-			console.warn('Nonce is empty! Config:', config);
-			console.warn('Form nonce:', formNonce);
+			console.error('Nonce is empty! Config:', config);
+			console.error('Tried to get from:', {
+				hiddenInput: $('#strix-ajax-nonce').val(),
+				formField: $('#strix-google-connect-form input[name="strix_google_nonce"]').val(),
+				wpNonce: $('#strix-google-connect-form input[name="_wpnonce"]').val(),
+				config: config.nonce
+			});
 		} else {
 			console.log('Using nonce:', nonce.substring(0, 10) + '...');
 		}
