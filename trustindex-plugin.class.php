@@ -7558,6 +7558,16 @@ public function ajax_search_google_places()
     if (isset($data['status']) && $data['status'] !== 'OK') {
         $error_msg = isset($data['error_message']) ? $data['error_message'] : 'Status: ' . $data['status'];
         error_log('Google Places Text Search Status: ' . $data['status'] . ' - ' . $error_msg);
+        
+        // Provide more helpful error messages
+        if (strpos($error_msg, 'referer restrictions') !== false || strpos($error_msg, 'referer restriction') !== false) {
+            $error_msg = __('Your API key has referer restrictions that prevent server-side requests. Please remove referer restrictions from your API key in Google Cloud Console, or use IP restrictions instead.', 'wp-reviews-plugin-for-google');
+        } elseif (strpos($error_msg, 'API key not valid') !== false || strpos($error_msg, 'invalid') !== false) {
+            $error_msg = __('Invalid API key. Please check your Google Maps API key in Google Cloud Console.', 'wp-reviews-plugin-for-google');
+        } elseif (strpos($error_msg, 'quota') !== false || strpos($error_msg, 'billing') !== false) {
+            $error_msg = __('API quota exceeded or billing not enabled. Please check your Google Cloud Console billing settings.', 'wp-reviews-plugin-for-google');
+        }
+        
         wp_send_json_error($error_msg);
     }
 

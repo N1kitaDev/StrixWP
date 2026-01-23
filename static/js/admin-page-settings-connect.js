@@ -406,9 +406,19 @@ jQuery(document).ready(function($) {
 					let errorMsg = 'No results found';
 					if (response.data) {
 						errorMsg = typeof response.data === 'string' ? response.data : 'Search failed';
+						
+						// Add helpful link for API key issues
+						if (errorMsg.indexOf('referer restrictions') !== -1 || errorMsg.indexOf('API key') !== -1) {
+							errorMsg += '<br><small style="margin-top: 5px; display: block;"><a href="https://console.cloud.google.com/apis/credentials" target="_blank">Open Google Cloud Console</a> to fix API key settings</small>';
+						}
 					}
 					container.html('<div class="autocomplete-item" style="padding: 10px; color: #d00;">' + errorMsg + '</div>');
 					console.error('Search failed:', response);
+					
+					// Also show error in the error container
+					if (errorMsg.indexOf('referer restrictions') !== -1 || errorMsg.indexOf('API key') !== -1) {
+						showConnectError(errorMsg.replace(/<[^>]*>/g, '')); // Remove HTML tags for error container
+					}
 				}
 			},
 			error: function(xhr, status, error) {
