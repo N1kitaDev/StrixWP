@@ -320,6 +320,8 @@ $this->setNotificationParam('not-using-no-connection', 'do-check', false);
 // Register AJAX handlers
 add_action('wp_ajax_' . $this->getWebhookAction(), [$this, 'webhook_handler']);
 add_action('wp_ajax_strix_get_google_reviews', [$this, 'ajax_get_google_reviews']);
+add_action('wp_ajax_strix_search_google_places', [$this, 'ajax_search_google_places']);
+add_action('wp_ajax_strix_get_place_details', [$this, 'ajax_get_place_details']);
 
 // Register Gutenberg block
 if ( !class_exists('strixGutenbergPlugin') && function_exists( 'register_block_type' ) && !WP_Block_Type_Registry::get_instance()->is_registered( 'strix/block-selector' )) {
@@ -7486,6 +7488,136 @@ private function fetch_google_reviews($place_id, $api_key)
     }
 
     return $reviews;
+}
+
+public function ajax_search_google_places()
+{
+    check_ajax_referer('strix_google_reviews_admin_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+    }
+
+    $query = isset($_POST['query']) ? sanitize_text_field($_POST['query']) : '';
+    $api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
+
+    if (empty($query) || empty($api_key)) {
+        wp_send_json_error(__('Missing required parameters', 'wp-reviews-plugin-for-google'));
+    }
+
+    // Search places using Google Places API Text Search
+    $url = 'https://maps.googleapis.com/maps/api/place/textsearch/json?' . http_build_query(array(
+        'query' => $query,
+        'key' => $api_key,
+        'type' => 'establishment'
+    ));
+
+    $response = wp_remote_get($url, array(
+        'timeout' => 30,
+        'headers' => array(
+            'Accept' => 'application/json'
+        )
+    ));
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(__('Failed to search places', 'wp-reviews-plugin-for-google'));
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    if (!$data || isset($data['error_message'])) {
+        wp_send_json_error(isset($data['error_message']) ? $data['error_message'] : __('Search failed', 'wp-reviews-plugin-for-google'));
+    }
+
+    if (isset($data['status']) && $data['status'] !== 'OK') {
+        wp_send_json_error(isset($data['error_message']) ? $data['error_message'] : __('Search failed', 'wp-reviews-plugin-for-google'));
+    }
+
+    $places = array();
+    if (isset($data['results'])) {
+        foreach ($data['results'] as $result) {
+            $photo_url = '';
+            if (isset($result['photos'][0]['photo_reference'])) {
+                $photo_url = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=' . $result['photos'][0]['photo_reference'] . '&key=' . $api_key;
+            }
+            
+            $places[] = array(
+                'place_id' => isset($result['place_id']) ? $result['place_id'] : '',
+                'name' => isset($result['name']) ? $result['name'] : '',
+                'formatted_address' => isset($result['formatted_address']) ? $result['formatted_address'] : '',
+                'rating' => isset($result['rating']) ? floatval($result['rating']) : 0,
+                'user_ratings_total' => isset($result['user_ratings_total']) ? intval($result['user_ratings_total']) : 0,
+                'photo_url' => $photo_url
+            );
+        }
+    }
+
+    wp_send_json_success(array(
+        'places' => $places,
+        'total' => count($places)
+    ));
+}
+
+public function ajax_get_place_details()
+{
+    check_ajax_referer('strix_google_reviews_admin_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Insufficient permissions', 'wp-reviews-plugin-for-google'));
+    }
+
+    $place_id = isset($_POST['place_id']) ? sanitize_text_field($_POST['place_id']) : '';
+    $api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
+
+    if (empty($place_id) || empty($api_key)) {
+        wp_send_json_error(__('Missing required parameters', 'wp-reviews-plugin-for-google'));
+    }
+
+    // Get place details using Google Places API
+    $url = 'https://maps.googleapis.com/maps/api/place/details/json?' . http_build_query(array(
+        'place_id' => $place_id,
+        'fields' => 'formatted_address,name,place_id,photos,rating,user_ratings_total,types',
+        'key' => $api_key
+    ));
+
+    $response = wp_remote_get($url, array(
+        'timeout' => 30,
+        'headers' => array(
+            'Accept' => 'application/json'
+        )
+    ));
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(__('Failed to get place details', 'wp-reviews-plugin-for-google'));
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    if (!$data || isset($data['error_message'])) {
+        wp_send_json_error(isset($data['error_message']) ? $data['error_message'] : __('Failed to get place details', 'wp-reviews-plugin-for-google'));
+    }
+
+    if (isset($data['status']) && $data['status'] !== 'OK') {
+        wp_send_json_error(isset($data['error_message']) ? $data['error_message'] : __('Failed to get place details', 'wp-reviews-plugin-for-google'));
+    }
+
+    $result = $data['result'];
+    $photo_url = '';
+    if (isset($result['photos'][0]['photo_reference'])) {
+        $photo_url = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=' . $result['photos'][0]['photo_reference'] . '&key=' . $api_key;
+    }
+
+    wp_send_json_success(array(
+        'place_id' => isset($result['place_id']) ? $result['place_id'] : '',
+        'name' => isset($result['name']) ? $result['name'] : '',
+        'formatted_address' => isset($result['formatted_address']) ? $result['formatted_address'] : '',
+        'rating' => isset($result['rating']) ? floatval($result['rating']) : 0,
+        'user_ratings_total' => isset($result['user_ratings_total']) ? intval($result['user_ratings_total']) : 0,
+        'photo_url' => $photo_url,
+        'types' => isset($result['types']) ? $result['types'] : array()
+    ));
 }
 }
 ?>

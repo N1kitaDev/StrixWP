@@ -664,6 +664,31 @@ update_option($pluginManagerInstance->get_option_name('review-download-token'), 
 #strix-connect-modal input:invalid::-webkit-validation-bubble-icon {
     display: none !important;
 }
+.strix-autocomplete-dropdown {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.strix-autocomplete-dropdown .autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+.strix-autocomplete-dropdown .autocomplete-item:hover,
+.strix-autocomplete-dropdown .autocomplete-item.active {
+    background: #f5f5f5;
+}
+.strix-autocomplete-dropdown .autocomplete-item:last-child {
+    border-bottom: none;
+}
+.form-group {
+    position: relative;
+}
 </style>
 <div class="modal fade strix-connect-modal" id="strix-connect-modal" tabindex="-1" role="dialog" aria-labelledby="strixConnectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">

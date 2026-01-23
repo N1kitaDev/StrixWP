@@ -164,9 +164,9 @@ jQuery(document).ready(function($) {
 			apiKeyInput.val(currentApiKey);
 		}
 
-		// Load API when key is available
+		// Initialize autocomplete when key is available
 		if (currentApiKey) {
-			loadGoogleMapsAPI(currentApiKey);
+			initializeServerSideAutocomplete(currentApiKey);
 		}
 
 		// Reinitialize when API key changes
@@ -174,17 +174,11 @@ jQuery(document).ready(function($) {
 			let newApiKey = $(this).val().trim();
 			if (newApiKey && newApiKey !== currentApiKey) {
 				currentApiKey = newApiKey;
-				// Reset autocomplete
-				let input = document.getElementById('strix-google-autocomplete-modal');
-				if (input && input.autocomplete) {
-					google.maps.event.clearInstanceListeners(input);
-					input.autocomplete = null;
-				}
 				$('#strix-selected-profile').hide();
 				window.selectedProfileData = null;
 				$('#strix-connect-profile-btn').prop('disabled', true);
-				// Reload API with new key
-				loadGoogleMapsAPI(newApiKey);
+				// Reinitialize autocomplete with new key
+				initializeServerSideAutocomplete(newApiKey);
 			}
 		});
 
@@ -194,83 +188,169 @@ jQuery(document).ready(function($) {
 		});
 	}
 
-	function loadGoogleMapsAPI(apiKey) {
-		// Check if API is already loaded with this key
-		if (typeof google !== 'undefined' && google.maps && google.maps.places) {
-			// API already loaded, just initialize autocomplete
-			initializeGooglePlacesInModal(apiKey);
-			return;
-		}
-
-		// Remove old script if exists
-		$('script[src*="maps.googleapis.com"]').remove();
-		window.googleMapsApiLoaded = false;
-
-		// Load Google Maps API dynamically
-		$.getScript('https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places&v=weekly')
-			.done(function() {
-				window.googleMapsApiLoaded = true;
-				initializeGooglePlacesInModal(apiKey);
-			})
-			.fail(function() {
-				showConnectError('Failed to load Google Maps API. Please check your API key.');
-			});
-	}
-
-	function initializeGooglePlacesInModal(apiKey) {
-		let input = document.getElementById('strix-google-autocomplete-modal');
-		if (!input) return;
+	function initializeServerSideAutocomplete(apiKey) {
+		let input = $('#strix-google-autocomplete-modal');
+		if (!input.length) return;
 
 		// Disable browser validation for this input
-		$(input).removeAttr('required');
-		$(input).removeAttr('pattern');
-		$(input).removeAttr('min');
-		$(input).removeAttr('max');
-		$(input).removeAttr('minlength');
-		$(input).removeAttr('maxlength');
+		input.removeAttr('required');
+		input.removeAttr('pattern');
+		input.removeAttr('min');
+		input.removeAttr('max');
+		input.removeAttr('minlength');
+		input.removeAttr('maxlength');
 
-		// Destroy existing autocomplete if exists
-		if (input.autocomplete) {
-			google.maps.event.clearInstanceListeners(input);
+		// Clear any existing autocomplete
+		if (input.data('autocomplete')) {
+			input.autocomplete('destroy');
 		}
 
-		let autocomplete = new google.maps.places.Autocomplete(input, {
-			fields: ['formatted_address', 'name', 'place_id', 'photos', 'rating', 'user_ratings_total', 'types'],
-			types: ['establishment']
+		// Create simple autocomplete dropdown
+		let autocompleteContainer = $('<div class="strix-autocomplete-dropdown"></div>').css({
+			position: 'absolute',
+			background: '#fff',
+			border: '1px solid #ddd',
+			borderRadius: '4px',
+			maxHeight: '300px',
+			overflowY: 'auto',
+			zIndex: 1000,
+			display: 'none',
+			width: input.outerWidth()
+		});
+		
+		// Remove existing dropdown if any
+		$('.strix-autocomplete-dropdown').remove();
+		input.after(autocompleteContainer);
+
+		let searchTimeout;
+		let selectedIndex = -1;
+
+		input.on('input', function() {
+			let query = $(this).val().trim();
+			
+			clearTimeout(searchTimeout);
+			
+			if (query.length < 2) {
+				autocompleteContainer.hide().empty();
+				return;
+			}
+
+			// Debounce search
+			searchTimeout = setTimeout(function() {
+				searchPlaces(query, apiKey, autocompleteContainer, input);
+			}, 300);
 		});
 
-		// Store reference
-		input.autocomplete = autocomplete;
-
-		autocomplete.addListener('place_changed', function() {
-			let place = autocomplete.getPlace();
-
-			if (place.place_id) {
-				displaySelectedProfile({
-					id: place.place_id,
-					name: place.name,
-					address: place.formatted_address || '',
-					rating_score: place.rating || 0,
-					rating_number: place.user_ratings_total || 0,
-					avatar_url: (place.photos && place.photos.length > 0) ? place.photos[0].getUrl({maxWidth: 400, maxHeight: 400}) : '',
-					type: place.types ? place.types.join(', ') : ''
-				});
+		input.on('keydown', function(e) {
+			let items = autocompleteContainer.find('.autocomplete-item');
+			
+			if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+				items.removeClass('active').eq(selectedIndex).addClass('active');
+				autocompleteContainer.scrollTop(items.eq(selectedIndex).position().top + autocompleteContainer.scrollTop() - 50);
+			} else if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				selectedIndex = Math.max(selectedIndex - 1, -1);
+				items.removeClass('active');
+				if (selectedIndex >= 0) {
+					items.eq(selectedIndex).addClass('active');
+					autocompleteContainer.scrollTop(items.eq(selectedIndex).position().top + autocompleteContainer.scrollTop() - 50);
+				}
+			} else if (e.key === 'Enter') {
+				e.preventDefault();
+				if (selectedIndex >= 0 && items.length > selectedIndex) {
+					items.eq(selectedIndex).click();
+				} else if (items.length === 1) {
+					items.eq(0).click();
+				} else {
+					// Try to fetch by Place ID if it looks like one
+					let value = $(this).val().trim();
+					let placeId = extractPlaceIdFromInput(value);
+					if (placeId) {
+						fetchPlaceDetails(placeId, apiKey);
+					}
+				}
+			} else if (e.key === 'Escape') {
+				autocompleteContainer.hide();
 			}
 		});
 
-		// Handle manual Place ID or URL input
-		$(input).on('blur', function() {
+		// Handle blur - but allow time for click
+		input.on('blur', function() {
+			setTimeout(function() {
+				autocompleteContainer.hide();
+			}, 200);
+		});
+
+		// Handle manual Place ID or URL input on blur
+		input.on('blur', function() {
 			let value = $(this).val().trim();
 			if (value && !value.includes(' ')) {
-				// Might be a Place ID or URL
 				let placeId = extractPlaceIdFromInput(value);
 				if (placeId) {
-					// Get current API key from input
-					let currentApiKey = $('#strix-google-api-key-modal').val().trim() || apiKey;
-					fetchPlaceDetails(placeId, currentApiKey);
+					fetchPlaceDetails(placeId, apiKey);
 				}
 			}
 		});
+	}
+
+	function searchPlaces(query, apiKey, container, input) {
+		container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">Searching...</div>').show();
+
+		// Use ajaxurl from config or fallback
+		let ajaxUrl = (typeof strix_connect_config !== 'undefined' && strix_connect_config.ajaxurl) 
+			? strix_connect_config.ajaxurl 
+			: (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+
+		$.ajax({
+			url: ajaxUrl,
+			type: 'POST',
+			data: {
+				action: 'strix_search_google_places',
+				nonce: strix_connect_config.nonce || '',
+				query: query,
+				api_key: apiKey
+			},
+			success: function(response) {
+				if (response.success && response.data && response.data.places) {
+					displaySearchResults(response.data.places, container, input, apiKey);
+				} else {
+					container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">No results found</div>');
+				}
+			},
+			error: function() {
+				container.html('<div class="autocomplete-item" style="padding: 10px; color: #d00;">Search failed</div>');
+			}
+		});
+	}
+
+	function displaySearchResults(places, container, input, apiKey) {
+		container.empty();
+		
+		if (places.length === 0) {
+			container.html('<div class="autocomplete-item" style="padding: 10px; color: #999;">No results found</div>');
+			return;
+		}
+
+		places.forEach(function(place) {
+			let item = $('<div class="autocomplete-item" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;"></div>');
+			item.html('<strong>' + place.name + '</strong><br><small style="color: #666;">' + place.formatted_address + '</small>');
+			
+			item.on('mouseenter', function() {
+				$(this).css('background', '#f5f5f5');
+			}).on('mouseleave', function() {
+				$(this).css('background', '');
+			}).on('click', function() {
+				fetchPlaceDetails(place.place_id, apiKey);
+				container.hide();
+				input.val(place.name);
+			});
+			
+			container.append(item);
+		});
+		
+		container.show();
 	}
 
 	function extractPlaceIdFromInput(input) {
@@ -297,38 +377,42 @@ jQuery(document).ready(function($) {
 			return;
 		}
 
-		// Check if Google Maps API is loaded
-		if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
-			showConnectError('Google Maps API is not loaded. Please wait a moment and try again.');
-			return;
-		}
+		// Use ajaxurl from config or fallback
+		let ajaxUrl = (typeof strix_connect_config !== 'undefined' && strix_connect_config.ajaxurl) 
+			? strix_connect_config.ajaxurl 
+			: (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
 
-		let service = new google.maps.places.PlacesService(document.createElement('div'));
-		
-		service.getDetails({
-			placeId: placeId,
-			fields: ['formatted_address', 'name', 'place_id', 'photos', 'rating', 'user_ratings_total', 'types']
-		}, function(place, status) {
-			if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-				displaySelectedProfile({
-					id: place.place_id,
-					name: place.name,
-					address: place.formatted_address || '',
-					rating_score: place.rating || 0,
-					rating_number: place.user_ratings_total || 0,
-					avatar_url: (place.photos && place.photos.length > 0) ? place.photos[0].getUrl({maxWidth: 400, maxHeight: 400}) : '',
-					type: place.types ? place.types.join(', ') : ''
-				});
-				// Update input field
-				$('#strix-google-autocomplete-modal').val(place.name);
-			} else {
-				let errorMsg = 'Place not found. ';
-				if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-					errorMsg += 'Please check your Place ID or try searching by name.';
-				} else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
-					errorMsg += 'API key may be invalid or missing required permissions.';
+		$.ajax({
+			url: ajaxUrl,
+			type: 'POST',
+			data: {
+				action: 'strix_get_place_details',
+				nonce: strix_connect_config.nonce || '',
+				place_id: placeId,
+				api_key: apiKey
+			},
+			success: function(response) {
+				if (response.success && response.data) {
+					let place = response.data;
+					displaySelectedProfile({
+						id: place.place_id,
+						name: place.name,
+						address: place.formatted_address || '',
+						rating_score: place.rating || 0,
+						rating_number: place.user_ratings_total || 0,
+						avatar_url: place.photo_url || '',
+						type: place.types ? place.types.join(', ') : ''
+					});
+					// Update input field
+					$('#strix-google-autocomplete-modal').val(place.name);
 				} else {
-					errorMsg += 'Status: ' + status;
+					showConnectError(response.data || 'Place not found. Please check your Place ID or try searching by name.');
+				}
+			},
+			error: function(xhr) {
+				let errorMsg = 'Failed to get place details. ';
+				if (xhr.responseJSON && xhr.responseJSON.data) {
+					errorMsg = xhr.responseJSON.data;
 				}
 				showConnectError(errorMsg);
 			}
