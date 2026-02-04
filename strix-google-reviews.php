@@ -21,6 +21,10 @@ Copyright 2024 Strix Media
 defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 require_once plugin_dir_path(__FILE__) . 'include' . DIRECTORY_SEPARATOR . 'cache-plugin-filters.php';
 require_once plugin_dir_path(__FILE__) . 'trustindex-plugin.class.php';
+
+// Подключаем наши кастомные настройки Strix Box
+require_once plugin_dir_path(__FILE__) . 'includes' . DIRECTORY_SEPARATOR . 'strix-admin-settings.php';
+require_once plugin_dir_path(__FILE__) . 'includes' . DIRECTORY_SEPARATOR . 'strix-shortcodes.php';
 $trustindex_pm_google = new TrustindexPlugin_google("google", __FILE__, "13.2.5", "Widgets for Google Reviews", "Google");
 $pluginManager = 'TrustindexPlugin_google';
 $pluginManagerInstance = $trustindex_pm_google;
